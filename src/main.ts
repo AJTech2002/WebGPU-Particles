@@ -1,4 +1,4 @@
-import { Renderer } from "./renderer";
+import { Renderer } from "./core/engine/renderer";
 
 const canvas: HTMLCanvasElement = <HTMLCanvasElement>document.getElementById("gfx-main");
 
