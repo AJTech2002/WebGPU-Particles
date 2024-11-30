@@ -1,17 +1,32 @@
-import { mat4, vec3 } from "gl-matrix";
+import { mat4, vec3, vec4 } from "gl-matrix";
 import Mesh from "./core/engine/mesh/mesh";
 import InstancedMesh from "./core/engine/mesh/instanced_mesh";
 import Pass from "./core/engine/pass";
 import Scene from "./core/engine/scene";
 import ParticleComputePass from "./pass/computepass";
 import ParticleRenderPass from "./pass/renderpass";
+import {View} from 'structurae';
+
+interface BoidData {
+  target: vec4;
+  hasTarget: boolean;
+}
+
+const boidDataStructSize = 4 + 4; // Number of floats in the struct * 4 = 32 bytes
 
 export class QuadMesh extends InstancedMesh {
   object_data: Float32Array;
   instances: mat4[] = [];
 
+  boids: BoidData[] = [];
+  boid_data: Float32Array;
+
+  boidBuffer: GPUBuffer;
+
   constructor(device: GPUDevice, renderPass: ParticleRenderPass, scene: Scene, computePass: ParticleComputePass) {
     super(device, renderPass, scene);
+
+    const view = new View();
 
     // SQUARE VERTICES
     this.vertices = new Float32Array([
@@ -20,10 +35,10 @@ export class QuadMesh extends InstancedMesh {
       0.0, 1.0, -0.5, 0.5, 0.0, 1.0, 0.0, 0.0,
     ]);
 
-    let triCount = 10000;
-
-    this.object_data = new Float32Array(triCount * 10);
-    this.instanceCount = 0;
+    let numberOfParticles = 10000;
+    this.instanceCount = 0; // start at 0 and populate with instances
+    this.object_data = new Float32Array(numberOfParticles * 16); // Mat4 per particle
+    this.boid_data = new Float32Array(numberOfParticles * boidDataStructSize); // Vec4 Position per particle
 
     this.vertexCount = this.vertices.length / 6;
 
@@ -46,7 +61,7 @@ export class QuadMesh extends InstancedMesh {
     this.vertexBuffer.unmap();
 
     var instanceCount = 0;
-    for (var y: number = 0; y < triCount; y++) {
+    for (var y: number = 0; y < numberOfParticles; y++) {
       let model = mat4.create();
 
       let randomX = Math.random() * 20 - 10;
@@ -61,18 +76,29 @@ export class QuadMesh extends InstancedMesh {
         this.object_data[16 * instanceCount + j] = <number>model.at(j);
       }
 
+      this.setBoidData(instanceCount, { target: vec4.fromValues(0, 0, 0, 1), hasTarget: false });
       instanceCount++;
     }
 
     this.instanceCount = instanceCount;
 
     this.objectBuffer = this.device.createBuffer({
-      size: 64 * 10024,
+      size: instanceCount * 16 * 4,
       usage:
         GPUBufferUsage.STORAGE |
         GPUBufferUsage.COPY_DST |
         GPUBufferUsage.COPY_SRC,
     });
+
+    this.boidBuffer = this.device.createBuffer({
+      size: instanceCount * boidDataStructSize * 4,
+      usage:
+        GPUBufferUsage.STORAGE |
+        GPUBufferUsage.COPY_DST |
+        GPUBufferUsage.COPY_SRC,
+    });
+
+    this.updateBoidBuffer();
 
     this.computeBindGroup = this.device.createBindGroup({
         layout: computePass.getBindGroupLayout(),
@@ -81,6 +107,10 @@ export class QuadMesh extends InstancedMesh {
             binding: 0,
             resource: { buffer: this.objectBuffer },
           },
+          {
+            binding: 1,
+            resource: {buffer: this.boidBuffer}
+          }
         ],
       });
 
@@ -97,8 +127,7 @@ export class QuadMesh extends InstancedMesh {
       this.objectBuffer,
       0,
       this.object_data.buffer,
-      0,
-      this.object_data.length * 4
+      
     );
 
     this.bindGroup = this.device.createBindGroup({
@@ -119,4 +148,30 @@ export class QuadMesh extends InstancedMesh {
       ],
     });
   }
+  
+  setBoidTarget(target: vec3, index: number) {
+    for (var i = 0; i < this.instanceCount; i++) {
+      this.setBoidData(i, { target: vec4.fromValues(target[0], target[1], target[2], 1.0), hasTarget: true });
+    }
+  }
+
+  setBoidData(index: number, data: BoidData) {
+    const packedSize = boidDataStructSize;
+    this.boid_data[index * packedSize] = data.target[0];
+    this.boid_data[index * packedSize + 1] = data.target[1];
+    this.boid_data[index * packedSize + 2] = data.target[2];
+    this.boid_data[index * packedSize + 3] = data.target[3];
+    this.boid_data[index * packedSize + 4] = data.hasTarget ? 1 : 0;
+  }
+
+  updateBoidBuffer() {
+    this.device.queue.writeBuffer(
+      this.boidBuffer,
+      0,
+      this.boid_data.buffer,
+      0,
+      this.boid_data.length * 4
+    );
+  }
+
 }

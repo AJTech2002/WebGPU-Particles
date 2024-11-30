@@ -16,6 +16,11 @@ export default class ParticleComputePass extends Pass {
           visibility: GPUShaderStage.COMPUTE,
           buffer: { type: "storage" },
         },
+        {
+          binding: 1,
+          visibility: GPUShaderStage.COMPUTE,
+          buffer: { type: "storage" },
+        }
       ],
     });
 

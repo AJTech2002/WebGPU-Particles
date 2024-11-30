@@ -16,7 +16,7 @@ fn translate(matrix: mat4x4<f32>, translation: vec3<f32>) -> mat4x4<f32> {
 
 fn move_towards (matrix: mat4x4<f32>, towards: vec3<f32>, speed: f32) -> mat4x4<f32> {
   let position = matrix[3].xyz;
-  let translation = normalize(towards - position) * speed;
+  var translation = normalize(towards - position) * speed;
   return translate(matrix, translation);
 }
 
@@ -40,11 +40,18 @@ fn rotate(matrix: mat4x4<f32>, angle: f32, _axis: vec3<f32>) -> mat4x4<f32> {
     return matrix * rotationMatrix;
 }
 
-fn rotateTowards (matrix: mat4x4<f32>, towards: vec3<f32>) -> mat4x4<f32> {
-  let forward = get_forward(matrix);
-  let angle = acos(dot(forward, towards));
-  let axis = cross(forward, towards);
+fn rotate_towards (matrix: mat4x4<f32>, towards: vec3<f32>) -> mat4x4<f32> {
+  let position = matrix[3].xyz;
+  let direction = normalize(towards - position);
+  let angle = acos(dot(vec3(0.0, 0.0, -1.0), direction));
+  
+
+  let axis = vec3(0.0, 0.0, -1.0);
   return rotate(matrix, angle, axis);
+}
+
+fn get_position (matrix: mat4x4<f32>) -> vec3<f32> {
+  return matrix[3].xyz;
 }
 
 fn get_forward (matrix: mat4x4<f32>) -> vec3<f32> {

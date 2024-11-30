@@ -20,6 +20,7 @@
     "live-server": "*",
     "node": "*",
     "polyline-normals": "^2.0.2",
+    "structurae": "^4.0.2",
     "ts-loader": "*",
     "ts-shader-loader": "*",
     "typescript": "*",

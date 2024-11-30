@@ -1,4 +1,4 @@
-import { mat4 } from "gl-matrix";
+import { mat4, vec4 } from "gl-matrix";
 import { Renderer } from "./renderer";
 
 export interface CameraData {
@@ -6,6 +6,8 @@ export interface CameraData {
   projection: mat4;
   transform: mat4;
   buffer: GPUBuffer;
+  
+  leftRightBottomTop: vec4;
 }
 
 export default class Scene {
@@ -28,9 +30,12 @@ export default class Scene {
       view: mat4.create(),
       projection: mat4.create(),
       transform: mat4.create(),
+      leftRightBottomTop: [-8, 8, -6, 6],
     }
 
     this.cameraData.projection = mat4.create();
+
+    
     mat4.ortho(this.cameraData.projection , -8, 8, -6, 6, 0, 20);
 
     this.cameraData.view = mat4.create();
