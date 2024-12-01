@@ -4,7 +4,9 @@ import matrixShader from "../shaders/matrix.wgsl";
 import InstancedMesh from "../core/engine/mesh/instanced_mesh";
 
 export default class ParticleComputePass extends Pass {
-  private computePipeline : GPUComputePipeline;
+  private avoidancePipeline : GPUComputePipeline;
+  private movementPipeline : GPUComputePipeline;
+
   private meshes: InstancedMesh[] = [];
 
   constructor(device: GPUDevice, format: GPUTextureFormat) {
@@ -25,7 +27,7 @@ export default class ParticleComputePass extends Pass {
     });
 
 
-    this.computePipeline = this.device.createComputePipeline({
+    this.avoidancePipeline = this.device.createComputePipeline({
       layout: this.device.createPipelineLayout({
         bindGroupLayouts: [this.bindGroupLayout],
       }),
@@ -33,7 +35,19 @@ export default class ParticleComputePass extends Pass {
         module: this.device.createShaderModule({
           code: matrixShader + " \n " + computeShaderCode,
         }),
-        entryPoint: "computeMain",
+        entryPoint: "avoidanceMain",
+      },
+    });
+
+    this.movementPipeline = this.device.createComputePipeline({
+      layout: this.device.createPipelineLayout({
+        bindGroupLayouts: [this.bindGroupLayout],
+      }),
+      compute: {
+        module: this.device.createShaderModule({
+          code: matrixShader + " \n " + computeShaderCode,
+        }),
+        entryPoint: "movementMain",
       },
     });
   }
@@ -48,7 +62,7 @@ export default class ParticleComputePass extends Pass {
   ): void {
     super.run(commandEncoder, context);
     const computePass = commandEncoder.beginComputePass();
-    computePass.setPipeline(this.computePipeline);
+    computePass.setPipeline(this.avoidancePipeline);
 
     for (let mesh of this.meshes) {
       computePass.setBindGroup(0, mesh.getComputeBindGroup());
@@ -56,6 +70,16 @@ export default class ParticleComputePass extends Pass {
         Math.ceil(mesh.getInstanceCount() / 64)
       );
     }
+
+    computePass.setPipeline(this.movementPipeline);
+
+    for (let mesh of this.meshes) {
+      computePass.setBindGroup(0, mesh.getComputeBindGroup());
+      computePass.dispatchWorkgroups(
+        Math.ceil(mesh.getInstanceCount() / 64)
+      );
+    }
+
     computePass.end();
   }
 }

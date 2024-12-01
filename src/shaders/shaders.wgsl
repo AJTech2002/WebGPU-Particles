@@ -7,6 +7,7 @@ struct ObjectData {
     model: array<mat4x4<f32>>,
 }
 
+
 @binding(0) @group(0) var<uniform> transformUBO: TransformData;
 @binding(1) @group(0) var<storage, read> objects: ObjectData; // This is the 1
 
@@ -17,14 +18,9 @@ struct Fragment {
 };
 
 fn randomColor(id: u32) -> vec4<f32> {
-    var seed = f32(id) * 12.9898 + 78.233;
-    let hash = fract(sin(seed) * 43758.5453);
-    
-    // Use the hash to generate pseudo-random RGB values
-    let r = fract(hash * 0.9);
-    let g = fract(hash * 0.7);
-    let b = fract(hash * 0.5);
-    
+    var r = f32(id % 255) / 255.0;
+    var g = f32((id / 255) % 255) / 255.0;
+    var b = f32((id / (255 * 255)) % 255) / 255.0;
     return vec4<f32>(r, g, b, 1.0);
 }
 
@@ -39,7 +35,7 @@ fn vs_main( @builtin(instance_index) ID: u32, @location(0) vertexPostion: vec3<f
     output.Position = transformUBO.projection * transformUBO.view * objects.model[ID] * vec4<f32>(vertexPostion, 1.0);
     
 
-    var col = vec4<f32>(1.0, 0.0, 0.0, 1.0);
+    var col = randomColor(ID * 23);
 
     output.Color = col;
 

@@ -9,10 +9,11 @@ import {View} from 'structurae';
 
 interface BoidData {
   target: vec4;
+  avoidance: vec4;
   hasTarget: boolean;
 }
 
-const boidDataStructSize = 4 + 4; // Number of floats in the struct * 4 = 32 bytes
+const boidDataStructSize = 4 + 4 + 4; // Number of floats in the struct * 4 = 48 bytes
 
 export class QuadMesh extends InstancedMesh {
   object_data: Float32Array;
@@ -35,7 +36,7 @@ export class QuadMesh extends InstancedMesh {
       0.0, 1.0, -0.5, 0.5, 0.0, 1.0, 0.0, 0.0,
     ]);
 
-    let numberOfParticles = 10000;
+    let numberOfParticles = 20000;
     this.instanceCount = 0; // start at 0 and populate with instances
     this.object_data = new Float32Array(numberOfParticles * 16); // Mat4 per particle
     this.boid_data = new Float32Array(numberOfParticles * boidDataStructSize); // Vec4 Position per particle
@@ -76,7 +77,7 @@ export class QuadMesh extends InstancedMesh {
         this.object_data[16 * instanceCount + j] = <number>model.at(j);
       }
 
-      this.setBoidData(instanceCount, { target: vec4.fromValues(0, 0, 0, 1), hasTarget: false });
+      this.setBoidData(instanceCount, { target: vec4.fromValues(0, 0, 0, 1), hasTarget: false, avoidance: vec4.fromValues(0, 0, 0, 0) });
       instanceCount++;
     }
 
@@ -151,7 +152,7 @@ export class QuadMesh extends InstancedMesh {
   
   setBoidTarget(target: vec3, index: number) {
     for (var i = 0; i < this.instanceCount; i++) {
-      this.setBoidData(i, { target: vec4.fromValues(target[0], target[1], target[2], 1.0), hasTarget: true });
+      this.setBoidData(i, { target: vec4.fromValues(target[0], target[1], target[2], 1.0), hasTarget: true, avoidance: vec4.fromValues(0, 0, 0, 0) });
     }
   }
 
@@ -161,7 +162,13 @@ export class QuadMesh extends InstancedMesh {
     this.boid_data[index * packedSize + 1] = data.target[1];
     this.boid_data[index * packedSize + 2] = data.target[2];
     this.boid_data[index * packedSize + 3] = data.target[3];
-    this.boid_data[index * packedSize + 4] = data.hasTarget ? 1 : 0;
+
+    this.boid_data[index * packedSize + 4] = data.avoidance[0];
+    this.boid_data[index * packedSize + 5] = data.avoidance[1];
+    this.boid_data[index * packedSize + 6] = data.avoidance[2];
+    this.boid_data[index * packedSize + 7] = data.avoidance[3];
+
+    this.boid_data[index * packedSize + 8] = data.hasTarget ? 1 : 0;
   }
 
   updateBoidBuffer() {

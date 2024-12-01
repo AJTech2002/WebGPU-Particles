@@ -58,8 +58,6 @@ export default class TestScene extends Scene {
     if (this.mousePosWorld) {
       this.particleMesh.setBoidTarget(this.mousePosWorld, 0);
       this.particleMesh.updateBoidBuffer();
-
-      console.log(this.mousePosWorld);
     }
 
     this.computePass.run(commandEncoder, context);

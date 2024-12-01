@@ -13,10 +13,14 @@ fn translate(matrix: mat4x4<f32>, translation: vec3<f32>) -> mat4x4<f32> {
         )
     );
 }
+fn safe_normalize(v: vec3<f32>) -> vec3<f32> {
+    let len = length(v);
+    return select(v / len, vec3<f32>(0.0), len == 0.0);
+}
 
 fn move_towards (matrix: mat4x4<f32>, towards: vec3<f32>, speed: f32) -> mat4x4<f32> {
   let position = matrix[3].xyz;
-  var translation = normalize(towards - position) * speed;
+  var translation = safe_normalize(towards - position) * speed;
   return translate(matrix, translation);
 }
 
