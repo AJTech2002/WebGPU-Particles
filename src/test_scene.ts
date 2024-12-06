@@ -2,11 +2,11 @@ import ParticleComputePass from "./pass/computepass";
 import ParticleRenderPass from "./pass/renderpass";
 import { Renderer } from "./core/engine/renderer";
 import Scene from "./core/engine/scene";
-import { QuadMesh } from "./particle_system";
+import { InstancedQuadMesh } from "./particle_system";
 import { vec3, vec4 } from "gl-matrix";
 
 export default class TestScene extends Scene {
-  private particleMesh: QuadMesh;
+  private particleMesh: InstancedQuadMesh;
   private particleRenderPass: ParticleRenderPass;
   private computePass: ParticleComputePass;
   private mousePosWorld: vec3 | undefined;
@@ -20,7 +20,7 @@ export default class TestScene extends Scene {
     );
     this.computePass = new ParticleComputePass(this.device, renderer.format);
 
-    this.particleMesh = new QuadMesh(
+    this.particleMesh = new InstancedQuadMesh(
       this.device,
       this.particleRenderPass,
       this,

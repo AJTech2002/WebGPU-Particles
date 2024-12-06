@@ -70,9 +70,9 @@ fn avoidanceMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
 fn movementMain (@builtin(global_invocation_id) global_id: vec3<u32>) {
     let index = global_id.x;
     if (index < arrayLength(&objects.model) ) {
-        // if (boids[index].hasTarget == 0u) {
-        //     return;
-        // }
+        if (boids[index].hasTarget == 0u) {
+            return;
+        }
 
         var avoidance = boids[index].avoidanceVector.xyz;
         avoidance.z = 0.0;
@@ -80,29 +80,25 @@ fn movementMain (@builtin(global_invocation_id) global_id: vec3<u32>) {
         var defaultSpeed = 0.01;
 
         // var movementDirection = (boids[index].targetPosition.xyz - get_position(objects.model[index])) + avoidance;
-        let targetWeight = 0.2;
-        let avoidanceWeight = 1.0;
+        let targetWeight = 0.1;
+        let avoidanceWeight = 0.2;
 
         var targetP = boids[index].targetPosition.xyz;
         var movDir = (targetP - get_position(objects.model[index]));
 
         // check distance to target 
-        if (distance(get_position(objects.model[index]), targetP) < 3.0) {
+        if (distance(get_position(objects.model[index]), targetP) < 0.5) {
             movDir = vec3(0.0, 0.0, 0.0);
         }
 
         var movementDirection = safe_normalize(movDir * targetWeight + avoidance * avoidanceWeight);
 
-
         // clamp length without normalizing
         if (length(movementDirection) > 1.0) {
             movementDirection = safe_normalize(movementDirection);
         }
-        
 
         var destination = get_position(objects.model[index]) + movementDirection;
-
-   
         objects.model[index] = move_towards(objects.model[index], destination, defaultSpeed);
     }
 

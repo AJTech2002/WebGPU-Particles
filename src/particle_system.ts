@@ -15,7 +15,7 @@ interface BoidData {
 
 const boidDataStructSize = 4 + 4 + 4; // Number of floats in the struct * 4 = 48 bytes
 
-export class QuadMesh extends InstancedMesh {
+export class InstancedQuadMesh extends InstancedMesh {
   object_data: Float32Array;
   instances: mat4[] = [];
 
@@ -36,7 +36,7 @@ export class QuadMesh extends InstancedMesh {
       0.0, 1.0, -0.5, 0.5, 0.0, 1.0, 0.0, 0.0,
     ]);
 
-    let numberOfParticles = 20000;
+    let numberOfParticles = 2000;
     this.instanceCount = 0; // start at 0 and populate with instances
     this.object_data = new Float32Array(numberOfParticles * 16); // Mat4 per particle
     this.boid_data = new Float32Array(numberOfParticles * boidDataStructSize); // Vec4 Position per particle
