@@ -1,4 +1,5 @@
-import TestScene from "../../test_scene";
+import InfinityTest from "../../infinity_test";
+import ParticleScene from "../../test_scene";
 
 export class Renderer {
 
@@ -8,7 +9,7 @@ export class Renderer {
     context!: GPUCanvasContext;
     format!: GPUTextureFormat;
 
-    scene!: TestScene;
+    scene!: InfinityTest;
 
     //a little dodgy but let's do this for not
     t: number = 0.0;
@@ -20,7 +21,7 @@ export class Renderer {
 
     async Initialize() {
         await this.setupDevice();
-        this.scene = new TestScene(this);
+        this.scene = new InfinityTest(this);
         this.render();
     }
 

@@ -28,6 +28,17 @@ export default class ParticleRenderPass extends Pass {
             hasDynamicOffset: false,
           },
         },
+        {
+          binding: 2,
+          visibility: GPUShaderStage.FRAGMENT,
+          texture: {},
+        },
+        {
+          binding: 3,
+          visibility: GPUShaderStage.FRAGMENT,
+          sampler: {},
+        },
+     
       ],
     });
 
@@ -39,7 +50,7 @@ export default class ParticleRenderPass extends Pass {
     });
 
     const triangleBufferLayout : GPUVertexBufferLayout = {
-      arrayStride: 24,
+      arrayStride: 20,
       attributes: [
         {
           shaderLocation: 0,
@@ -48,7 +59,7 @@ export default class ParticleRenderPass extends Pass {
         },
         {
           shaderLocation: 1,
-          format: "float32x3", // vec3, color
+          format: "float32x2", // vec2, uv
           offset: 12,
         },
       ],
@@ -93,7 +104,7 @@ export default class ParticleRenderPass extends Pass {
     const renderpass: GPURenderPassEncoder = commandEncoder.beginRenderPass({
       colorAttachments: [{
           view: textureView,
-          clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
+          clearValue: { r:1.0, g: 1.0, b: 1.0, a: 1.0 },
           loadOp: "clear",
           storeOp: "store"
       }]

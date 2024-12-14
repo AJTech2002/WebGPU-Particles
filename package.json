@@ -8,7 +8,8 @@
     "install-missing-dependencies": "npm i",
     "build": "webpack --config webpack.config.js",
     "serve": "live-server --cors",
-    "watch": "webpack --watch --config webpack.config.js"
+    "watch": "webpack --watch --config webpack.config.js",
+    "publish:demo": "gh-pages -d dist"
   },
   "keywords": [],
   "author": "",

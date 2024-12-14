@@ -10,12 +10,14 @@ export interface CameraData {
   leftRightBottomTop: vec4;
 }
 
-export default class Scene {
+export default class  Scene {
 
   protected device: GPUDevice;
   protected renderer: Renderer;
 
   protected cameraData: CameraData;
+
+  protected cameraScale: number = 200;
 
   constructor(renderer: Renderer) {
 
@@ -24,7 +26,7 @@ export default class Scene {
 
     this.cameraData = {
       buffer: this.device.createBuffer({
-        size: 64 * 2,
+        size: 64  + 64 + 16, // 16 for alignment with mat4x4 (which is vec4x4)
         usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
       }),
       view: mat4.create(),
@@ -36,20 +38,60 @@ export default class Scene {
     this.cameraData.projection = mat4.create();
 
     
-    mat4.ortho(this.cameraData.projection , -8, 8, -6, 6, 0, 20);
+    this.renderer.canvas.width = window.innerWidth;
+    this.renderer.canvas.height = window.innerHeight;
 
-    this.cameraData.view = mat4.create();
-    mat4.lookAt(this.cameraData.view, [0, 0, 5], [0, 0, 0], [0, 1, 0]);
+
+    this.updateCamera();
+
+
+    // add a callback for window size and change camera
+    window.addEventListener("resize", () => {
+      this.updateCamera();
+    });
+
+    // listen for zoom events and change scaling
+    window.addEventListener("wheel", (e) => {
+      if (e.deltaY > 0) {
+        this.cameraScale += 5;
+      } else {
+        this.cameraScale -= 5;
+      }
+
+      console.log(this.cameraScale);
+
+      this.updateCamera();
+    });
     
+  }
+
+  public updateCamera() {
+    var windowWidth = window.innerWidth/this.cameraScale;
+    var windowHeight = window.innerHeight/this.cameraScale;
+
+    // updat canvas size
+    this.renderer.canvas.width = window.innerWidth;
+    this.renderer.canvas.height = window.innerHeight;
+
+    this.cameraData.leftRightBottomTop = [-windowWidth, windowWidth, -windowHeight, windowHeight];
+    mat4.ortho(this.cameraData.projection ,-windowWidth, windowWidth, -windowHeight, windowHeight, 0, 20);
   }
 
   public getCamera() : CameraData {
     return this.cameraData;
-  }
+  } 
+
+  private time: number = 0;
 
   render (commandEncoder: GPUCommandEncoder, context: GPUCanvasContext) {
+
+    const currentTime = performance.now() / 1000;
+    const deltaTime = currentTime - this.time;
+    this.time = currentTime;
+
     this.device.queue.writeBuffer(this.cameraData.buffer, 0, <ArrayBuffer>this.cameraData.view);
     this.device.queue.writeBuffer(this.cameraData.buffer, 64, <ArrayBuffer>this.cameraData.projection);
+    this.device.queue.writeBuffer(this.cameraData.buffer, 128, new Float32Array([performance.now() / 1000])); // time 
   }
 
 }

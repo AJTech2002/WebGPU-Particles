@@ -13,10 +13,12 @@ export default class Mesh {
   // The uniforms for this mesh (abstract into Material class later)
   protected bindGroup!: GPUBindGroup;
   protected pass!: Pass;
+  protected scene!: Scene;
 
   constructor(device: GPUDevice, pass: Pass, scene: Scene) {
     this.device = device;
     this.pass = pass;
+    this.scene = scene;
   }
 
   public getVertexBuffer(): GPUBuffer {

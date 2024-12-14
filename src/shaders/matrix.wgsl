@@ -24,6 +24,28 @@ fn move_towards (matrix: mat4x4<f32>, towards: vec3<f32>, speed: f32) -> mat4x4<
   return translate(matrix, translation);
 }
 
+fn scale(matrix: mat4x4<f32>, scale: vec3<f32>) -> mat4x4<f32> {
+    return mat4x4<f32>(
+        vec4<f32>(matrix[0].x * scale.x, matrix[0].y * scale.y, matrix[0].z * scale.z, matrix[0].w),
+        vec4<f32>(matrix[1].x * scale.x, matrix[1].y * scale.y, matrix[1].z * scale.z, matrix[1].w),
+        vec4<f32>(matrix[2].x * scale.x, matrix[2].y * scale.y, matrix[2].z * scale.z, matrix[2].w),
+        matrix[3]
+    );
+}
+
+fn get_scale(matrix: mat4x4<f32>) -> vec3<f32> {
+    return vec3<f32>(length(matrix[0].xyz), length(matrix[1].xyz), length(matrix[2].xyz));
+}
+
+fn set_scale(matrix: mat4x4<f32>, scale: vec3<f32>) -> mat4x4<f32> {
+    return mat4x4<f32>(
+        vec4<f32>(scale.x, 0.0, 0.0, 0.0),
+        vec4<f32>(0.0, scale.y, 0.0, 0.0),
+        vec4<f32>(0.0, 0.0, scale.z, 0.0),
+        matrix[3]
+    );
+}
+
 fn rotate(matrix: mat4x4<f32>, angle: f32, _axis: vec3<f32>) -> mat4x4<f32> {
     let c = cos(angle);
     let s = sin(angle);

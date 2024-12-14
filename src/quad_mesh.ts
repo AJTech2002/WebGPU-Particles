@@ -9,18 +9,16 @@ export class QuadMesh extends InstancedMesh {
     super(device, renderPass, scene);
 
     this.vertices = new Float32Array([
-      -0.5, -0.5, 0.0, 1.0, 0.0, 0.0, 
-      0.5, -0.5, 0.0, 0.0, 1.0, 0.0, 
-      -0.5, 0.5, 0.0, 0.0, 0.0, 1.0, 
-      0.5, -0.5, 0.0, 0.0, 1.0, 0.0, 
-      0.5, 0.5, 0.0, 0.0, 0.0, 1.0, 
-      -0.5, 0.5, 0.0, 1.0, 0.0, 0.0,
+      // Poisitions     // UV
+      -0.5, -0.5,0.0,   0.0, 0.0,
+      0.5, -0.5, 0.0,   1.0, 0.0,
+      -0.5, 0.5, 0.0,   0.0, 1.0,
+      0.5, -0.5, 0.0,   1.0, 0.0,
+      0.5, 0.5,  0.0,   1.0, 1.0,
+      -0.5, 0.5, 0.0,   0.0, 1.0
     ]);
 
-    
-
     this.vertexCount = this.vertices.length / 6;
-
 
     super(device, renderPass, scene);
   }  
