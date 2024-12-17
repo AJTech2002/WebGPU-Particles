@@ -10,13 +10,17 @@ export class Renderer {
     format!: GPUTextureFormat;
 
     scene!: InfinityTest;
+    
+    // onRender callback fn w2ith delta time
+    public onRender: (delta: number) => void = () => {};
 
     //a little dodgy but let's do this for not
     t: number = 0.0;
 
-    constructor(canvas: HTMLCanvasElement) {
+    constructor(canvas: HTMLCanvasElement, onRender: (delta: number) => void) {
         this.canvas = canvas;
         this.t = 0.0;
+        this.onRender = onRender;
     }
 
     async Initialize() {
@@ -55,6 +59,8 @@ export class Renderer {
         this.scene.render(commandEncoder, this.context);
         this.device.queue.submit([commandEncoder.finish()]);
         requestAnimationFrame(this.render);
+
+        this.onRender(this.t);
     }
 
 }

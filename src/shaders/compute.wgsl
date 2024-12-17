@@ -2,12 +2,38 @@ struct ObjectData {
     model: array<mat4x4<f32>>,
 }
 
+struct BoidComputeData {
+    acceleration: vec4<f32>,
+}
+
 // Number of bytes: 32
 struct BoidData {
     targetPosition: vec4<f32>, // 16 bytes
     avoidanceVector: vec4<f32>, // 16 bytes
     hasTarget: u32,            // 4 bytes
     speed: f32,               // 4 bytes
+}
+
+// the current state within this pixel
+var<private> local_rnd_state:vec4u;
+
+fn random_u32(state:ptr<private,vec4u>) -> u32 {
+  var st:vec4u = *state;
+  /* Algorithm "xor128" from p. 5 of Marsaglia, "Xorshift RNGs" */
+  // Load the state from the storage buffer
+  var t: u32 = st.w;
+  var s: u32 = st.x;
+  t ^= t << 11;
+  t ^= t >> 8;
+  var x:u32 = t ^ s ^ (s >> 19);
+  *state = vec4u(
+    x, s, st.y, st.z
+  );
+  return x;
+}
+
+fn random() -> f32 {
+  return f32(random_u32(&local_rnd_state)) / 0x100000000;
 }
 
 
@@ -18,7 +44,18 @@ struct BoidData {
 
 @compute @workgroup_size(64)
 fn avoidanceMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
+
+
+    
     let index = global_id.x;
+
+    local_rnd_state = vec4u(
+        index + 1u,
+        index + 2u,
+        index + 3u,
+        index + 4u
+    );
+
     if (index < arrayLength(&objects.model) ) {
 
         var avoidance = vec3(0.0, 0.0, 0.0);
@@ -30,14 +67,24 @@ fn avoidanceMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
                 // if the distance between the two objects is less than 0.1
                 // move the object away from each other
                 let distance = distance(get_position(objects.model[index]), get_position(objects.model[i]));
-                if (distance < avoidanceDistance) {
+                
+                if (distance == 0.0) {
+                    // pick a random direction
+                    var x = random();
+                    var y = random();
+                    var randomDirection = vec3(x, y, 0.0);
+                    randomDirection = safe_normalize(randomDirection) * 0.01;
+                    avoidance =  randomDirection;
+                }
+                else if (distance < avoidanceDistance) {
                     // objects.model[index] = move_towards(objects.model[index], get_position(objects.model[index]) - get_position(objects.model[i]), 0.01);
                     
                     var avVector = (get_position(objects.model[index]) - get_position(objects.model[i]));
                     avVector = safe_normalize(avVector);
 
-                    // scale exponentially by distance 0.13 max
-                    avVector = avVector * max(0.0, (avoidanceDistance - distance));
+                    // scale exponentially by distance 
+                    // avVector = avVector * max(0.0, (avoidanceDistance - distance));
+                    avVector = avVector * min((avoidanceDistance - distance), 0.1);
 
                     avoidance = avoidance + avVector;
                 }
@@ -47,7 +94,7 @@ fn avoidanceMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
         var maxAvoidanceMagnitude = 1.0;
         
         avoidance.z = 0.0;
-        // avoidance = normalize(avoidance) * min(length(avoidance), maxAvoidanceMagnitude);
+        // avoidance = safe_normalize(avoidance) * min(length(avoidance), maxAvoidanceMagnitude);
         
         avoidance *= 1.0;
         
@@ -74,7 +121,7 @@ fn movementMain (@builtin(global_invocation_id) global_id: vec3<u32>) {
         var avoidance = boids[index].avoidanceVector.xyz;
         avoidance.z = 0.0;
 
-        var defaultSpeed = 0.01 * boids[index].speed;
+        var defaultSpeed = 1 * dT * boids[index].speed;
 
         // var movementDirection = (boids[index].targetPosition.xyz - get_position(objects.model[index])) + avoidance;
         var targetWeight = 0.1;

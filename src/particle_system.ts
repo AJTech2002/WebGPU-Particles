@@ -60,7 +60,7 @@ export class InstancedQuadMesh extends InstancedMesh {
     ]);
 
     let numberOfParticles = 0;
-    let maxNumberOfParticles = 20000;
+    let maxNumberOfParticles = 10000;
     this.instanceCount = 0; // start at 0 and populate with instances
     this.object_data = new Float32Array(maxNumberOfParticles * 16); // Mat4 per particle
     this.boid_data = new Float32Array(maxNumberOfParticles * boidDataStructSize); // Vec4 Position per particle
@@ -90,11 +90,11 @@ export class InstancedQuadMesh extends InstancedMesh {
     this.instanceCount = instanceCount;
 
     this.objectBuffer = this.device.createBuffer({
-      size: 20000 * 16 * 4,
+      size: maxNumberOfParticles * 16 * 4,
       usage:
         GPUBufferUsage.STORAGE |
         GPUBufferUsage.COPY_DST |
-        GPUBufferUsage.COPY_SRC,
+        GPUBufferUsage.COPY_SRC 
     });
 
     this.boidBuffer = this.device.createBuffer({
@@ -187,14 +187,14 @@ export class InstancedQuadMesh extends InstancedMesh {
     });
   }
 
-  setBoidTarget(target: vec3, index: number) {
+  setBoidTarget( index: number, target: vec3) {
     if (index >= this.boids.length) {
       console.warn("Index out of bounds");
       return;
     }
 
     const boid = this.boids[index];
-    vec4.set(boid.target, target[0], target[1], target[2], 1);
+    vec4.set(boid.target, target[0], target[1], -10, 1);
     boid.hasTarget = true;
 
     this.setBoidData(index, boid);
@@ -223,7 +223,19 @@ export class InstancedQuadMesh extends InstancedMesh {
 
   private time: number = 0;
 
-  addGuy(pos: vec3) {
+  getPosition(index: number) : vec3 {
+      // get the matrix from the object data
+      const offset = index * 16;
+      const data = this.object_data!;
+      const position = vec3.create();
+      position[0] = data[offset + 12];
+      position[1] = data[offset + 13];
+      position[2] = data[offset + 14];
+
+      return position;
+  }
+
+  addGuy(pos: vec3, speed: number) {
     //TODO FILL THIS
     if (!this.object_data || !this.boid_data) {
       console.warn("Instance data not initialized");
@@ -256,7 +268,7 @@ export class InstancedQuadMesh extends InstancedMesh {
       target: vec4.fromValues(0, 0, 0, 1),
       hasTarget: false,
       avoidance: vec4.fromValues(0, 0, 0, 0),
-      speed: Math.random() + 0.3,
+      speed: speed,
     };
   
     this.boids.push(boidData);
@@ -332,5 +344,15 @@ export class InstancedQuadMesh extends InstancedMesh {
       0,
       this.boid_data.length * 4 // Times 4 because the buffer is in bytes
     );
+
+   this.objectBuffer.mapAsync(GPUMapMode.READ).then(() => {
+    const arrayBuffer = this.objectBuffer.getMappedRange();
+    const resultArray = new Float32Array(arrayBuffer.slice(0));
+    this.objectBuffer.unmap();
+
+    console.log(resultArray); // Outputs the data read from the storage buffer
+   })
+    
+
   }
 }

@@ -9,7 +9,7 @@ export default class ParticleScene extends Scene {
   protected particleMesh: InstancedQuadMesh;
   private particleRenderPass: ParticleRenderPass;
   private computePass: ParticleComputePass;
-  private mousePosWorld: vec3 | undefined;
+  public mousePosWorld: vec3 | undefined;
 
   constructor(renderer: Renderer) {
     super(renderer);
@@ -29,53 +29,53 @@ export default class ParticleScene extends Scene {
 
     this.setupParticles();
 
-    setTimeout(() => {
+    // setTimeout(() => {
 
-      let isMouseDown = false;
-      let mouseX = 0;
-      let mouseY = 0;
+    //   let isMouseDown = false;
+    //   let mouseX = 0;
+    //   let mouseY = 0;
       
-      window.addEventListener("mousedown", (e) => {
-        isMouseDown = true;
-        startLoop();
-      });
+    //   window.addEventListener("mousedown", (e) => {
+    //     isMouseDown = true;
+    //     startLoop();
+    //   });
       
-      window.addEventListener("mouseup", () => {
-        isMouseDown = false;
-        this.particleMesh.updateBuffers();
-        this.particleMesh.updateBoidBuffer();
-      });
+    //   window.addEventListener("mouseup", () => {
+    //     isMouseDown = false;
+    //     this.particleMesh.updateBuffers();
+    //     this.particleMesh.updateBoidBuffer();
+    //   });
       
-      window.addEventListener("mousemove", (e) => {
-        mouseX = e.clientX;
-        mouseY = e.clientY;
-      });
+    //   window.addEventListener("mousemove", (e) => {
+    //     mouseX = e.clientX;
+    //     mouseY = e.clientY;
+    //   });
       
-      const startLoop = () => {
-        const loop = () => {
-          if (isMouseDown) {
-            // Use current mouseX, mouseY
-            this.mousePosWorld = this.mouseToWorld({ clientX: mouseX, clientY: mouseY }, -10);
+    //   const startLoop = () => {
+    //     const loop = () => {
+    //       if (isMouseDown) {
+    //         // Use current mouseX, mouseY
+    //         this.mousePosWorld = this.mouseToWorld({ clientX: mouseX, clientY: mouseY }, -10);
             
-            for (let i = 0; i < 3; i++) {
-              console.log("Adding guy");
+    //         for (let i = 0; i < 3; i++) {
+    //           console.log("Adding guy");
 
-              const randomScatter = vec3.fromValues(
-                Math.random() * 0.2 - 0.1, Math.random() * 0.2 - 0.1, 0);
+    //           const randomScatter = vec3.fromValues(
+    //             Math.random() * 0.2 - 0.1, Math.random() * 0.2 - 0.1, 0);
 
-              this.particleMesh.addGuy(vec3.add(vec3.create(), this.mousePosWorld, randomScatter));
-            }
+    //           this.particleMesh.addGuy(vec3.add(vec3.create(), this.mousePosWorld, randomScatter));
+    //         }
       
-            requestAnimationFrame(loop); // Continue loop while mouse is down
-          }
-        };
-        loop();
-      };
+    //         requestAnimationFrame(loop); // Continue loop while mouse is down
+    //       }
+    //     };
+    //     loop();
+    //   };
 
     
 
       
-    }, 50);
+    // }, 50);
   }
 
   async setupParticles() {
@@ -119,7 +119,7 @@ export default class ParticleScene extends Scene {
       }
 
       this.particleMesh.updateBuffers();
-         this.particleMesh.updateBoidBuffer();
+        this.particleMesh.updateBoidBuffer();
     }
 
     // this.particleMesh.updateBuffers();
@@ -127,5 +127,9 @@ export default class ParticleScene extends Scene {
 
     this.computePass.run(commandEncoder, context);
     this.particleRenderPass.run(commandEncoder, context);
+  }
+
+  getParticles() {
+    return this.particleMesh;
   }
 }
