@@ -4,7 +4,7 @@ import InstancedMesh from "./core/engine/mesh/instanced_mesh";
 import Pass from "./core/engine/pass";
 import Scene from "./core/engine/scene";
 import ParticleComputePass from "./pass/computepass";
-import ParticleRenderPass from "./pass/renderpass";
+import ParticleRenderPass from "./renderer/core/renderpass";
 import { View } from "structurae";
 import Texture from "./core/engine/texture";
 
@@ -13,9 +13,6 @@ interface BoidData {
   avoidance: vec4; // bytes: 16
   hasTarget: boolean; // bytes: 4
   speed: number; // bytes: 4
-  // padding ( 8 bytes )
-  // total: 48 bytes
-  // struct size = 12 floats or 48 bytes
 }
 
 const boidDataStructSize = 4 + 4 + 4; // Stored in number of floats because of the way the buffer is created

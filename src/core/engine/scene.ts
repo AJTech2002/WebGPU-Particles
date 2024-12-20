@@ -83,15 +83,19 @@ export default class  Scene {
 
   private time: number = 0;
 
-  render (commandEncoder: GPUCommandEncoder, context: GPUCanvasContext) {
+  // render (commandEncoder: GPUCommandEncoder, context: GPUCanvasContext) {
 
-    const currentTime = performance.now() / 1000;
-    const deltaTime = currentTime - this.time;
-    this.time = currentTime;
+  //   const currentTime = performance.now() / 1000;
+  //   const deltaTime = currentTime - this.time;
+  //   this.time = currentTime;
 
-    this.device.queue.writeBuffer(this.cameraData.buffer, 0, <ArrayBuffer>this.cameraData.view);
-    this.device.queue.writeBuffer(this.cameraData.buffer, 64, <ArrayBuffer>this.cameraData.projection);
-    this.device.queue.writeBuffer(this.cameraData.buffer, 128, new Float32Array([performance.now() / 1000])); // time 
+  //   this.device.queue.writeBuffer(this.cameraData.buffer, 0, <ArrayBuffer>this.cameraData.view);
+  //   this.device.queue.writeBuffer(this.cameraData.buffer, 64, <ArrayBuffer>this.cameraData.projection);
+  //   this.device.queue.writeBuffer(this.cameraData.buffer, 128, new Float32Array([performance.now() / 1000])); // time 
+  // }
+
+  render (dT: number) {
+    console.log("Scene Render");
   }
 
 }

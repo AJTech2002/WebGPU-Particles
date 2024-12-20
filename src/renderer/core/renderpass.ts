@@ -1,7 +1,6 @@
-import InstancedMesh from "../core/engine/mesh/instanced_mesh";
-import Mesh from "../core/engine/mesh/mesh";
+import InstancedMesh from "../../core/engine/mesh/instanced_mesh";
 import shader from "../shaders/shaders.wgsl";
-import Pass from "../core/engine/pass";
+import Pass from "../../core/engine/pass";
 
 export default class ParticleRenderPass extends Pass {
 

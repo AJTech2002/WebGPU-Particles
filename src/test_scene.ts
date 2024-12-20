@@ -1,5 +1,5 @@
 import ParticleComputePass from "./pass/computepass";
-import ParticleRenderPass from "./pass/renderpass";
+import ParticleRenderPass from "./renderer/core/renderpass";
 import { Renderer } from "./core/engine/renderer";
 import Scene from "./core/engine/scene";
 import { InstancedQuadMesh } from "./particle_system";
@@ -99,35 +99,41 @@ export default class ParticleScene extends Scene {
     return vec3.fromValues(xWorld, yWorld, z);
   };
 
-  render(commandEncoder: GPUCommandEncoder, context: GPUCanvasContext): void {
-    super.render(commandEncoder, context);
+  // This stuff shouldn't be here 
+  // render(commandEncoder: GPUCommandEncoder, context: GPUCanvasContext): void {
+  //   super.render(commandEncoder, context);
 
-    if (this.mousePosWorld) {
+  //   if (this.mousePosWorld) {
       
-      for (let i = 0; i < this.particleMesh.boids.length; i++) {
+  //     for (let i = 0; i < this.particleMesh.boids.length; i++) {
 
-        // pick a random value between 0 to 100 and if less than 20 then scatter
-        if (Math.random() * 100 > 20) {
-          continue;
-        }
+  //       // pick a random value between 0 to 100 and if less than 20 then scatter
+  //       if (Math.random() * 100 > 20) {
+  //         continue;
+  //       }
 
-        var scatter = vec3.fromValues(
-          Math.random() * 5  - 2.5, Math.random()  * 5 - 2.5, 0);
+  //       var scatter = vec3.fromValues(
+  //         Math.random() * 5  - 2.5, Math.random()  * 5 - 2.5, 0);
           
 
-        // this.particleMesh.setBoidTarget(vec3.add(vec3.create(), this.mousePosWorld, scatter), i);
-      }
+  //       // this.particleMesh.setBoidTarget(vec3.add(vec3.create(), this.mousePosWorld, scatter), i);
+  //     }
 
-      this.particleMesh.updateBuffers();
-        this.particleMesh.updateBoidBuffer();
-    }
+  //     this.particleMesh.updateBuffers();
+  //       this.particleMesh.updateBoidBuffer();
+  //   }
 
-    // this.particleMesh.updateBuffers();
-    // this.particleMesh.updateBoidBuffer();
+  //   // this.particleMesh.updateBuffers();
+  //   // this.particleMesh.updateBoidBuffer();
 
-    this.computePass.run(commandEncoder, context);
-    this.particleRenderPass.run(commandEncoder, context);
+  //   this.computePass.run(commandEncoder, context);
+  //   this.particleRenderPass.run(commandEncoder, context);
+  // }
+
+  render (dt: number) {
+    
   }
+
 
   getParticles() {
     return this.particleMesh;

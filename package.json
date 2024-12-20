@@ -24,7 +24,9 @@
     "structurae": "^4.0.2",
     "ts-loader": "*",
     "ts-shader-loader": "*",
+    "typegpu": "0.1.0",
     "typescript": "*",
+    "webgpu-utils": "^1.9.3",
     "webpack": "*",
     "webpack-cli": "*"
   }

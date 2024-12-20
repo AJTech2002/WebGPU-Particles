@@ -8,17 +8,10 @@ export default class Mesh {
   protected vertexBuffer!: GPUBuffer;
   protected vertices!: Float32Array;
   protected vertexCount!: number;
-  protected device!: GPUDevice;
 
-  // The uniforms for this mesh (abstract into Material class later)
-  protected bindGroup!: GPUBindGroup;
-  protected pass!: Pass;
-  protected scene!: Scene;
 
-  constructor(device: GPUDevice, pass: Pass, scene: Scene) {
-    this.device = device;
-    this.pass = pass;
-    this.scene = scene;
+  constructor() {
+
   }
 
   public getVertexBuffer(): GPUBuffer {
@@ -31,9 +24,5 @@ export default class Mesh {
 
   public getVertices(): Float32Array {
     return this.vertices;
-  }
-
-  public getRenderBindGroup(): GPUBindGroup {
-    return this.bindGroup;
   }
 }
