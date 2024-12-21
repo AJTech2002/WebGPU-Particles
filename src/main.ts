@@ -4,4 +4,5 @@ const canvas: HTMLCanvasElement = <HTMLCanvasElement>document.getElementById("gf
 let lastTime = 0;
 
 const engine: Engine = new Engine(canvas);
+
 console.log("Engine", engine);

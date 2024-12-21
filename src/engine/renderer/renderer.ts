@@ -66,7 +66,7 @@ export class Renderer {
     }
 
     private initCameraBuffer() {
-        this.device.createBuffer({
+        this.globalUniformBuffer = this.device.createBuffer({
             size: 64  + 64 + 16, // 16 for alignment with mat4x4 (which is vec4x4)
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         })
@@ -80,7 +80,6 @@ export class Renderer {
 
     render = (deltaTime: number, materials: Material[]) => {
         const commandEncoder: GPUCommandEncoder = this._device.createCommandEncoder();
-        this._device.queue.submit([commandEncoder.finish()]);
 
         // Actual rendering logic should be done here
         const context: GPUCanvasContext = this.context;
@@ -113,6 +112,8 @@ export class Renderer {
         
 
         renderpass.end();
+        this._device.queue.submit([commandEncoder.finish()]);
+
     }
 
 }

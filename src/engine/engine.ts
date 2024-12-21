@@ -20,24 +20,23 @@ export default class Engine {
   private time: number = 0; 
 
   constructor(canvas : HTMLCanvasElement) {
-    console.log("Engine created v1.0.0");
+    console.log("Engine created v1.0.1");
     this.canvas = canvas;
     
     this.renderer = new Renderer(canvas);
     this.scene = new Scene(this.renderer);
 
     this.init();
-
-    requestAnimationFrame(() => this.renderLoop);
-
   }
 
   private init() {
-    this.renderer.init();
+    this.renderer.init().then(() => {
+      requestAnimationFrame((t) => this.renderLoop(t));
+    })
   }
 
-  private renderLoop() {
-    const time = performance.now();
+  private renderLoop(t : number) {
+    const time = t;
     const deltaTime = time - this.lastTime;
     this.lastTime = time;
     this.deltaTime = deltaTime;
@@ -49,7 +48,7 @@ export default class Engine {
 
     this.renderer.render(deltaTime, this.materials); // 3. Render the scene
 
-    requestAnimationFrame(() => this.renderLoop);
+    requestAnimationFrame((t) => this.renderLoop(t));
   }
 
 }
