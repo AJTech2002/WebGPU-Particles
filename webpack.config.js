@@ -27,6 +27,10 @@ module.exports = {
     },
     
     resolve: {
-        extensions: [".ts"]
+        extensions: [".ts"],
+        alias: {
+            "@engine": path.resolve(__dirname, 'src/engine/'),
+            "@renderer": path.resolve(__dirname, 'src/renderer/'),
+        },
     }
 }

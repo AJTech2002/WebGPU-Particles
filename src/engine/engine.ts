@@ -1,7 +1,6 @@
-import InfinityTest from "./infinity_test";
-import Material from "./material";
+import Scene from "./scene";
+import Material from "./renderer/material";
 import { Renderer } from "./renderer/renderer";
-
 
 export default class Engine {
 
@@ -10,7 +9,7 @@ export default class Engine {
 
   // TODO:
   // This will be more generalized and will take in a JSON Scene File
-  private scene: InfinityTest;
+  private scene: Scene;
 
   private materials: Material[] = [];
 
@@ -25,7 +24,7 @@ export default class Engine {
     this.canvas = canvas;
     
     this.renderer = new Renderer(canvas);
-    this.scene = new InfinityTest(this);
+    this.scene = new Scene(this.renderer);
 
     this.init();
 
@@ -44,8 +43,11 @@ export default class Engine {
     this.deltaTime = deltaTime;
     this.time += deltaTime;
     
-    this.scene.render(deltaTime);
-    this.renderer.render(deltaTime, this.materials);
+    this.scene.render(deltaTime); // 1. Update the scene
+
+    this.renderer.updateGlobalUniforms(this.scene.activeCamera.view, this.scene.activeCamera.projection, this.time); // 2. Update the global uniforms
+
+    this.renderer.render(deltaTime, this.materials); // 3. Render the scene
 
     requestAnimationFrame(() => this.renderLoop);
   }

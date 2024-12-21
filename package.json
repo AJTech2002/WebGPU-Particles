@@ -15,19 +15,19 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/node": "*",
     "@webgpu/types": "*",
     "gl-matrix": "^3.4.3",
     "live-server": "*",
     "node": "*",
     "polyline-normals": "^2.0.2",
     "structurae": "^4.0.2",
-    "ts-loader": "*",
     "ts-shader-loader": "*",
-    "typegpu": "0.1.0",
-    "typescript": "*",
     "webgpu-utils": "^1.9.3",
     "webpack": "*",
     "webpack-cli": "*"
+  },
+  "devDependencies": {
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.7.2"
   }
 }
