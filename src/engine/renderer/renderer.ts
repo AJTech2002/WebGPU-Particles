@@ -95,13 +95,14 @@ export class Renderer {
             const mat = materials[i];
             if (mat.bindGroup !== undefined && mat.meshes.length > 0) {
                 renderpass.setPipeline(mat.pipeline);
-                renderpass.setBindGroup(0, mat.bindGroup); // Material
+                renderpass.setBindGroup(0, mat.bindGroup); // Material Level Uniforms
                 for (let mesh of mat.meshes) {
-                    mat.onMeshRender(mesh);
-                    renderpass.setVertexBuffer(0, mesh.getVertexBuffer()); // Mesh
-                    // Explanation : 
-                    // Amount of times to call the vertex shader, passing an instance ID
-                    renderpass.draw(mesh.getVertexCount(), mat.instanceCount, 0, 0); 
+                    if (mesh.bindGroup !== undefined) {
+                        mesh.preRender(); // Update model buffer
+                        renderpass.setBindGroup(1, mesh.bindGroup); // Mesh Level Uniforms
+                        renderpass.setVertexBuffer(0, mesh.getVertexBuffer()); // Mesh
+                        renderpass.draw(mesh.getVertexCount(), mat.instanceCount, 0, 0); 
+                    }
                 }
             }
         }

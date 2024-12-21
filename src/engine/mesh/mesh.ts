@@ -1,10 +1,11 @@
 import Engine, { device } from "@engine/engine";
 import Material from "@engine/renderer/material";
 import Scene from "@engine/scene";
+import Component from "@engine/scene/component";
 import { Renderer } from "@renderer/renderer";
 import { mat4 } from "gl-matrix";
 
-export default class Mesh {
+export default class Mesh extends Component {
 
   public name: string = "Mesh";
 
@@ -12,21 +13,47 @@ export default class Mesh {
   protected vertexBuffer!: GPUBuffer;
   protected vertices!: Float32Array;
   protected vertexCount!: number;
+
   public transform: mat4;
 
   private material: Material | null = null;
-  private scene: Scene;
+  private modelBuffer: GPUBuffer;
+
+  public bindGroup?: GPUBindGroup;
 
   constructor(scene: Scene) {
+    super(scene);
     this.scene = scene;
 
     this.transform = mat4.identity(mat4.create());
     this.scene.meshes.push(this);
+
+    this.modelBuffer = this.scene.renderer.device.createBuffer({
+      size: 64,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+      mappedAtCreation: false, 
+    });
+
+    device.queue.writeBuffer(this.modelBuffer, 0, new Float32Array(16).buffer);
   }
 
   public setMaterial(material: Material) {
     this.material = material;
     this.material.meshes.push(this);
+
+    // Required uniforms from the mesh
+    this.bindGroup = device.createBindGroup({
+      layout: this.material.meshBindGroupLayout,
+      entries: [
+        {
+          binding: 0,
+          resource: {
+            buffer: this.modelBuffer,
+          },
+        },
+      ],
+    })
+
   }
 
   public getVertexBuffer(): GPUBuffer {
@@ -39,6 +66,16 @@ export default class Mesh {
 
   public getVertices(): Float32Array {
     return this.vertices;
+  }
+
+  public preRender(): void {
+    const device = this.scene.renderer.device;
+    if (this.modelBuffer) {
+      device.queue.writeBuffer(this.modelBuffer, 0, <ArrayBuffer>this.transform);
+    }
+    else {
+      console.error("ERR: Model buffer not initialized");
+    }
   }
 }
 

@@ -11,7 +11,9 @@ export default class Material {
   private device: GPUDevice;
   public pipeline: GPURenderPipeline;
   public bindGroup?: GPUBindGroup;
+
   protected bindGroupLayout: GPUBindGroupLayout;
+  public meshBindGroupLayout: GPUBindGroupLayout;
 
   private bindGroupEntriesMap: Map<string, GPUBindGroupEntry> = new Map();
   private bindGroupEntries: GPUBindGroupEntry[] = [];
@@ -63,10 +65,15 @@ export default class Material {
     };
 
     const descriptors = makeBindGroupLayoutDescriptors(defs, pipelineDesc);
-    const group0Layout = device.createBindGroupLayout(descriptors[0]);
-    const layout = device.createPipelineLayout({
-      bindGroupLayouts: [group0Layout],
+    let layouts : GPUBindGroupLayout[] = [];
+    descriptors.forEach((desc) => { 
+      layouts.push(device.createBindGroupLayout(desc));  
     });
+
+    const layout = device.createPipelineLayout({
+      bindGroupLayouts: layouts,
+    });
+
     const pipeline = device.createRenderPipeline({
       layout,
       ...pipelineDesc,
@@ -75,7 +82,9 @@ export default class Material {
    
 
     this.pipeline = pipeline;
-    this.bindGroupLayout = group0Layout;
+
+    this.bindGroupLayout = layouts[0]; // 0 = Global
+    this.meshBindGroupLayout = layouts[1]; // 1 = Mesh
    
   }
 
@@ -85,10 +94,6 @@ export default class Material {
 
   protected setupUniforms() {
     // This is where the material should store the bind group entries
-  }
-
-  public onMeshRender(mesh: Mesh) {
-    // This is where the material should update the bind group entries
   }
 
   protected setupBuffer() {    
@@ -115,25 +120,16 @@ export default class Material {
 
 export class StandardMaterial extends Material {
 
-  private modelBuffer: GPUBuffer | undefined;
-
   constructor(name: string, scene: Scene, shader?: string) {
     super(scene, shader ?? BasicFragShader);
     this.name = name;
   }
 
-
   protected override setupUniforms() {
     console.log("Setting up uniforms for StandardMaterial");
 
-    const device = this.scene.renderer.device;
-
-    this.modelBuffer = this.scene.renderer.device.createBuffer({
-      size: 64,
-      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-    });
-
     // All Standard Materials will have a cameraUniforms buffer
+    // TODO: This can come from a global bind group
     this.setUniformEntry("globalUniforms", {
       binding: 0,
       resource: {
@@ -141,25 +137,9 @@ export class StandardMaterial extends Material {
       },
     });
 
-    device.queue.writeBuffer(this.modelBuffer, 0, new Float32Array(16).buffer);
 
-    this.setUniformEntry("model", {
-      binding: 1,
-      resource: {
-        buffer: this.modelBuffer,
-      },
-    })
   }
 
-  public override onMeshRender(mesh: Mesh): void {
-    const device = this.scene.renderer.device;
-    if (this.modelBuffer) {
-      device.queue.writeBuffer(this.modelBuffer, 0, <ArrayBuffer>mesh.transform);
-    }
-    else {
-      console.error("ERR: Model buffer not initialized");
-    }
-  }
 }
 
 
@@ -176,12 +156,12 @@ export class StandardDiffuseMaterial extends StandardMaterial {
     super.setupUniforms();
 
     this.setUniformEntry("diffuseTexture", {
-      binding: 2,
+      binding: 1,
       resource: this.texture.view
     });
 
     this.setUniformEntry("sampler", {
-      binding: 3,
+      binding: 2,
       resource: this.texture.sampler
     });
   }
@@ -193,5 +173,4 @@ export class StandardDiffuseMaterial extends StandardMaterial {
     });
   }
   
-
 }

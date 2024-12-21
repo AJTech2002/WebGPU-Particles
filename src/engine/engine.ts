@@ -70,5 +70,6 @@ export let adapter: GPUAdapter;
 export async function createEngine(canvas: HTMLCanvasElement, scene: Scene) : Promise<Engine> {
   adapter = <GPUAdapter>await navigator.gpu?.requestAdapter();
   device = <GPUDevice>await adapter?.requestDevice();
+  
   return new Engine(canvas, scene);
 }

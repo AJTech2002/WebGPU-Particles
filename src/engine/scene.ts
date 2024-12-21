@@ -21,7 +21,7 @@ export default class  Scene {
   protected _meshes: Mesh[] = [];
   protected _materials: Material[] = [];
   
-  private time: number = 0;
+  protected time: number = 0;
 
   constructor() {
     this.cameraData = {
