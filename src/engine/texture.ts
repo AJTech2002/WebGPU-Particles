@@ -1,10 +1,39 @@
+import { device } from "@engine/engine";
+
 export default class Texture {
 
-  texture: GPUTexture | null = null;
-  view: GPUTextureView | null = null;
-  sampler: GPUSampler | null = null;
+  texture: GPUTexture;
+  view: GPUTextureView;
+  sampler: GPUSampler;
 
-  async loadTexture(device: GPUDevice, url: string) {
+
+  constructor() {
+    
+    // create dummy texture in the meantime
+    this.texture = device.createTexture({
+      size: {
+        width: 1,
+        height: 1,
+      },
+      format: "rgba8unorm",
+      usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
+      mipLevelCount: 1,
+      sampleCount: 1
+    });
+
+    this.view = this.texture.createView();
+    this.sampler = device.createSampler({
+      addressModeU: "repeat",
+      addressModeV: "repeat",
+      magFilter: "linear",
+      minFilter: "nearest",
+      mipmapFilter: "nearest",
+      maxAnisotropy: 1
+    });
+  } 
+
+
+  async loadTexture (url: string) {
     console.log("Loading texture");
     const response: Response = await fetch(url);
     console.log(response);
@@ -48,6 +77,7 @@ export default class Texture {
     }
 
     this.texture = device.createTexture(textureDescriptor);
+    
 
     // Command
     device.queue.copyExternalImageToTexture(

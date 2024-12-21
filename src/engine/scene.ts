@@ -81,10 +81,17 @@ export default class  Scene {
     this.cameraData.leftRightBottomTop = [-windowWidth, windowWidth, -windowHeight, windowHeight];
     mat4.ortho(this.cameraData.projection ,-windowWidth, windowWidth, -windowHeight, windowHeight, 0, 20);
   }
+
+  protected registerMaterial(material: Material) {
+
+    console.log("Registering material: " + material.name);
+    this._materials.push(material);
+    material.start();
+  }
+
   //#endregion
 
   render (dT: number) {
-    console.log("Scene Render");
     this.time += dT;
   }
 

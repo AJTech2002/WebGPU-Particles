@@ -1,8 +1,10 @@
 import { makeBindGroupLayoutDescriptors, makeShaderDataDefinitions } from "webgpu-utils";
 import Mesh from "../mesh/mesh";
 import BasicFragShader from "@renderer/shaders/simple_shader.wgsl";
+import BasicTextureFragShader from "@renderer/shaders/simple_textured_shader.wgsl";
 import Scene from "../scene";
 import { renderTargetFormat } from "@engine/engine";
+import Texture from "@engine/texture";
 
 
 export default class Material {
@@ -27,8 +29,6 @@ export default class Material {
     const device = this.scene.renderer.device;
 
     this.device = device;
-
-
 
     const triangleBufferLayout: GPUVertexBufferLayout = {
       arrayStride: 20,
@@ -76,9 +76,11 @@ export default class Material {
 
     this.pipeline = pipeline;
     this.bindGroupLayout = group0Layout;
-    // Add to the list of active materials
-    this.scene.materials.push(this);
+   
+  }
 
+  public start() {
+    this.setupBuffer();
   }
 
   protected setupUniforms() {
@@ -91,16 +93,22 @@ export default class Material {
 
   protected setupBuffer() {    
     this.setupUniforms();
+
     this.bindGroup = this.device.createBindGroup({
       layout: this.bindGroupLayout,
       entries: this.bindGroupEntries,
     });
   }
 
-  protected addUniformEntry(key: string, entry: GPUBindGroupEntry) {
-    this.bindGroupEntries.push(entry);
-    this.bindGroupEntriesMap.set(key, entry);
-    console.log("Added uniform entry", key, entry);
+  protected setUniformEntry(key: string, entry: GPUBindGroupEntry) {
+    if (this.bindGroupEntriesMap.has(key)) {
+      const index = this.bindGroupEntries.indexOf(this.bindGroupEntriesMap.get(key)!);
+      this.bindGroupEntries[index] = entry;
+    }
+    else {
+      this.bindGroupEntries.push(entry);
+      this.bindGroupEntriesMap.set(key, entry);
+    }
   }
 }
 
@@ -109,10 +117,9 @@ export class StandardMaterial extends Material {
 
   private modelBuffer: GPUBuffer | undefined;
 
-  constructor(name: string, scene: Scene) {
-    super(scene, BasicFragShader);
+  constructor(name: string, scene: Scene, shader?: string) {
+    super(scene, shader ?? BasicFragShader);
     this.name = name;
-    this.setupBuffer();
   }
 
 
@@ -127,7 +134,7 @@ export class StandardMaterial extends Material {
     });
 
     // All Standard Materials will have a cameraUniforms buffer
-    this.addUniformEntry("globalUniforms", {
+    this.setUniformEntry("globalUniforms", {
       binding: 0,
       resource: {
         buffer: this.scene.renderer.uniforms, // This buffer should be made somewhere else?
@@ -136,7 +143,7 @@ export class StandardMaterial extends Material {
 
     device.queue.writeBuffer(this.modelBuffer, 0, new Float32Array(16).buffer);
 
-    this.addUniformEntry("model", {
+    this.setUniformEntry("model", {
       binding: 1,
       resource: {
         buffer: this.modelBuffer,
@@ -153,4 +160,38 @@ export class StandardMaterial extends Material {
       console.error("ERR: Model buffer not initialized");
     }
   }
+}
+
+
+export class StandardDiffuseMaterial extends StandardMaterial {
+  
+  private texture!: Texture;
+  
+  constructor(name: string, scene: Scene) {
+    super(name, scene, BasicTextureFragShader);
+    this.texture = new Texture();
+  }
+
+  override setupUniforms() {
+    super.setupUniforms();
+
+    this.setUniformEntry("diffuseTexture", {
+      binding: 2,
+      resource: this.texture.view
+    });
+
+    this.setUniformEntry("sampler", {
+      binding: 3,
+      resource: this.texture.sampler
+    });
+  }
+
+  public set textureUrl(url: string) {
+    this.texture.loadTexture(url).then(() => {
+      // recreate bind group
+      this.setupBuffer();
+    });
+  }
+  
+
 }

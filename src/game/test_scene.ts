@@ -1,5 +1,5 @@
 import { QuadMesh } from "@engine/mesh/mesh";
-import { StandardMaterial } from "@engine/renderer/material";
+import { StandardDiffuseMaterial, StandardMaterial } from "@engine/renderer/material";
 import Scene from "@engine/scene";
 import { mat4 } from "gl-matrix";
 
@@ -19,7 +19,11 @@ export default class TestScene extends Scene {
 
     this.quadMesh.transform = model;
 
-    const simpleMaterial = new StandardMaterial("quadMaterial", this); // auto add to scene
+    const simpleMaterial = new StandardDiffuseMaterial("quadMaterial", this); // auto add to scene
+    simpleMaterial.textureUrl = "dist/guy-2.png";
+
+    this.registerMaterial(simpleMaterial);
+
     this.quadMesh.setMaterial(simpleMaterial);
   }
 
