@@ -1,13 +1,13 @@
 import { mat4 } from "gl-matrix";
 import Material from "./material";
+import { device, renderTargetFormat } from "@engine/engine";
 
 export class Renderer {
 
     private canvas: HTMLCanvasElement;
-    private adapter!: GPUAdapter;
-    private _device!: GPUDevice;
     private context!: GPUCanvasContext;
     private _format!: GPUTextureFormat;
+    private _device: GPUDevice = device;
 
     // This buffer will store all engine-wide uniforms
     private globalUniformBuffer!: GPUBuffer;
@@ -36,23 +36,19 @@ export class Renderer {
         });
     }
 
-    async init() {
-        await this.setupDevice();
+    start() {
+
+        this._device = device;
+        this._format = renderTargetFormat;
+
+        this.setupDevice();
     }
 
-    async setupDevice() {
-        //adapter: wrapper around (physical) GPU.
-        //Describes features and limits
-        this.adapter = <GPUAdapter>await navigator.gpu?.requestAdapter();
-
-        //device: wrapper around GPU functionality
-        //Function calls are made through the device
-        this._device = <GPUDevice>await this.adapter?.requestDevice();
-        
+    setupDevice() {
         //context: similar to vulkan instance (or OpenGL context)
         this.context = this.canvas.getContext("webgpu") as any;
         
-        this._format = "bgra8unorm";
+       
         this.context.configure({
             device: this._device,
             format: this._format,
@@ -94,15 +90,15 @@ export class Renderer {
             }]
         });
 
+
         for (let i = 0; i < materials.length; i++) {
             const mat = materials[i];
-            if (mat.bindGroup !== undefined) {
+            if (mat.bindGroup !== undefined && mat.meshes.length > 0) {
                 renderpass.setPipeline(mat.pipeline);
-                
+                renderpass.setBindGroup(0, mat.bindGroup); // Material
                 for (let mesh of mat.meshes) {
+                    mat.onMeshRender(mesh);
                     renderpass.setVertexBuffer(0, mesh.getVertexBuffer()); // Mesh
-                    renderpass.setBindGroup(0, mat.bindGroup); // Material
-
                     // Explanation : 
                     // Amount of times to call the vertex shader, passing an instance ID
                     renderpass.draw(mesh.getVertexCount(), mat.instanceCount, 0, 0); 

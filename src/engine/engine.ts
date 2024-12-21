@@ -5,34 +5,44 @@ import { Renderer } from "./renderer/renderer";
 export default class Engine {
 
   private canvas: HTMLCanvasElement;
-  private renderer: Renderer;
-
-  // TODO:
-  // This will be more generalized and will take in a JSON Scene File
-  private scene: Scene;
-
-  private materials: Material[] = [];
-
+  
+  private _renderer: Renderer;
+  private _scene: Scene;
 
   // Time Management
   private lastTime: number = performance.now();
   private deltaTime: number = 0;
   private time: number = 0; 
 
-  constructor(canvas : HTMLCanvasElement) {
+  constructor(canvas : HTMLCanvasElement, scene: Scene) {
+
+    if (!device || !adapter) {
+      console.error("WebGPU not initialized. Please call createEngine() instead of using the constructor directly.");
+    }
+
     console.log("Engine created v1.0.1");
     this.canvas = canvas;
     
-    this.renderer = new Renderer(canvas);
-    this.scene = new Scene(this.renderer);
-
+    this._renderer = new Renderer(canvas);
+ 
+    this._scene = scene;
     this.init();
+       
+  }
+
+  public get renderer() : Renderer {
+    return this._renderer;
+  }
+
+  public get scene() : Scene {
+    return this._scene;
   }
 
   private init() {
-    this.renderer.init().then(() => {
-      requestAnimationFrame((t) => this.renderLoop(t));
-    })
+    this._renderer.start();
+    this._scene.awake(this);
+    this._scene.start();  
+    requestAnimationFrame((t) => this.renderLoop(t));
   }
 
   private renderLoop(t : number) {
@@ -41,14 +51,24 @@ export default class Engine {
     this.lastTime = time;
     this.deltaTime = deltaTime;
     this.time += deltaTime;
-    
-    this.scene.render(deltaTime); // 1. Update the scene
 
-    this.renderer.updateGlobalUniforms(this.scene.activeCamera.view, this.scene.activeCamera.projection, this.time); // 2. Update the global uniforms
+    this._scene.render(deltaTime); // 1. Update the scene
 
-    this.renderer.render(deltaTime, this.materials); // 3. Render the scene
+    this._renderer.updateGlobalUniforms(this._scene.activeCamera.view, this._scene.activeCamera.projection, this.time); // 2. Update the global uniforms
+
+    this._renderer.render(deltaTime, this._scene.materials); // 3. Render the scene
 
     requestAnimationFrame((t) => this.renderLoop(t));
   }
 
+}
+
+export let device: GPUDevice;
+export let renderTargetFormat: GPUTextureFormat = "bgra8unorm";
+export let adapter: GPUAdapter;
+
+export async function createEngine(canvas: HTMLCanvasElement, scene: Scene) : Promise<Engine> {
+  adapter = <GPUAdapter>await navigator.gpu?.requestAdapter();
+  device = <GPUDevice>await adapter?.requestDevice();
+  return new Engine(canvas, scene);
 }

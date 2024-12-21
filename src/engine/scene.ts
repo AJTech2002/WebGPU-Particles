@@ -1,25 +1,29 @@
 import { mat4, vec4 } from "gl-matrix";
 import { Renderer } from "@renderer/renderer";
+import Mesh from "./mesh/mesh";
+import Engine from "./engine";
+import Material from "./renderer/material";
 
 export interface CameraData {
   view: mat4;
   projection: mat4;
   transform: mat4;
-  
   leftRightBottomTop: vec4;
 }
 
 export default class  Scene {
 
-  protected renderer: Renderer;
   protected cameraData: CameraData;
   protected cameraScale: number = 200;
+  protected _engine!: Engine;
+  
+  // Makeshift scene graph
+  protected _meshes: Mesh[] = [];
+  protected _materials: Material[] = [];
+  
   private time: number = 0;
 
-  constructor(renderer: Renderer) {
-
-    this.renderer = renderer;
-
+  constructor() {
     this.cameraData = {
       view: mat4.create(),
       projection: mat4.create(),
@@ -44,15 +48,30 @@ export default class  Scene {
         this.cameraScale -= 5;
       }
 
-      console.log(this.cameraScale);
-
       this.updateCamera();
     });
     
   }
-  
+
+  //#region Scene Graph Elements
   public get activeCamera() {
     return this.cameraData;
+  }
+
+  public get meshes() {
+    return this._meshes;
+  }
+
+  public get materials() {
+    return this._materials;
+  }
+
+  public get engine() {
+    return this._engine;
+  }
+
+  public get renderer() {
+    return this._engine.renderer;
   }
 
   private updateCamera() {
@@ -62,11 +81,19 @@ export default class  Scene {
     this.cameraData.leftRightBottomTop = [-windowWidth, windowWidth, -windowHeight, windowHeight];
     mat4.ortho(this.cameraData.projection ,-windowWidth, windowWidth, -windowHeight, windowHeight, 0, 20);
   }
-
+  //#endregion
 
   render (dT: number) {
     console.log("Scene Render");
     this.time += dT;
+  }
+
+  awake (engine: Engine) {
+    this._engine = engine;
+  }
+
+  start () {
+    // to override
   }
 
 }
