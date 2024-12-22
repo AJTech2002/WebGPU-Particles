@@ -2,6 +2,7 @@ import Engine, { device } from "@engine/engine";
 import Material from "@engine/renderer/material";
 import Scene from "@engine/scene";
 import Component from "@engine/scene/component";
+import GameObject from "@engine/scene/gameobject";
 import { Renderer } from "@renderer/renderer";
 import { mat4 } from "gl-matrix";
 
@@ -14,27 +15,21 @@ export default class Mesh extends Component {
   protected vertices!: Float32Array;
   protected vertexCount!: number;
 
-  public transform: mat4;
-
-  private material: Material | null = null;
+  private material: Material | undefined = undefined;
   private modelBuffer: GPUBuffer;
 
   public bindGroup?: GPUBindGroup;
 
-  constructor(scene: Scene) {
-    super(scene);
-    this.scene = scene;
-
-    this.transform = mat4.identity(mat4.create());
-    this.scene.meshes.push(this);
-
-    this.modelBuffer = this.scene.renderer.device.createBuffer({
+  constructor(material? : Material) {
+    super();
+    this.modelBuffer = device.createBuffer({
       size: 64,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
       mappedAtCreation: false, 
     });
 
     device.queue.writeBuffer(this.modelBuffer, 0, new Float32Array(16).buffer);
+    this.material = material;
   }
 
   public setMaterial(material: Material) {
@@ -54,6 +49,7 @@ export default class Mesh extends Component {
       ],
     })
 
+    this.scene.registerMaterial(this.material);
   }
 
   public getVertexBuffer(): GPUBuffer {
@@ -67,11 +63,20 @@ export default class Mesh extends Component {
   public getVertices(): Float32Array {
     return this.vertices;
   }
+  
+  public override awake(): void {
+    super.awake();
+    // Auto register material if provided
+    console.log("Mesh awake");
+    if (this.material) {
+      this.setMaterial(this.material);
+    }
+  }
 
-  public preRender(): void {
-    const device = this.scene.renderer.device;
+  public override update(dt: number): void {
     if (this.modelBuffer) {
-      device.queue.writeBuffer(this.modelBuffer, 0, <ArrayBuffer>this.transform);
+      // device.queue.writeBuffer(this.modelBuffer, 0, <ArrayBuffer>(this.transform.matrix!.toGlMatrix()));
+      device.queue.writeBuffer(this.modelBuffer, 0, <ArrayBuffer>(this.transform.worldModelMatrix));
     }
     else {
       console.error("ERR: Model buffer not initialized");
@@ -81,11 +86,8 @@ export default class Mesh extends Component {
 
 export class QuadMesh extends Mesh  {
 
-  constructor(name: string, scene: Scene) {
-    super(scene);
-
-    this.name = name;
-
+  constructor(material? : Material) {
+    super(material);
     this.vertices = new Float32Array([
       // Poisitions     // UV
       -0.5, -0.5, 0.0, 0.0, 0.0, 0.5, -0.5, 0.0, 1.0, 0.0, -0.5, 0.5, 0.0, 0.0,

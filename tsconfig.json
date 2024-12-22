@@ -15,6 +15,7 @@
     "paths": {
       "@engine/*": ["src/engine/*"],
       "@renderer/*": ["src/engine/renderer/*"],
+      "@math": ["src/engine/math/src/index.js"],
     },
     "typeRoots": [ 
       "./node_modules/@webgpu/types", 

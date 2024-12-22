@@ -3,6 +3,7 @@ import { Renderer } from "@renderer/renderer";
 import Mesh from "./mesh/mesh";
 import Engine from "./engine";
 import Material from "./renderer/material";
+import GameObject from "./scene/gameobject";
 
 export interface CameraData {
   view: mat4;
@@ -17,9 +18,8 @@ export default class  Scene {
   protected cameraScale: number = 200;
   protected _engine!: Engine;
   
-  // Makeshift scene graph
-  protected _meshes: Mesh[] = [];
   protected _materials: Material[] = [];
+  protected _gameObjects: GameObject[] = [];
   
   protected time: number = 0;
 
@@ -58,10 +58,6 @@ export default class  Scene {
     return this.cameraData;
   }
 
-  public get meshes() {
-    return this._meshes;
-  }
-
   public get materials() {
     return this._materials;
   }
@@ -82,17 +78,41 @@ export default class  Scene {
     mat4.ortho(this.cameraData.projection ,-windowWidth, windowWidth, -windowHeight, windowHeight, 0, 20);
   }
 
-  protected registerMaterial(material: Material) {
+  public registerMaterial(material: Material) {
+    if (this._materials.indexOf(material) > -1) {
+      return;
+    }
 
-    console.log("Registering material: " + material.name);
     this._materials.push(material);
     material.start();
   }
+  //#endregion
 
+  //#region GameObjects
+  public addGameObject(gameObject: GameObject) {
+    this._gameObjects.push(gameObject);
+    gameObject.on_awake();
+  }
+
+  public removeGameObject(gameObject: GameObject) {
+    gameObject.on_destroy();
+    const index = this._gameObjects.indexOf(gameObject);
+    if (index > -1) {
+      this._gameObjects.splice(index, 1);
+    }
+  }
+
+  public get gameObjects() {
+    return this._gameObjects;
+  }
   //#endregion
 
   render (dT: number) {
     this.time += dT;
+
+    for (let i = 0; i < this._gameObjects.length; i++) {
+      this._gameObjects[i].on_update(dT);
+    }
   }
 
   awake (engine: Engine) {

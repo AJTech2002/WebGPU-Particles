@@ -28,7 +28,7 @@ export class Renderer {
     constructor(canvas: HTMLCanvasElement) {
         this.canvas = canvas;
         this.canvas.width = window.innerWidth;
-        this.canvas.height = window.innerHeight;
+        this.canvas.height = window.innerHeight + 20;
 
         window.addEventListener("resize", () => {
             this.canvas.width = window.innerWidth;
@@ -84,12 +84,11 @@ export class Renderer {
         const renderpass: GPURenderPassEncoder = commandEncoder.beginRenderPass({
             colorAttachments: [{
                 view: textureView,
-                clearValue: { r:1.0, g: 1.0, b: 1.0, a: 1.0 },
+                clearValue: { r:0.0, g: 1.0, b: 0.0, a: 1.0 },
                 loadOp: "clear",
                 storeOp: "store"
             }]
         });
-
 
         for (let i = 0; i < materials.length; i++) {
             const mat = materials[i];
@@ -98,7 +97,6 @@ export class Renderer {
                 renderpass.setBindGroup(0, mat.bindGroup); // Material Level Uniforms
                 for (let mesh of mat.meshes) {
                     if (mesh.bindGroup !== undefined) {
-                        mesh.preRender(); // Update model buffer
                         renderpass.setBindGroup(1, mesh.bindGroup); // Mesh Level Uniforms
                         renderpass.setVertexBuffer(0, mesh.getVertexBuffer()); // Mesh
                         renderpass.draw(mesh.getVertexCount(), mat.instanceCount, 0, 0); 

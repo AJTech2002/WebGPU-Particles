@@ -1,31 +1,30 @@
 import Scene from "@engine/scene";
+import GameObject from "./gameobject";
+import TransformComponent from "./core/transform_component";
 
 export default class Component {
 
-  protected scene: Scene;
+  protected scene!: Scene;
+  protected gameObject!: GameObject;
+  protected transform!: TransformComponent;
   
-  constructor(scene: Scene) {
-    this.scene = scene;
+  constructor() {
+  }
+
+  // Called by the GameObject
+  public attach (gameObject: GameObject) {
+    this.gameObject = gameObject;
+    this.scene = gameObject.scene;
+    this.transform = gameObject.transform;
   }
 
   public awake() {
-    console.log("Component awake");
   }
 
-  public start() {
-    console.log("Component start");
-  }
-
-  public preRender() {
-    console.log("Component preRender");
-  }
-
-  public render(dT: number) {
-    console.log("Component render");
+  public update(dT: number) {
   }
 
   public destroy() {
-    console.log("Component destroy");
   }
 
 }

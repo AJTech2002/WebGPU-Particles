@@ -3,7 +3,7 @@ import Mesh from "../mesh/mesh";
 import BasicFragShader from "@renderer/shaders/simple_shader.wgsl";
 import BasicTextureFragShader from "@renderer/shaders/simple_textured_shader.wgsl";
 import Scene from "../scene";
-import { renderTargetFormat } from "@engine/engine";
+import { renderTargetFormat, device } from "@engine/engine";
 import Texture from "@engine/texture";
 
 
@@ -23,13 +23,9 @@ export default class Material {
 
   public name: string = "Material";
 
-  protected scene: Scene;
   // protected renderer: Renderer;
 
-  constructor(scene: Scene, shader: string) {
-    this.scene = scene;
-    const device = this.scene.renderer.device;
-
+  constructor(shader: string) {
     this.device = device;
 
     const triangleBufferLayout: GPUVertexBufferLayout = {
@@ -120,20 +116,22 @@ export default class Material {
 
 export class StandardMaterial extends Material {
 
-  constructor(name: string, scene: Scene, shader?: string) {
-    super(scene, shader ?? BasicFragShader);
-    this.name = name;
+  private scene: Scene;
+
+  constructor(scene: Scene, shader?: string) {
+    super(shader ?? BasicFragShader);
+    this.scene = scene;
   }
 
   protected override setupUniforms() {
     console.log("Setting up uniforms for StandardMaterial");
 
     // All Standard Materials will have a cameraUniforms buffer
-    // TODO: This can come from a global bind group
+    // TODO: This can come from a global bind group!
     this.setUniformEntry("globalUniforms", {
       binding: 0,
       resource: {
-        buffer: this.scene.renderer.uniforms, // This buffer should be made somewhere else?
+        buffer: this.scene.renderer.uniforms,
       },
     });
 
@@ -147,9 +145,13 @@ export class StandardDiffuseMaterial extends StandardMaterial {
   
   private texture!: Texture;
   
-  constructor(name: string, scene: Scene) {
-    super(name, scene, BasicTextureFragShader);
+  constructor(scene: Scene, url?: string) {
+    super(scene, BasicTextureFragShader);
     this.texture = new Texture();
+
+    if (url) {
+      (() => this.textureUrl = url)(); // Load the texture
+    }
   }
 
   override setupUniforms() {
