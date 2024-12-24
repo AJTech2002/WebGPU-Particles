@@ -89,7 +89,6 @@ export class Renderer {
         const defs = makeShaderDataDefinitions(LayoutShader);
         const descriptors = makeBindGroupLayoutDescriptors(defs, pipelineDesc);
         this.globalUniformBindGroupLayout = device.createBindGroupLayout(descriptors[0]);
-        console.log(this.globalUniformBindGroupLayout);
         this.globalUniformBindGroup = device.createBindGroup({
             layout: this.globalUniformBindGroupLayout,
             entries: [

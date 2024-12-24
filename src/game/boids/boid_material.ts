@@ -1,6 +1,5 @@
 import { StandardDiffuseMaterial } from "@engine/renderer/material";
 import Scene from "@engine/scene";
-import { root } from "@engine/engine";
 
 import InstancedShader from "./shaders/shaders.wgsl";
 

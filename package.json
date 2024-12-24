@@ -23,7 +23,6 @@
     "polyline-normals": "^2.0.2",
     "structurae": "^4.0.2",
     "ts-shader-loader": "*",
-    "typegpu": "^0.2.2",
     "webgpu-utils": "^1.9.3",
     "webpack": "*",
     "webpack-cli": "*"

@@ -1,14 +1,6 @@
-import Engine, { device, root } from "@engine/engine";
+import { device } from "@engine/engine";
 import Material from "@engine/renderer/material";
-import Scene from "@engine/scene";
 import Component from "@engine/scene/component";
-import GameObject from "@engine/scene/gameobject";
-import { Renderer } from "@renderer/renderer";
-import { mat4 } from "gl-matrix";
-import tgpu from "typegpu";
-import * as d from "typegpu/data";
-
-
 export default class Mesh extends Component {
 
   public name: string = "Mesh";

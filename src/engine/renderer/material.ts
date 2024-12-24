@@ -3,12 +3,10 @@ import Mesh from "../scene/core/mesh_component";
 import BasicFragShader from "@renderer/shaders/simple_shader.wgsl";
 import BasicTextureFragShader from "@renderer/shaders/simple_textured_shader.wgsl";
 import Scene from "../scene";
-import { renderTargetFormat, device, root } from "@engine/engine";
+import { renderTargetFormat, device } from "@engine/engine";
 import Texture from "@engine/texture";
 import { ColorUniform } from "./uniforms";
 import { Color } from "@math";
-import tgpu from "typegpu";
-import * as d from "typegpu/data";
 
 export default class Material {
   private device: GPUDevice;
@@ -87,13 +85,17 @@ export default class Material {
     this.meshBindGroupLayout = layouts[2]; // 1 = Mesh
 
     if (this.meshBindGroupLayout == undefined) {
-      const layout = tgpu.bindGroupLayout({
-        model: {
-          uniform: d.mat4x4f,
-        },
-      })
-      
-      this.meshBindGroupLayout = root.unwrap(layout);
+      const layout = device.createBindGroupLayout({
+        entries: [
+          {
+            binding: 0,
+            visibility: GPUShaderStage.FRAGMENT | GPUShaderStage.VERTEX,
+            buffer: { type: "uniform" },
+          },
+        ],
+      });
+
+      this.meshBindGroupLayout = layout;
     }
   }
 

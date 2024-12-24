@@ -1,7 +1,6 @@
-import { device, root } from "@engine/engine";
+import { device } from "@engine/engine";
 import Component from "@engine/scene/component";
 import { mat4, vec3, vec4 } from "gl-matrix";
-import * as d from "typegpu/data";
 import matrixShader from "./shaders/matrix.wgsl";
 import computeShaderCode from "./shaders/compute.wgsl";
 import BoidMaterial from "./boid_material";
