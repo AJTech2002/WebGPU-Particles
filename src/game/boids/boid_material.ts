@@ -1,18 +1,17 @@
-import Material, { StandardDiffuseMaterial } from "@engine/renderer/material";
+import { StandardDiffuseMaterial } from "@engine/renderer/material";
 import Scene from "@engine/scene";
-import { TgpuBuffer } from "typegpu";
-import { BoidObjectType } from "./boid_component";
 import { root } from "@engine/engine";
 
 import InstancedShader from "./shaders/shaders.wgsl";
 
 export default class BoidMaterial extends StandardDiffuseMaterial {
 
-  private buffer: TgpuBuffer<BoidObjectType>;
+  private buffer: GPUBuffer;
 
-  constructor(scene: Scene, objectBuffer: TgpuBuffer<BoidObjectType>, url?: string) {
+  constructor(scene: Scene, objectBuffer: GPUBuffer, url?: string) {
     super(scene, url, InstancedShader);
     this.buffer = objectBuffer;
+    
   }
 
   setupUniforms(): void {
@@ -21,7 +20,7 @@ export default class BoidMaterial extends StandardDiffuseMaterial {
     this.setUniformEntry("objects", {
       binding: 3,
       resource: {
-        buffer: root.unwrap(this.buffer)
+        buffer: this.buffer
       }
     })
   }

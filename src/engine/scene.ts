@@ -82,6 +82,10 @@ export default class  Scene {
   public get gameObjects() {
     return this._gameObjects;
   }
+
+  public get sceneTime() {
+    return this.time;
+  }
   //#endregion
 
   render (dT: number) {

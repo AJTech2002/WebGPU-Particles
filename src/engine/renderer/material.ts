@@ -130,7 +130,7 @@ export default class Material {
 export class StandardMaterial extends Material {
 
   private scene: Scene;
-  public colorUniform: ColorUniform = new ColorUniform(new Color(1.0, 0.0, 0.0));
+  public colorUniform: ColorUniform = new ColorUniform(new Color(1.0, 1.0, 1.0));
 
   constructor(scene: Scene, shader?: string) {
     super(shader ?? BasicFragShader);

@@ -5,8 +5,9 @@ struct UniformData {
 };
 
 struct ObjectData {
-    model: array<mat4x4<f32>>,
+    model: mat4x4<f32>,
 }
+
 
 
 @binding(0) @group(0) var<uniform> uniformUBO: UniformData;
@@ -14,7 +15,9 @@ struct ObjectData {
 @binding(0) @group(1) var<uniform> diffuseColor: vec4<f32>;
 @binding(1) @group(1) var characterTexture: texture_2d<f32>;
 @binding(2) @group(1) var characterSampler: sampler;
-@binding(3) @group(1) var<storage, read> objects: ObjectData; 
+@binding(3) @group(1) var<storage, read> objects: array<ObjectData>; 
+
+@binding(0) @group(2) var<uniform> model: mat4x4<f32>;
 
 struct Fragment {
     @builtin(position) Position : vec4<f32>,
@@ -38,7 +41,7 @@ fn vs_main( @builtin(instance_index) ID: u32, @location(0) vertexPostion: vec3<f
     var col = randomColor(ID * 23);
 
 
-    output.Position = uniformUBO.projection * uniformUBO.view * objects.model[ID] * vec4<f32>(vertexPostion , 1.0);
+    output.Position = uniformUBO.projection * uniformUBO.view * model * objects[ID].model * vec4<f32>(vertexPostion , 1.0);
  
     output.Color = col;
     output.UV = vec2<f32>(uv.x, 1.0 - uv.y);
@@ -51,12 +54,12 @@ fn vs_main( @builtin(instance_index) ID: u32, @location(0) vertexPostion: vec3<f
 @fragment
 fn fs_main(@location(0) Color: vec4<f32> ,@location(1) ScreenPos: vec4<f32>, @location(2) UV: vec2<f32>) -> @location(0) vec4<f32> {
 
-    return vec4<f32>(1.0, 0.0, 0.0, 1.0);
 
     var col = textureSample(characterTexture, characterSampler, UV.xy);
     col = col * Color * diffuseColor;
     if (col.a < 0.1) {
         discard;
     }
+
     return col;
 }
