@@ -129,6 +129,7 @@ export class StandardMaterial extends Material {
   }
 
   protected override setupUniforms() {
+    super.setupUniforms();
     // Global Uniforms
     this.setUniformEntry("color", {
       binding: 0,
@@ -158,12 +159,12 @@ export class StandardDiffuseMaterial extends StandardMaterial {
     super.setupUniforms();
 
     this.setUniformEntry("diffuseTexture", {
-      binding: 0,
+      binding: 1,
       resource: this.texture.view
     });
 
     this.setUniformEntry("sampler", {
-      binding: 1,
+      binding: 2,
       resource: this.texture.sampler
     });
   }

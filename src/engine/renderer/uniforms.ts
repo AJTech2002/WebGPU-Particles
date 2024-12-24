@@ -49,7 +49,6 @@ class Uniform<T> {
 
   public set value(value: T) {
     this._value = value;
-    console.log("Setting value", value);
     this.updateBuffer();
   }
 

@@ -12,8 +12,8 @@ export default class TestScene extends Scene {
   start(): void {
     const testGameObject = new GameObject("test_guy", this);
     testGameObject.addComponent(new QuadMesh(
-      // new StandardDiffuseMaterial(this, "dist/guy-2.png")
-      new StandardMaterial(this)
+      new StandardDiffuseMaterial(this, "dist/guy-2.png")
+      // new StandardMaterial(this)
     )) // add mesh
     // testGameObject.transform.position.z = -20;
 
@@ -32,7 +32,7 @@ export default class TestScene extends Scene {
 
     // this.activeCamera?.gameObject.transform.rotateOnAxis(new Vector3(0,1,0), 0.01);
     this.findGameObject("test_guy")?.transform.localRotateOnAxis(new Vector3(0,0,1), 0.01);
-    (this.findGameObject("test_guy")?.mesh?.material as StandardMaterial).colorUniform.value = new Color(Math.sin(this.time*0.01), Math.cos(this.time*0.01), 0);
+    (this.findGameObject("test_guy")?.mesh?.material as StandardDiffuseMaterial).colorUniform.value = new Color(Math.sin(this.time*0.01), Math.cos(this.time*0.01), 0);
 
     this.activeCamera
   }

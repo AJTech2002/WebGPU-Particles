@@ -1,6 +1,7 @@
 import Scene from "./scene";
 import Material from "./renderer/material";
 import { Renderer } from "./renderer/renderer";
+import tgpu, { TgpuRoot } from "typegpu";
 
 export default class Engine {
 
@@ -66,10 +67,12 @@ export default class Engine {
 export let device: GPUDevice;
 export let renderTargetFormat: GPUTextureFormat = "bgra8unorm";
 export let adapter: GPUAdapter;
+export let root: TgpuRoot;
 
 export async function createEngine(canvas: HTMLCanvasElement, scene: Scene) : Promise<Engine> {
   adapter = <GPUAdapter>await navigator.gpu?.requestAdapter();
   device = <GPUDevice>await adapter?.requestDevice();
+  root = tgpu.initFromDevice({device: device});
   
   return new Engine(canvas, scene);
 }

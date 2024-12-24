@@ -44,7 +44,6 @@ export class InstancedQuadMesh extends InstancedMesh {
   async init() {
     const scene = this.scene;
 
-    const texture = new Texture();
     await texture.loadTexture(this.device, "dist/guy-2.png");
     console.log(texture);
 
