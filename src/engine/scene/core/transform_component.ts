@@ -1,7 +1,7 @@
 import { Euler, Matrix4, Quaternion, Vector3, Vector4 } from "@math";
 import Component from "../component";
 import GameObject from "../gameobject";
-import { mat4 } from "gl-matrix";
+import { mat4, quat } from "gl-matrix";
 
 
 export default class TransformComponent extends Component {
@@ -34,6 +34,22 @@ export default class TransformComponent extends Component {
       .setFromAxisAngle(axis.normalize(), angle)
       .normalize();
     this.quaternion = this.quaternion.multiply(newQuat).normalize();
+  }
+
+  localRotateOnAxis(axis: Vector3, angle: number) {
+    // Normalize the axis
+    axis.normalize();
+  
+    // Create a new quaternion for the rotation
+    const newQuat = new Quaternion().setFromAxisAngle(axis, angle).normalize();
+  
+    // Rotate the current quaternion
+    this.quaternion = this.quaternion.multiply(newQuat).normalize();
+  
+    // Rotate the position around the local pivot
+    const pivot = this.position.clone(); // Use the object's current position as the local pivot
+    pivot.applyQuaternion(newQuat.invert()); // Apply the local rotation to the position
+    this.position.copy(pivot); // Update the position
   }
 
   getEulerRotation(): Euler {
@@ -79,21 +95,28 @@ export default class TransformComponent extends Component {
     return outputScale;
   }
 
-  public get worldModelMatrix() : mat4 {
-
+  public get worldModelMatrix(): mat4 {
     const worldP = new Vector3();
     const worldR = new Quaternion();
     const worldS = new Vector3();
-    
+  
+    // Decompose the matrix into position, rotation, and scale
     this.matrix?.decompose(worldP, worldR, worldS);
-
-    const m = mat4.fromRotationTranslationScale(
-      mat4.create(),
-      [worldR.x, worldR.y, worldR.z, worldR.w],
-      [worldP.x, worldP.y, worldP.z],
-      [worldS.x, worldS.y, worldS.z]
-    );
-
+  
+    // Create an identity matrix
+    const m = mat4.create();
+  
+    // Apply scale first
+    mat4.scale(m, m, [worldS.x, worldS.y, worldS.z]);
+  
+    // Apply rotation next
+    const quatMat = mat4.create();
+    mat4.fromQuat(quatMat, [worldR.x, worldR.y, worldR.z, worldR.w]);
+    mat4.multiply(m, quatMat, m); // Order: rotation * scale
+  
+    // Apply translation last
+    mat4.translate(m, m, [worldP.x, worldP.y, worldP.z]);
+  
     return m;
   }
 

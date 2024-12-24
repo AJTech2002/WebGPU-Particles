@@ -21,7 +21,7 @@ export default class GameObject {
     this.name = name;
     this._scene = scene;
     this._transform = new TransformComponent();
-    this.add_component(this._transform);
+    this.addComponent(this._transform);
     this.scene.addGameObject(this);
   }
 
@@ -83,14 +83,14 @@ export default class GameObject {
   //#endregion
 
   //#region Component Management
-  public add_component(component: Component) {
+  public addComponent(component: Component) {
     this._components.push(component);
     component.attach(this);
     if (this.instantiated) component.awake();
     console.log("Component added", this.name, this._components.length, this.instantiated);
   }
 
-  public get_component<T extends Component>(type: new(gameObject: GameObject) => T) {
+  public getComponent<T extends Component>(type: new(gameObject: GameObject) => T) {
     for (let i = 0; i < this._components.length; i++) {
       if (this._components[i] instanceof type) {
         return this._components[i] as T;
@@ -99,7 +99,7 @@ export default class GameObject {
     return null;
   }
 
-  public remove_component(component: Component) {
+  public removeComponent(component: Component) {
     const index = this._components.indexOf(component);
     if (index > -1) {
       this._components.splice(index, 1);

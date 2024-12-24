@@ -1,5 +1,5 @@
 import { makeBindGroupLayoutDescriptors, makeShaderDataDefinitions } from "webgpu-utils";
-import Mesh from "../mesh/mesh";
+import Mesh from "../scene/core/mesh_component";
 import BasicFragShader from "@renderer/shaders/simple_shader.wgsl";
 import BasicTextureFragShader from "@renderer/shaders/simple_textured_shader.wgsl";
 import Scene from "../scene";

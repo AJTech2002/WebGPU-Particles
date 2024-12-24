@@ -54,7 +54,7 @@ export default class Engine {
 
     this._scene.render(deltaTime); // 1. Update the scene
 
-    this._renderer.updateGlobalUniforms(this._scene.activeCamera.view, this._scene.activeCamera.projection, this.time); // 2. Update the global uniforms
+    this._renderer.updateGlobalUniforms(this._scene.activeCamera!.view, this._scene.activeCamera!.projection, this.time); // 2. Update the global uniforms
 
     this._renderer.render(deltaTime, this._scene.materials); // 3. Render the scene
 

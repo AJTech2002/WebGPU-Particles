@@ -1,9 +1,10 @@
 import { mat4, vec4 } from "gl-matrix";
 import { Renderer } from "@renderer/renderer";
-import Mesh from "./mesh/mesh";
+import Mesh from "./scene/core/mesh_component";
 import Engine from "./engine";
 import Material from "./renderer/material";
 import GameObject from "./scene/gameobject";
+import CameraComponent from "./scene/core/camera_component";
 
 export interface CameraData {
   view: mat4;
@@ -14,8 +15,6 @@ export interface CameraData {
 
 export default class  Scene {
 
-  protected cameraData: CameraData;
-  protected cameraScale: number = 200;
   protected _engine!: Engine;
   
   protected _materials: Material[] = [];
@@ -23,39 +22,16 @@ export default class  Scene {
   
   protected time: number = 0;
 
+  protected cameraObject: GameObject;
+
   constructor() {
-    this.cameraData = {
-      view: mat4.create(),
-      projection: mat4.create(),
-      transform: mat4.create(),
-      leftRightBottomTop: [-8, 8, -6, 6],
-    }
-
-    this.cameraData.projection = mat4.create();
-
-    this.updateCamera();
-
-    // add a callback for window size and change camera
-    window.addEventListener("resize", () => {
-      this.updateCamera();
-    });
-
-    // listen for zoom events and change scaling
-    window.addEventListener("wheel", (e) => {
-      if (e.deltaY > 0) {
-        this.cameraScale += 5;
-      } else {
-        this.cameraScale -= 5;
-      }
-
-      this.updateCamera();
-    });
-    
+    this.cameraObject = new GameObject("MainCamera", this);
+    this.cameraObject.addComponent(new CameraComponent());
   }
 
   //#region Scene Graph Elements
-  public get activeCamera() {
-    return this.cameraData;
+  public get activeCamera() : CameraComponent | null {
+    return this.cameraObject.getComponent(CameraComponent);
   }
 
   public get materials() {
@@ -68,14 +44,6 @@ export default class  Scene {
 
   public get renderer() {
     return this._engine.renderer;
-  }
-
-  private updateCamera() {
-    var windowWidth = window.innerWidth/this.cameraScale;
-    var windowHeight = window.innerHeight/this.cameraScale;
-
-    this.cameraData.leftRightBottomTop = [-windowWidth, windowWidth, -windowHeight, windowHeight];
-    mat4.ortho(this.cameraData.projection ,-windowWidth, windowWidth, -windowHeight, windowHeight, 0, 20);
   }
 
   public registerMaterial(material: Material) {

@@ -4,18 +4,30 @@ import TransformComponent from "./core/transform_component";
 
 export default class Component {
 
-  protected scene!: Scene;
-  protected gameObject!: GameObject;
-  protected transform!: TransformComponent;
+  protected _scene!: Scene;
+  protected _gameObject!: GameObject;
+  protected _transform!: TransformComponent;
   
   constructor() {
   }
 
   // Called by the GameObject
   public attach (gameObject: GameObject) {
-    this.gameObject = gameObject;
-    this.scene = gameObject.scene;
-    this.transform = gameObject.transform;
+    this._gameObject = gameObject;
+    this._scene = gameObject.scene;
+    this._transform = gameObject.transform;
+  }
+
+  public get scene() : Scene {
+    return this._scene;
+  }
+
+  public get gameObject() : GameObject {
+    return this._gameObject;
+  }
+
+  public get transform() : TransformComponent {
+    return this._transform;
   }
 
   public awake() {
