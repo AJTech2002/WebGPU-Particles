@@ -6,6 +6,7 @@
     "jsx": "preserve",
     "noEmit": false,
     "strict": true,
+
     "skipLibCheck": true,
     "isolatedModules": false,
     "resolveJsonModule": true,
@@ -21,7 +22,7 @@
       "./node_modules/@webgpu/types", 
       "./node_modules/@types"
     ], 
-    "noImplicitAny": true,
+    "noImplicitAny": false,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "sourceMap": true,

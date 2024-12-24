@@ -44,9 +44,6 @@ fn random() -> f32 {
 
 @compute @workgroup_size(64)
 fn avoidanceMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
-
-
-    
     let index = global_id.x;
 
     local_rnd_state = vec4u(

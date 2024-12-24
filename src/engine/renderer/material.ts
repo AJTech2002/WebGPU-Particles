@@ -3,11 +3,12 @@ import Mesh from "../scene/core/mesh_component";
 import BasicFragShader from "@renderer/shaders/simple_shader.wgsl";
 import BasicTextureFragShader from "@renderer/shaders/simple_textured_shader.wgsl";
 import Scene from "../scene";
-import { renderTargetFormat, device } from "@engine/engine";
+import { renderTargetFormat, device, root } from "@engine/engine";
 import Texture from "@engine/texture";
 import { ColorUniform } from "./uniforms";
 import { Color } from "@math";
-
+import tgpu from "typegpu";
+import * as d from "typegpu/data";
 
 export default class Material {
   private device: GPUDevice;
@@ -84,6 +85,16 @@ export default class Material {
     // 0 = Global, 1 = Mesh, 2 = Material
     this.bindGroupLayout = layouts[1]; // 2 = Material
     this.meshBindGroupLayout = layouts[2]; // 1 = Mesh
+
+    if (this.meshBindGroupLayout == undefined) {
+      const layout = tgpu.bindGroupLayout({
+        model: {
+          uniform: d.mat4x4f,
+        },
+      })
+      
+      this.meshBindGroupLayout = root.unwrap(layout);
+    }
   }
 
   public start() {
@@ -146,8 +157,8 @@ export class StandardDiffuseMaterial extends StandardMaterial {
   
   private texture!: Texture;
   
-  constructor(scene: Scene, url?: string) {
-    super(scene, BasicTextureFragShader);
+  constructor(scene: Scene, url?: string, shaderOverride?: string) {
+    super(scene, shaderOverride ?? BasicTextureFragShader);
     this.texture = new Texture();
 
     if (url) {

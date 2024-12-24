@@ -10,9 +10,11 @@ struct ObjectData {
 
 
 @binding(0) @group(0) var<uniform> uniformUBO: UniformData;
-@binding(1) @group(0) var<storage, read> objects: ObjectData; 
-@binding(2) @group(0) var characterTexture: texture_2d<f32>;
-@binding(3) @group(0) var characterSampler: sampler;
+
+@binding(0) @group(1) var<uniform> diffuseColor: vec4<f32>;
+@binding(1) @group(1) var characterTexture: texture_2d<f32>;
+@binding(2) @group(1) var characterSampler: sampler;
+@binding(3) @group(1) var<storage, read> objects: ObjectData; 
 
 struct Fragment {
     @builtin(position) Position : vec4<f32>,
@@ -48,8 +50,11 @@ fn vs_main( @builtin(instance_index) ID: u32, @location(0) vertexPostion: vec3<f
 
 @fragment
 fn fs_main(@location(0) Color: vec4<f32> ,@location(1) ScreenPos: vec4<f32>, @location(2) UV: vec2<f32>) -> @location(0) vec4<f32> {
+
+    return vec4<f32>(1.0, 0.0, 0.0, 1.0);
+
     var col = textureSample(characterTexture, characterSampler, UV.xy);
-    col = col * Color;
+    col = col * Color * diffuseColor;
     if (col.a < 0.1) {
         discard;
     }
