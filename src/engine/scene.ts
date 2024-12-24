@@ -70,6 +70,15 @@ export default class  Scene {
     }
   }
 
+  public findGameObject(name: string) {
+    for (let i = 0; i < this._gameObjects.length; i++) {
+      if (this._gameObjects[i].name === name) {
+        return this._gameObjects[i];
+      }
+    }
+    return null;
+  }
+
   public get gameObjects() {
     return this._gameObjects;
   }

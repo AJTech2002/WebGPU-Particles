@@ -6,10 +6,11 @@ struct UniformData {
 
 
 @binding(0) @group(0) var<uniform> uniformUBO: UniformData;
-@binding(1) @group(0) var characterTexture: texture_2d<f32>;
-@binding(2) @group(0) var characterSampler: sampler;
 
-@binding(0) @group(1) var<uniform> model: mat4x4<f32>;
+@binding(0) @group(1) var characterTexture: texture_2d<f32>;
+@binding(1) @group(1) var characterSampler: sampler;
+
+@binding(0) @group(2) var<uniform> model: mat4x4<f32>;
 
 
 struct Fragment {

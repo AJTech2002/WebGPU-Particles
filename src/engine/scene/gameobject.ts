@@ -1,6 +1,7 @@
 import Scene from "@engine/scene";
 import Component from "./component";
 import TransformComponent from "./core/transform_component";
+import Mesh from "./core/mesh_component";
 
 export default class GameObject {
 
@@ -28,6 +29,10 @@ export default class GameObject {
   //#region Core Accessors
   public get transform () {
     return this._transform;
+  }
+
+  public get mesh() : Mesh | null {
+    return this.getComponent<Mesh>(Mesh);
   }
 
   public get scene() {  
@@ -90,7 +95,7 @@ export default class GameObject {
     console.log("Component added", this.name, this._components.length, this.instantiated);
   }
 
-  public getComponent<T extends Component>(type: new(gameObject: GameObject) => T) {
+  public getComponent<T extends Component>(type: new() => T) {
     for (let i = 0; i < this._components.length; i++) {
       if (this._components[i] instanceof type) {
         return this._components[i] as T;

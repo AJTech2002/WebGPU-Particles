@@ -15,7 +15,7 @@ export default class Mesh extends Component {
   protected vertices!: Float32Array;
   protected vertexCount!: number;
 
-  private material: Material | undefined = undefined;
+  private _material: Material | undefined = undefined;
   private modelBuffer: GPUBuffer;
 
   public bindGroup?: GPUBindGroup;
@@ -29,16 +29,16 @@ export default class Mesh extends Component {
     });
 
     device.queue.writeBuffer(this.modelBuffer, 0, new Float32Array(16).buffer);
-    this.material = material;
+    this._material = material;
   }
 
   public setMaterial(material: Material) {
-    this.material = material;
-    this.material.meshes.push(this);
+    this._material = material;
+    this._material.meshes.push(this);
 
     // Required uniforms from the mesh
     this.bindGroup = device.createBindGroup({
-      layout: this.material.meshBindGroupLayout,
+      layout: this._material.meshBindGroupLayout,
       entries: [
         {
           binding: 0,
@@ -49,7 +49,15 @@ export default class Mesh extends Component {
       ],
     })
 
-    this.scene.registerMaterial(this.material);
+    this.scene.registerMaterial(this._material);
+  }
+
+  public get material(): Material {
+    if (!this._material) {
+      console.error("ERR: Material not initialized");
+    }
+
+    return this._material!;
   }
 
   public getVertexBuffer(): GPUBuffer {
@@ -64,12 +72,13 @@ export default class Mesh extends Component {
     return this.vertices;
   }
   
+  
   public override awake(): void {
     super.awake();
     // Auto register material if provided
     console.log("Mesh awake");
-    if (this.material) {
-      this.setMaterial(this.material);
+    if (this._material) {
+      this.setMaterial(this._material);
     }
   }
 

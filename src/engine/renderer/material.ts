@@ -5,6 +5,8 @@ import BasicTextureFragShader from "@renderer/shaders/simple_textured_shader.wgs
 import Scene from "../scene";
 import { renderTargetFormat, device } from "@engine/engine";
 import Texture from "@engine/texture";
+import { ColorUniform } from "./uniforms";
+import { Color } from "@math";
 
 
 export default class Material {
@@ -79,9 +81,9 @@ export default class Material {
 
     this.pipeline = pipeline;
 
-    this.bindGroupLayout = layouts[0]; // 0 = Global
-    this.meshBindGroupLayout = layouts[1]; // 1 = Mesh
-   
+    // 0 = Global, 1 = Mesh, 2 = Material
+    this.bindGroupLayout = layouts[1]; // 2 = Material
+    this.meshBindGroupLayout = layouts[2]; // 1 = Mesh
   }
 
   public start() {
@@ -117,25 +119,23 @@ export default class Material {
 export class StandardMaterial extends Material {
 
   private scene: Scene;
+  public colorUniform: ColorUniform = new ColorUniform(new Color(1.0, 0.0, 0.0));
 
   constructor(scene: Scene, shader?: string) {
     super(shader ?? BasicFragShader);
     this.scene = scene;
+
+    this.colorUniform.setup();
   }
 
   protected override setupUniforms() {
-    console.log("Setting up uniforms for StandardMaterial");
-
-    // All Standard Materials will have a cameraUniforms buffer
-    // TODO: This can come from a global bind group!
-    this.setUniformEntry("globalUniforms", {
+    // Global Uniforms
+    this.setUniformEntry("color", {
       binding: 0,
       resource: {
-        buffer: this.scene.renderer.uniforms,
-      },
-    });
-
-
+        buffer: this.colorUniform.gpuBuffer,
+      }
+    })
   }
 
 }
@@ -158,12 +158,12 @@ export class StandardDiffuseMaterial extends StandardMaterial {
     super.setupUniforms();
 
     this.setUniformEntry("diffuseTexture", {
-      binding: 1,
+      binding: 0,
       resource: this.texture.view
     });
 
     this.setUniformEntry("sampler", {
-      binding: 2,
+      binding: 1,
       resource: this.texture.sampler
     });
   }
