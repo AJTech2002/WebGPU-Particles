@@ -5,6 +5,7 @@ import Engine from "./engine";
 import Material from "./renderer/material";
 import GameObject from "./scene/gameobject";
 import CameraComponent from "./scene/core/camera_component";
+import Input from "./scene/inputs";
 
 export interface CameraData {
   view: mat4;
@@ -24,9 +25,12 @@ export default class  Scene {
 
   protected cameraObject: GameObject;
 
+  protected input : Input;
+
   constructor() {
     this.cameraObject = new GameObject("MainCamera", this);
     this.cameraObject.addComponent(new CameraComponent());
+    this.input = new Input(this);
   }
 
   //#region Scene Graph Elements
@@ -98,10 +102,15 @@ export default class  Scene {
 
   awake (engine: Engine) {
     this._engine = engine;
+    this.input.setup();
   }
 
   start () {
     // to override
+  }
+
+  inputEvent(type: number, key: string) {
+    // to override  
   }
 
 }

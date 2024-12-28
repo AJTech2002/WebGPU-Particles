@@ -6,11 +6,10 @@ import computeShaderCode from "./shaders/compute.wgsl";
 import BoidMaterial from "./boid_material";
 import { ArrayUniform, FloatUniform, Uniform } from "@engine/renderer/uniforms";
 import {
-  makeBindGroupLayoutDescriptors,
   makeShaderDataDefinitions,
-  makeStructuredView,
   TypeDefinition,
 } from "webgpu-utils";
+import { BoidDataBuffer, ObjectDataBuffer } from "./boid_buffers";
 
 
 interface BoidInitData {
@@ -18,95 +17,19 @@ interface BoidInitData {
   speed: number;
 }
 
-interface BoidData {
+export interface BoidData {
   target: vec4; // bytes: 16
   avoidance: vec4; // bytes: 16
   hasTarget: boolean; // bytes: 4
   speed: number; // bytes: 4
 }
 
-const boidComputeShader = matrixShader + " \n " + computeShaderCode;
-
-class BoidDataBuffer extends ArrayUniform<BoidData> {
-  constructor(maxInstanceCount: number) {
-    super("boidData", []);
-
-    this.usage = GPUBufferUsage.STORAGE |
-    GPUBufferUsage.COPY_DST |
-    GPUBufferUsage.COPY_SRC ;
-
-    const defs = makeShaderDataDefinitions(boidComputeShader);
-    const boidDataStorageDescriptor = defs.storages.boids;
-    const boidDataElementType: TypeDefinition = (
-      boidDataStorageDescriptor.typeDefinition as any
-    ).elementType;
-
-    this.elementSize = boidDataElementType.size;
-    this.byteSize = maxInstanceCount * boidDataElementType.size;
-
-    this._value = [];
-
-    this.f32Array = this.toFloat32Array(this._value);
-  }
-
-  protected override setArrayData(index: number, data: BoidData) {
-    const packedSize = this.byteSize / 4;
-
-    if (!this.f32Array) {
-      console.warn("Boid data not initialized");
-      return;
-    }
-
-
-    this.f32Array[index * packedSize] = data.target[0];
-    this.f32Array[index * packedSize + 1] = data.target[1];
-    this.f32Array[index * packedSize + 2] = data.target[2];
-    this.f32Array[index * packedSize + 3] = data.target[3];
-
-    this.f32Array[index * packedSize + 4] = data.avoidance[0];
-    this.f32Array[index * packedSize + 5] = data.avoidance[1];
-    this.f32Array[index * packedSize + 6] = data.avoidance[2];
-    this.f32Array[index * packedSize + 7] = data.avoidance[3];
-
-    this.f32Array[index * packedSize + 8] = data.hasTarget ? 1 : 0;
-    this.f32Array[index * packedSize + 9] = data.speed;
-  }
+export interface BoidObjectData {
+  model: mat4;
+  position: vec3;
 }
 
-class ObjectDataBuffer extends ArrayUniform<mat4> {
-  constructor(maxInstanceCount: number) {
-    super("boidData", []);
-
-    this.usage = GPUBufferUsage.STORAGE |
-    GPUBufferUsage.COPY_DST |
-    GPUBufferUsage.COPY_SRC ;
-
-    const defs = makeShaderDataDefinitions(boidComputeShader);
-    const objectDataStorageDescriptor = defs.storages.objects;
-    const elementType: TypeDefinition = (
-      objectDataStorageDescriptor.typeDefinition as any
-    ).elementType;
-
-    this.elementSize = elementType.size;
-    this.byteSize = maxInstanceCount * elementType.size;
-
-    this._value = [];
-
-    this.f32Array = this.toFloat32Array(this._value);
-  }
-
-  protected setArrayData(index: number, data: mat4): void {
-    if (!this.f32Array) {
-      console.warn("Boid data not initialized");
-      return;
-    }
-
-    for (let j = 0; j < 16; j++) {
-      this.f32Array[16 * index + j] = data[j];
-    }
-
-  }
-}
+export const boidComputeShader = matrixShader + " \n " + computeShaderCode;
 
 // This will be responsible for storing boid data & running compute pipeline
 // Updating boid data & setting boid data should be done in the BoidRunnerComponent
@@ -114,18 +37,22 @@ export default class BoidSystemComponent extends Component {
 
   private boidData: BoidDataBuffer;
   public objectData: ObjectDataBuffer;
-  private timeData: Uniform<number>;
-  private deltaTimeData: Uniform<number>;
+  private timeData: FloatUniform;
+  private deltaTimeData: FloatUniform;
+  private numBoids: FloatUniform;
 
   private layout: GPUBindGroupLayout;
   private bindGroup: GPUBindGroup;
 
   public instanceCount: number = 0;
-  public maxInstanceCount: number = 10000;
+  public maxInstanceCount: number = 3000;
 
   // compute
   private avoidancePipeline!: GPUComputePipeline;
   private movementPipeline!: GPUComputePipeline;
+
+  public boids: BoidData[] = [];
+  public boidObjects: BoidObjectData[] = [];
 
   constructor() {
     super();
@@ -134,11 +61,13 @@ export default class BoidSystemComponent extends Component {
     this.objectData = new ObjectDataBuffer(this.maxInstanceCount);
     this.timeData = new FloatUniform(0);
     this.deltaTimeData = new FloatUniform(0);
+    this.numBoids = new FloatUniform(0);
 
-    this.boidData.setup();
-    this.objectData.setup();
+    this.boidData.setup(false);
+    this.objectData.setup(false);
     this.timeData.setup();
     this.deltaTimeData.setup();
+    this.numBoids.setup();
 
     this.layout = device.createBindGroupLayout({
       entries: [
@@ -164,6 +93,11 @@ export default class BoidSystemComponent extends Component {
           visibility: GPUShaderStage.COMPUTE,
           buffer: { type: "uniform" },
         },
+        {
+          binding: 4,
+          visibility: GPUShaderStage.COMPUTE  ,
+          buffer: {type: "uniform"}
+        }
       ],
     });
 
@@ -186,6 +120,10 @@ export default class BoidSystemComponent extends Component {
             binding: 3,
             resource: { buffer: this.deltaTimeData.gpuBuffer },
         },
+        {
+          binding: 4,
+          resource: {buffer: this.numBoids.gpuBuffer}
+        }
        ],
      });
 
@@ -214,6 +152,14 @@ export default class BoidSystemComponent extends Component {
     });
   }
 
+  public async updateBoidInformation () : Promise<void> {
+    const boidInfo = await this.boidData.readTo(this.instanceCount);
+    if (boidInfo != null) this.boids = boidInfo;
+
+    const objectInfo = await this.objectData.readTo(this.instanceCount);
+    if (objectInfo != null) this.boidObjects = objectInfo;
+  }
+
   private warned: boolean = false;
   public addBoid(init: BoidInitData): void {
 
@@ -236,8 +182,30 @@ export default class BoidSystemComponent extends Component {
     mat4.translate(model, model, init.position);
     mat4.scale(model, model, [0.3, 0.3, 0.3]);
 
-    this.objectData.updateBufferAt(this.instanceCount, model);
+    const position = vec3.clone(init.position);
+
+    this.objectData.updateBufferAt(this.instanceCount, {
+      model,
+      position,
+    });
     this.instanceCount++;
+    this.numBoids.value = this.instanceCount;
+  }
+
+  public setBoidPosition(index: number, position: vec3): void {
+    if (index >= this.instanceCount) {
+      console.error("Index out of bounds", index, this.instanceCount);
+      return;
+    }
+
+    const model = mat4.create();
+    mat4.translate(model, model, position);
+    mat4.scale(model, model, [0.3, 0.3, 0.3]);
+
+    this.objectData.updateBufferAt(index, {
+      model,
+      position,
+    });
   }
 
   public awake(): void {}
@@ -249,6 +217,7 @@ export default class BoidSystemComponent extends Component {
 
       this.timeData.value = this.scene.sceneTime / 1000; 
       this.deltaTimeData.value = sDT;
+      this.numBoids.value = this.instanceCount;
 
       const commandEncoder: GPUCommandEncoder = device.createCommandEncoder();
 
@@ -265,8 +234,13 @@ export default class BoidSystemComponent extends Component {
 
       computePass.dispatchWorkgroups(Math.ceil(this.instanceCount / 64));
 
+
       computePass.end();
+
       device.queue.submit([commandEncoder.finish()]);
+
+      // [ ~~ Update Boid Information ~~ ]
+      this.updateBoidInformation(); 
 
       if (this.gameObject.mesh?.material)
         (this.gameObject.mesh?.material as BoidMaterial).instanceCount =

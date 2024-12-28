@@ -60,7 +60,9 @@ export class Renderer {
             alphaMode: "opaque"
         });
 
-        this._device.addEventListener('uncapturederror', event => console.error(event));
+        this._device.addEventListener('uncapturederror', event => {
+            console.error(event);
+        });
 
         // Setup camera buffer
         this.initCameraBuffer();

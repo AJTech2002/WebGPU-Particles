@@ -34,6 +34,10 @@ export default class Engine {
     return this._renderer;
   }
 
+  public get outputCanvas() : HTMLCanvasElement {
+    return this.canvas;
+  }
+
   public get scene() : Scene {
     return this._scene;
   }

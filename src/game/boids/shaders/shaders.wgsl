@@ -6,8 +6,8 @@ struct UniformData {
 
 struct ObjectData {
     model: mat4x4<f32>,
+    position: vec3<f32>,
 }
-
 
 
 @binding(0) @group(0) var<uniform> uniformUBO: UniformData;

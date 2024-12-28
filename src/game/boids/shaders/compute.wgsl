@@ -1,5 +1,6 @@
 struct ObjectData {
     model: mat4x4<f32>,
+    position: vec3<f32>,
 }
 
 struct BoidComputeData {
@@ -41,61 +42,57 @@ fn random() -> f32 {
 @binding(1) @group(0) var<storage, read_write> boids: array<BoidData>;
 @binding(2) @group(0) var<uniform> time: f32;
 @binding(3) @group(0) var<uniform> dT: f32;
+@binding(4) @group(0) var<uniform> numBoids: f32;
 
 @compute @workgroup_size(64)
 fn avoidanceMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
     let index = global_id.x;
 
     local_rnd_state = vec4u(
-        index + 1u,
-        index + 2u,
-        index + 3u,
-        index + 4u
+        index % 89u,
+        index % 122u,
+        index % 323u,
+        index % 23u
     );
 
-    let objectModelLength = arrayLength(&objects);
+    let objectModelLength: u32 = u32(clamp(numBoids, 0.0, f32(100000)));
+
 
     if (index <  objectModelLength) {
 
         var avoidance = vec3(0.0, 0.0, 0.0);
 
-        var avoidanceDistance = 0.3;
+        var avoidanceDistance = 0.4;
+        var randomDirection = vec3(0.0, 1.0, 0.0);
+        var angle = f32(index) * 0.1;
+        randomDirection = rotate_v3(randomDirection, angle, vec3(0.0, 0.0, 1.0));
 
         for (var i = 0u; i < objectModelLength; i = i + 1u) {
             if (i != index) {
-                // if the distance between the two objects is less than 0.1
-                // move the object away from each other
-                let distance = distance(get_position(objects[index].model), get_position(objects[i].model));
+                let distance = distance(objects[index].position, objects[i].position);
                 
                 if (distance == 0.0) {
-                    // pick a random direction
-                    var x = random();
-                    var y = random();
-                    var randomDirection = vec3(x, y, 0.0);
-                    randomDirection = safe_normalize(randomDirection) * 0.01;
+                    randomDirection = safe_normalize(randomDirection) * avoidanceDistance;
                     avoidance =  randomDirection;
                 }
                 else if (distance < avoidanceDistance) {
-           
-                    var avVector = (get_position(objects[index].model) - get_position(objects[i].model));
+                    var avoidancePerc = clamp(avoidanceDistance - distance, 0.0, 1.0);
+                    avoidancePerc = pow(avoidancePerc / avoidanceDistance, 2.0); // Exponential curve
+
+                    // avoidancePerc = clamp(avoidancePerc, 0.5, 1.0);
+
+                    var avVector = (objects[index].position - objects[i].position);
                     avVector = safe_normalize(avVector);
 
-                    // scale exponentially by distance 
-                    // avVector = avVector * max(0.0, (avoidanceDistance - distance));
-                    avVector = avVector * min((avoidanceDistance - distance), 0.1);
-
+                    avVector = avVector * avoidancePerc;
                     avoidance = avoidance + avVector;
                 }
             }
         }
 
-        var maxAvoidanceMagnitude = 1.0;
         
         avoidance.z = 0.0;
-        // avoidance = safe_normalize(avoidance) * min(length(avoidance), maxAvoidanceMagnitude);
-        
-        avoidance *= 1.0;
-        
+        avoidance *= 3.0;
 
         boids[index].avoidanceVector = vec4<f32>(avoidance, 0.0);
 
@@ -113,73 +110,42 @@ fn avoidanceMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
 @compute @workgroup_size(64)
 fn movementMain (@builtin(global_invocation_id) global_id: vec3<u32>) {
     let index = global_id.x;
-    if (index < arrayLength(&objects) ) {
-        
+
+    let objectModelLength: u32 = u32(clamp(numBoids, 0.0, f32(100000)));
+
+
+    if (index < objectModelLength ) {
 
         var avoidance = boids[index].avoidanceVector.xyz;
         avoidance.z = 0.0;
 
-        var defaultSpeed = 1 * dT * boids[index].speed;
-
-        // var movementDirection = (boids[index].targetPosition.xyz - get_position(objects[index].model)) + avoidance;
-        var targetWeight = 0.1;
-        let avoidanceWeight = 0.4;
-
-        var targetP = boids[index].targetPosition.xyz;
-        var movDir = (targetP - get_position(objects[index].model));
-
-        // check distance to target 
-        if (distance(get_position(objects[index].model), targetP) < 0.5) {
-            movDir = vec3(0.0, 0.0, 0.0);
-        }
+        var minAv = vec3<f32>(-1.0, -1.0, 0.0);
+        var maxAv = vec3<f32>(1.0, 1.0, 0.0);
 
 
-        if (boids[index].hasTarget == 0u) {
-            targetWeight = 0.0;
-        }
+        // var acceleration = clamp(offset, -1.0, 1.0);
 
-        var movementDirection = safe_normalize(movDir * targetWeight + avoidance * avoidanceWeight);
+        var v = clamp(avoidance, minAv, maxAv);
+        var dir = v * dT * boids[index].speed;
 
-        // clamp length without normalizing
-        if (length(movementDirection) > 1.0) {
-            movementDirection = safe_normalize(movementDirection);
-        }
+        var minV3 = vec3<f32>(-boids[index].speed, -boids[index].speed, 0.0);
+        var maxV3 = vec3<f32>(boids[index].speed, boids[index].speed, 0.0);
 
+        dir = clamp(dir, minV3  * dT,maxV3 * dT);
 
-        var destination = get_position(objects[index].model) + movementDirection;
-        
-        var lastPosition = get_position(objects[index].model);
-        
-        objects[index].model = move_towards(objects[index].model, destination, defaultSpeed);
+        var lastPosition = objects[index].position;
 
+        objects[index].position = lastPosition + dir;
 
+        // get current position
+        var lP = get_position(objects[index].model);
 
-        var newPosition = get_position(objects[index].model);
+        // lerp towards position
+        var lerped = mix(lP, objects[index].position, 10 * dT);
 
-        var velocity = newPosition - lastPosition;
-
-        var speed = length(velocity) / dT;
-
-        var avoidanceLength = length(avoidance) / 0.5;
-
-
-
-        // scale x by avoidance length, so it looks like boid is getting squished
-
-        var s = 0.3 - avoidanceLength;
-        s = max(0.23, s);
-        s = min(0.3, s);
-
-        var target_scale = vec3<f32>(s, 0.3, 0.3);
-        var current_scale = get_scale(objects[index].model);
-
-        // lerp
-        var scale = mix(current_scale, target_scale, 15.0 * dT);
-
-        objects[index].model = set_scale(objects[index].model, scale);
-
-    
+        objects[index].model = set_position(objects[index].model, lerped);
     }
 
     return;
 }
+

@@ -1,3 +1,4 @@
+import { vec3 } from 'gl-matrix';
 import * as MathUtils from './MathUtils.js';
 import { Quaternion } from './Quaternion.js';
 
@@ -697,6 +698,10 @@ class Vector3 {
 
 		return this;
 
+	}
+
+	toVec3() {
+		return vec3.fromValues(this.x, this.y, this.z);
 	}
 
 	*[ Symbol.iterator ]() {

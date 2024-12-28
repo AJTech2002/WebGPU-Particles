@@ -28,6 +28,10 @@ export default class CameraComponent extends Component {
     return this.gameObject.transform.worldModelMatrix;
   }
 
+  public get extents() : vec4 {
+    return this.leftRightBottomTop;
+  }
+
   private updateCamera() {
     var windowWidth = window.innerWidth/this.cameraScale;
     var windowHeight = window.innerHeight/this.cameraScale;
