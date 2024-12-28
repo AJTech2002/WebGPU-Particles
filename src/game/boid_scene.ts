@@ -52,9 +52,22 @@ export default class BoidScene extends Scene {
        for (let i = 0; i < 2; i++) {
         this.boidSystem.addBoid({
           position: this.input.mouseToWorld(0).toVec3(),
-          speed: 1
+          speed: 10
         })
        }
+      }
+    }
+
+    for (let i = 0; i < this.boidSystem.instanceCount; i++) {
+
+      if (this.boidSystem.boidObjects[i] == null) continue;
+      // // check distance to mouse
+
+      const mouse = this.input.mouseToWorld(0).toVec3();
+      const boid = this.boidSystem.boidObjects[i].position;
+      const distance = vec3.distance(mouse, boid);
+      if (distance < 2) {
+        this.boidSystem.setBoidTarget(i, this.input.mouseToWorld(0).toVec3());
       }
     }
 

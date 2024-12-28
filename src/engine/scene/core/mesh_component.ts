@@ -30,6 +30,7 @@ export default class Mesh extends Component {
   public setMaterial(material: Material) {
     this._material = material;
     this._material.meshes.push(this);
+    this.scene.registerMaterial(this._material);
 
     // Required uniforms from the mesh
     this.bindGroup = device.createBindGroup({
@@ -44,7 +45,6 @@ export default class Mesh extends Component {
       ],
     })
 
-    this.scene.registerMaterial(this._material);
   }
 
   public get material(): Material {

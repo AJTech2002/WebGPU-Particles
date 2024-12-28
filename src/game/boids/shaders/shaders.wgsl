@@ -29,8 +29,11 @@ struct Fragment {
 
 fn randomColor(id: u32) -> vec4<f32> {
     var r = f32((id * 123) % 155) / 155.0;
-    r = r * 0.7 + 0.5;
-    return vec4<f32>(r, r, r, 1.0);
+
+    var g = f32((id * 234) % 255) / 255.0;
+    var b = f32((id * 12) % 255) / 255.0;
+
+    return vec4<f32>(r, g, b, 1.0);
 }
 
 @vertex

@@ -56,7 +56,7 @@ export default class  Scene {
     }
 
     this._materials.push(material);
-    material.start();
+    material.start(this.engine);
   }
   //#endregion
 

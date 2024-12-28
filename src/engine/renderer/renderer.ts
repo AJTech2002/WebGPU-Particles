@@ -17,6 +17,13 @@ export class Renderer {
     private globalUniformBindGroup!: GPUBindGroup;
     private globalUniformBindGroupLayout!: GPUBindGroupLayout;
 
+    // Depth Stencil
+    private depthDepthTextureState!: GPUDepthStencilState;
+    private depthTextureBuffer!: GPUTexture;
+    private depthTextureView!: GPUTextureView;
+    private depthStencilAttachment!: GPURenderPassDepthStencilAttachment;
+
+
     public get device() {
         return this._device;
     }
@@ -38,18 +45,19 @@ export class Renderer {
         window.addEventListener("resize", () => {
             this.canvas.width = window.innerWidth;
             this.canvas.height = window.innerHeight;
+
+            // resize the depth buffer
+            this.makeDepthBuffer();
         });
     }
 
-    start() {
-
+    public async start() {
         this._device = device;
         this._format = renderTargetFormat;
-
-        this.setupDevice();
+        await this.setupDevice();
     }
 
-    setupDevice() {
+    private async setupDevice() {
         //context: similar to vulkan instance (or OpenGL context)
         this.context = this.canvas.getContext("webgpu") as any;
         
@@ -64,8 +72,52 @@ export class Renderer {
             console.error(event);
         });
 
+        await this.makeDepthBuffer();
+
         // Setup camera buffer
         this.initCameraBuffer();
+    }
+
+    private async makeDepthBuffer() {
+        this.depthDepthTextureState = {
+            format: "depth24plus-stencil8",
+            depthWriteEnabled: true,
+            depthCompare: "less-equal"
+        };
+
+        // TODO: Resize?
+        const size: GPUExtent3D = {
+            width: this.canvas.width,
+            height: this.canvas.height,
+            depthOrArrayLayers: 1
+        };
+
+        const depthBufferDesc: GPUTextureDescriptor = {
+            size: size,
+            format: "depth24plus-stencil8",
+            usage: GPUTextureUsage.RENDER_ATTACHMENT
+        };
+
+        this.depthTextureBuffer = this._device.createTexture(depthBufferDesc);
+
+        const viewDescriptor : GPUTextureViewDescriptor = {
+            format: "depth24plus-stencil8",
+            dimension: "2d",
+            aspect: "all",
+        };
+
+        this.depthTextureView = this.depthTextureBuffer.createView(viewDescriptor);
+
+        this.depthStencilAttachment = {
+            view: this.depthTextureView,
+            depthClearValue: 1.0,
+            depthLoadOp: "clear",
+            depthStoreOp: "store",
+
+            stencilLoadOp: "clear",
+            stencilStoreOp: "discard",
+        };
+
     }
 
     private initCameraBuffer() {
@@ -104,6 +156,10 @@ export class Renderer {
         });
     }
 
+    public getDepthStencilState() {
+        return this.depthDepthTextureState;
+    }
+
     public updateGlobalUniforms(view: mat4, projection: mat4, time: number) {
         this.device.queue.writeBuffer(this.globalUniformBuffer, 0, <ArrayBuffer>view);
         this.device.queue.writeBuffer(this.globalUniformBuffer, 64, <ArrayBuffer>projection);
@@ -123,7 +179,8 @@ export class Renderer {
                 clearValue: { r:1.0, g: 1.0, b: 1.0, a: 1.0 },
                 loadOp: "clear",
                 storeOp: "store"
-            }]
+            }],
+            depthStencilAttachment: this.depthStencilAttachment
         });
 
         renderpass.setBindGroup(0, this.globalUniformBindGroup); // Global Uniforms

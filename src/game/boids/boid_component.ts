@@ -45,7 +45,7 @@ export default class BoidSystemComponent extends Component {
   private bindGroup: GPUBindGroup;
 
   public instanceCount: number = 0;
-  public maxInstanceCount: number = 3000;
+  public maxInstanceCount: number = 10000;
 
   // compute
   private avoidancePipeline!: GPUComputePipeline;
@@ -208,6 +208,20 @@ export default class BoidSystemComponent extends Component {
     });
   }
 
+  public setBoidTarget(index: number, target: vec3): void {
+    if (index >= this.instanceCount) {
+      console.error("Index out of bounds", index, this.instanceCount);
+      return;
+    }
+
+    this.boidData.updateBufferAt(index, {
+      target: [target[0], target[1], target[2], 0],
+      avoidance: vec4.create(),
+      hasTarget: true,
+      speed: 1,
+    });
+  }
+
   public awake(): void {}
 
   public update(dT: number): void {
@@ -216,7 +230,7 @@ export default class BoidSystemComponent extends Component {
       const sDT = dT / 1000;
 
       this.timeData.value = this.scene.sceneTime / 1000; 
-      this.deltaTimeData.value = sDT;
+      this.deltaTimeData.value = sDT * 3;
       this.numBoids.value = this.instanceCount;
 
       const commandEncoder: GPUCommandEncoder = device.createCommandEncoder();

@@ -43,10 +43,11 @@ export default class Engine {
   }
 
   private init() {
-    this._renderer.start();
-    this._scene.awake(this);
-    this._scene.start();  
-    requestAnimationFrame((t) => this.renderLoop(t));
+    this._renderer.start().then(() => {
+      this._scene.awake(this);
+      this._scene.start();  
+      requestAnimationFrame((t) => this.renderLoop(t));
+    });
   }
 
   private renderLoop(t : number) {

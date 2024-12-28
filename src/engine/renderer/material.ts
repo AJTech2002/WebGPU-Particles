@@ -1,20 +1,21 @@
-import { makeBindGroupLayoutDescriptors, makeShaderDataDefinitions } from "webgpu-utils";
+import { makeBindGroupLayoutDescriptors, makeShaderDataDefinitions, PipelineDescriptor } from "webgpu-utils";
 import Mesh from "../scene/core/mesh_component";
 import BasicFragShader from "@renderer/shaders/simple_shader.wgsl";
 import BasicTextureFragShader from "@renderer/shaders/simple_textured_shader.wgsl";
 import Scene from "../scene";
-import { renderTargetFormat, device } from "@engine/engine";
+import Engine, { renderTargetFormat, device } from "@engine/engine";
 import Texture from "@engine/texture";
 import { ColorUniform } from "./uniforms";
 import { Color } from "@math";
 
 export default class Material {
   private device: GPUDevice;
-  public pipeline: GPURenderPipeline;
   public bindGroup?: GPUBindGroup;
 
-  protected bindGroupLayout: GPUBindGroupLayout;
-  public meshBindGroupLayout: GPUBindGroupLayout;
+  public pipeline!: GPURenderPipeline;
+  protected bindGroupLayout!: GPUBindGroupLayout;
+  public meshBindGroupLayout!: GPUBindGroupLayout;
+  public pipelineDescriptor!: PipelineDescriptor;
 
   private bindGroupEntriesMap: Map<string, GPUBindGroupEntry> = new Map();
   private bindGroupEntries: GPUBindGroupEntry[] = [];
@@ -24,10 +25,19 @@ export default class Material {
 
   public name: string = "Material";
 
+
+  private shader: string;
+
   // protected renderer: Renderer;
 
   constructor(shader: string) {
     this.device = device;
+    this.shader = shader;
+  }
+
+  public start(engine: Engine) {
+
+    const shader = this.shader;
 
     const triangleBufferLayout: GPUVertexBufferLayout = {
       arrayStride: 20,
@@ -74,9 +84,11 @@ export default class Material {
     const pipeline = device.createRenderPipeline({
       layout,
       ...pipelineDesc,
+      primitive: {
+        topology: "triangle-list",
+      },
+      depthStencil: engine.renderer.getDepthStencilState(),
     });
-
-   
 
     this.pipeline = pipeline;
 
@@ -97,9 +109,7 @@ export default class Material {
 
       this.meshBindGroupLayout = layout;
     }
-  }
 
-  public start() {
     this.setupBuffer();
   }
 

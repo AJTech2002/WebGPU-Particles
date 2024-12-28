@@ -116,16 +116,29 @@ fn movementMain (@builtin(global_invocation_id) global_id: vec3<u32>) {
 
     if (index < objectModelLength ) {
 
+        var targetWeight = 0.7;
+        let avoidanceWeight = 1.0;
+
         var avoidance = boids[index].avoidanceVector.xyz;
         avoidance.z = 0.0;
 
         var minAv = vec3<f32>(-1.0, -1.0, 0.0);
         var maxAv = vec3<f32>(1.0, 1.0, 0.0);
 
+        var targetP = boids[index].targetPosition.xyz;
+        
+        var movDir = (targetP - objects[index].position);
+        let distanceToTarget = length(movDir);
 
-        // var acceleration = clamp(offset, -1.0, 1.0);
+       
 
-        var v = clamp(avoidance, minAv, maxAv);
+        movDir = clamp(movDir, minAv, maxAv);
+
+        if (boids[index].hasTarget == 0u) {
+            targetWeight = 0.0;
+        }
+
+        var v = clamp((avoidance * avoidanceWeight) + (movDir*targetWeight), minAv, maxAv);
         var dir = v * dT * boids[index].speed;
 
         var minV3 = vec3<f32>(-boids[index].speed, -boids[index].speed, 0.0);
