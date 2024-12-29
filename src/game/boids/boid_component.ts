@@ -45,7 +45,7 @@ export default class BoidSystemComponent extends Component {
   private bindGroup: GPUBindGroup;
 
   public instanceCount: number = 0;
-  public maxInstanceCount: number = 10000;
+  public maxInstanceCount: number = 3000;
 
   // compute
   private avoidancePipeline!: GPUComputePipeline;

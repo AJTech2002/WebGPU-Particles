@@ -156,6 +156,9 @@ fn movementMain (@builtin(global_invocation_id) global_id: vec3<u32>) {
         // lerp towards position
         var lerped = mix(lP, objects[index].position, 10 * dT);
 
+        // set Z based on Y position
+        // lerped.z = numBoids - objects[index].position.y;
+
         objects[index].model = set_position(objects[index].model, lerped);
     }
 

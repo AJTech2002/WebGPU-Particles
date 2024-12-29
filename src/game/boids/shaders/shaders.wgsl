@@ -28,10 +28,10 @@ struct Fragment {
 };
 
 fn randomColor(id: u32) -> vec4<f32> {
-    var r = f32((id * 123) % 155) / 155.0;
+    var r = f32((id * 1) % 155) / 155.0;
 
-    var g = f32((id * 234) % 255) / 255.0;
-    var b = f32((id * 12) % 255) / 255.0;
+    var g = f32((id * 2) % 155) / 255.0;
+    var b = f32((id * 3) % 155) / 255.0;
 
     return vec4<f32>(r, g, b, 1.0);
 }
@@ -43,10 +43,22 @@ fn vs_main( @builtin(instance_index) ID: u32, @location(0) vertexPostion: vec3<f
     var idToF32 = f32(ID);
     var col = randomColor(ID * 23);
 
+    var objModel = objects[ID].model;
+    var pos = get_position(objModel);
+    
+    var expectedScreenSpace = uniformUBO.projection * uniformUBO.view * model *  objModel * vec4<f32>(0.0, 0.0, 0.0 , 1.0);
 
-    output.Position = uniformUBO.projection * uniformUBO.view * model * objects[ID].model * vec4<f32>(vertexPostion , 1.0);
- 
+    // get y position
+    var y = ((expectedScreenSpace.y + 1.0) / 2.0)  / expectedScreenSpace.w;;
+
+    pos.z = - (y * 2.0 + 0.1);
+    
+    objModel = set_position(objModel, pos);
+
+    output.Position =  uniformUBO.projection * uniformUBO.view * model * objModel * vec4<f32>(vertexPostion , 1.0);
+
     output.Color = col;
+    // output.Color = vec4<f32>( y, 0.0, 0.0, 1.0);
     output.UV = vec2<f32>(uv.x, 1.0 - uv.y);
 
     output.ScreenPos = output.Position;

@@ -19,7 +19,7 @@ export default class TestScene extends Scene {
 
     testGameObject.transform.position.x = 1;
 
-    this.activeCamera!.gameObject.transform.position.z = -10;
+    this.activeCamera!.gameObject.transform.position.z = -100;
     
     testGameObject.transform.localRotateOnAxis(new Vector3(0,0,1), 1);
   }
