@@ -1,8 +1,7 @@
 import { vec3 } from "gl-matrix";
 import BoidSystemComponent from "./boid_component";
-import { debug } from "console";
 
-export default class Boid {
+export class Boid {
 
   public boidId: number;
   private boidSystem: BoidSystemComponent;
@@ -20,8 +19,8 @@ export default class Boid {
   }
 
   public get target(): vec3 {
-    var v4 = this.boidSystem.boids[this.boidId].target;
-    var v3 = vec3.fromValues(v4[0], v4[1], v4[2]);
+    const v4 = this.boidSystem.boids[this.boidId].target;
+    const v3 = vec3.fromValues(v4[0], v4[1], v4[2]);
     return v3;
   }
 
@@ -31,7 +30,7 @@ export default class Boid {
 
   public move (x: number, y: number) {
     // move in this direction
-    var unitPos = vec3.create();
+    let unitPos = vec3.create();
 
     if (this.boidSystem.boidObjects[this.boidId] == null) {
       unitPos = this.initialPosition;
@@ -44,18 +43,18 @@ export default class Boid {
         unitPos = this.boidSystem.boidObjects[this.boidId].position;
     }
 
-    var dir = vec3.fromValues(x, y, 0);
+    const dir = vec3.fromValues(x, y, 0);
     vec3.normalize(dir, dir);
     vec3.scale(dir, dir, 1000);
 
-    var targetPos = vec3.create();
+    const targetPos = vec3.create();
     vec3.add(targetPos, unitPos, dir);
 
     this.boidSystem.setBoidTarget(this.boidId, targetPos);
   }
 
   public moveTo (x: number, y: number) {
-    var targetPos = vec3.fromValues(x, y, 0);
+    const targetPos = vec3.fromValues(x, y, 0);
     this.boidSystem.setBoidTarget(this.boidId, targetPos);
   }
 }

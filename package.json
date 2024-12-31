@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "gen/types": "tsc ./src/*/**.ts --declaration --resolveJsonModule --esModuleInterop -emitDeclarationOnly --outDir ./gameTypes",
+    "gen/libs": "node ./generate-libs.js",
+    "gen": "npm run gen/types && npm run gen/libs"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.18.4",
@@ -17,6 +20,7 @@
     "@uiw/codemirror-themes": "^4.23.7",
     "@uiw/react-codemirror": "^4.23.7",
     "@webgpu/types": "*",
+    "fs": "^0.0.1-security",
     "gl-matrix": "^3.4.3",
     "node": "*",
     "react": "^18.3.1",

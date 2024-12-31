@@ -33,7 +33,10 @@ export default class Input {
   }
 
   setup() {
-    document.addEventListener("keydown", (e) => {
+
+    const canvas = this.scene!.engine.outputCanvas;
+
+    canvas.addEventListener("keydown", (e) => {
 
       if (this.scene === null) {
         return;
@@ -46,7 +49,7 @@ export default class Input {
 
 
 
-    document.addEventListener("keyup", (e) => {
+    canvas.addEventListener("keyup", (e) => {
       if (this.scene === null) {
         return;
       }
@@ -56,7 +59,7 @@ export default class Input {
       this.inputMappings[e.key.toLowerCase()] = false;
     });
 
-    document.addEventListener("mousemove", (e) => {
+    canvas.addEventListener("mousemove", (e) => {
       if (this.scene === null) {
         return;
       }
@@ -64,7 +67,7 @@ export default class Input {
       this.mousePosition = new Vector2(e.clientX, e.clientY);
     });
 
-    document.addEventListener("mousedown", (e) => {
+    canvas.addEventListener("mousedown", (e) => {
         
       if (this.scene === null) {
         return;
@@ -73,7 +76,7 @@ export default class Input {
       this.mouseButtons |= this.mapMouse(e.button);
     });
 
-    document.addEventListener("mouseup", (e) => {
+    canvas.addEventListener("mouseup", (e) => {
       if (this.scene === null) {
         return;
       }

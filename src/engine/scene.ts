@@ -50,6 +50,10 @@ export default class  Scene {
     return this._engine.renderer;
   }
 
+  public get inputSystem() : Input {
+    return this.input;
+  }
+
   public registerMaterial(material: Material) {
     if (this._materials.indexOf(material) > -1) {
       return;

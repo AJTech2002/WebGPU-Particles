@@ -5,10 +5,17 @@ import ts from "typescript"
 const fsMap = new Map();
 
 const libs = [];
+const imports = [];
 //loop through lib and add all to fsMap
 for (const key in lib) {
+    
     fsMap.set(key, (lib as any)[key]);
+
     libs.push(key.replace('/lib.', ''));
+
+    if (key.startsWith('/') && !key.startsWith('/lib.')) {
+        imports.push(key);
+    }
 }
 
 console.log(libs);
@@ -35,13 +42,18 @@ export const typescriptCompletionSource = async (context: any) => {
     const code = context.state.doc.toString();
     let cursorPos = context.pos;
 
-    // Update the virtual file system with the current content
+    //TODO: This needs to be automated
+    let preCode = `
+      import { vec3, vec4 } from "gl-matrix";
+      import {Boid} from "/gameTypes/game/boids/boid.d.ts";
+      import {GameContext} from "/gameTypes/interface/interface.d.ts";
 
-    const preCode = `import {Game} from "/src/interface/abstraction/game"; 
-        var game: Game = new Game();
+        const game : GameContext;
+
     `;
-    const totalCode = preCode + code;
 
+    const totalCode = preCode + code;
+    
     env.updateFile("index.ts", totalCode);
 
     cursorPos += preCode.length;
@@ -89,14 +101,21 @@ export const transpile = () => {
 }
 
 
-export const saveFile = (code: string) => {
+export const saveFile = (code: string) : string | null => {
     // Update the virtual file system with the current content
     env.updateFile("index.ts", code);
 
     const transpiledCode = transpile();
 
+    if (!transpiledCode) {
+        console.error("Transpilation failed");
+        return null;
+    }
+    
     // Store in local storage
     localStorage.setItem('transpiled', transpiledCode);
     // Store the non-transpiled code in local storage
     localStorage.setItem('code', code);
+
+    return transpiledCode;
 }

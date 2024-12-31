@@ -2,11 +2,12 @@ import Engine from "@engine/engine";
 import Scene from "@engine/scene";
 import GameObject from "@engine/scene/gameobject";
 import BoidSystemComponent from "./boids/boid_component";
-import Mesh, { QuadMesh } from "@engine/scene/core/mesh_component";
+import { QuadMesh } from "@engine/scene/core/mesh_component";
 import BoidMaterial from "./boids/boid_material";
 import {vec3 } from "gl-matrix";
 
 import BoidTexture from "../assets/guy-2.png";
+import {Boid} from "./boids/boid";
 
 export default class BoidScene extends Scene {
 
@@ -37,9 +38,12 @@ export default class BoidScene extends Scene {
     })
   }
 
+  public get units() : Boid[] {
+    return this.boidSystem.boidRefs;
+  }
+
   render(dT: number): void {
     super.render(dT);
-
 
     if (this.input.getMouseButton(0) ) {
       if (this.boidSystem.instanceCount >= this.boidSystem.maxInstanceCount) {
@@ -54,10 +58,6 @@ export default class BoidScene extends Scene {
           position: this.input.mouseToWorld(0).toVec3(),
           speed: 1
         });
-
-        console.log("b", b);
-
-        b?.move(0,1);
        }
       }
     }

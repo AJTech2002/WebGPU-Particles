@@ -5,8 +5,14 @@ import BoidScene from './game/boid_scene';
 import { autocompletion } from '@codemirror/autocomplete';
 import { saveFile, typescriptCompletionSource } from './tsUtils';
 import { javascript } from '@codemirror/lang-javascript';
-import CodeMirror, { ReactCodeMirrorRef } from '@uiw/react-codemirror';
+import CodeMirror, { EditorView, KeyBinding, keymap, ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import * as duotone from "@uiw/codemirror-theme-duotone";
+import {defaultKeymap} from "@codemirror/commands";
+import CodeRunner from './code_runner/code_runner';
+import { GameContext } from './interface/interface';
+
+const codeRunner = new CodeRunner();
+let resolvedEngine : Engine | undefined;
 
 function App() {
 
@@ -18,9 +24,25 @@ function App() {
     return <canvas id="canvas" ref={canvasRef}></canvas>
   }, []);
 
+  const customKeyMap : KeyBinding = {
+    key: "Ctrl-Enter",
+    run: (editor: EditorView) => {
+      if (resolvedEngine !== undefined) {
+        const context : GameContext = new GameContext(resolvedEngine.scene as BoidScene);
+        const transpiledCode = saveFile(code);
+        if (transpiledCode === null) {
+          console.error("Error transpiling code");
+          return false;
+        }
+        
+        codeRunner.run(transpiledCode, context);
+      }
+      return true;
+    }
+  }
+
   useEffect(() => {
     
-    let resolvedEngine : Engine | undefined;
     if (canvasRef.current) {
       const engine : Promise<Engine> = createEngine(canvasRef.current, new BoidScene());
       engine.then((e) => {
@@ -55,9 +77,13 @@ function App() {
         }}
         height="100%"
         width="100vw"
-        extensions={[javascript({
-          typescript: true
-        }),
+        extensions={[
+          javascript({
+            typescript: true
+          }),
+          keymap.of([ customKeyMap]),
+        // add a keybind to submit
+      
         autocompletion({
           override: [typescriptCompletionSource as any],
           activateOnTyping: true,
@@ -65,6 +91,8 @@ function App() {
           aboveCursor: true,
           maxRenderedOptions: 30,
         })
+
+
 
         ]}
         onChange={setCode}

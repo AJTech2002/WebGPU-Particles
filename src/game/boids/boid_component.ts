@@ -10,7 +10,7 @@ import {
   TypeDefinition,
 } from "webgpu-utils";
 import { BoidDataBuffer, ObjectDataBuffer } from "./boid_buffers";
-import Boid from "./boid";
+import {Boid} from "./boid";
 
 
 interface BoidInitData {
@@ -191,7 +191,7 @@ export default class BoidSystemComponent extends Component {
       position,
     });
 
-    var boid = new Boid(
+    let boid = new Boid(
       this,
       this.instanceCount,
       init.position,
