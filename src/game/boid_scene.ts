@@ -31,7 +31,7 @@ export default class BoidScene extends Scene {
 
     this.activeCamera!.gameObject.transform.position.z = -10;
 
-    this.boidSystem.addBoid({
+   this.boidSystem.addBoid({
       position: vec3.fromValues(0, 0, 0),
       speed: 1
     })
@@ -49,11 +49,15 @@ export default class BoidScene extends Scene {
         }
       }
       else {
-       for (let i = 0; i < 2; i++) {
-        this.boidSystem.addBoid({
+       for (let i = 0; i < 1; i++) {
+        var b = this.boidSystem.addBoid({
           position: this.input.mouseToWorld(0).toVec3(),
-          speed: 10
-        })
+          speed: 1
+        });
+
+        console.log("b", b);
+
+        b?.move(0,1);
        }
       }
     }
@@ -61,12 +65,11 @@ export default class BoidScene extends Scene {
     for (let i = 0; i < this.boidSystem.instanceCount; i++) {
 
       if (this.boidSystem.boidObjects[i] == null) continue;
-      // // check distance to mouse
-
+       
       const mouse = this.input.mouseToWorld(0).toVec3();
       const boid = this.boidSystem.boidObjects[i].position;
       const distance = vec3.distance(mouse, boid);
-      if (distance < 2) {
+      if (distance < 0) {
         this.boidSystem.setBoidTarget(i, this.input.mouseToWorld(0).toVec3());
       }
     }

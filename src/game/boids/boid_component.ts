@@ -10,6 +10,7 @@ import {
   TypeDefinition,
 } from "webgpu-utils";
 import { BoidDataBuffer, ObjectDataBuffer } from "./boid_buffers";
+import Boid from "./boid";
 
 
 interface BoidInitData {
@@ -53,7 +54,8 @@ export default class BoidSystemComponent extends Component {
 
   public boids: BoidData[] = [];
   public boidObjects: BoidObjectData[] = [];
-
+  public boidRefs: Boid[] = [];
+  
   constructor() {
     super();
 
@@ -161,7 +163,7 @@ export default class BoidSystemComponent extends Component {
   }
 
   private warned: boolean = false;
-  public addBoid(init: BoidInitData): void {
+  public addBoid(init: BoidInitData): Boid | undefined{
 
     if (this.instanceCount >= this.maxInstanceCount) {
       if (!this.warned) {
@@ -172,9 +174,9 @@ export default class BoidSystemComponent extends Component {
     }
 
     this.boidData.updateBufferAt(this.instanceCount, {
-      target: [0, 0, init.position[2], 0],
+      target: [init.position[0], init.position[1], init.position[2], 0],
       avoidance: vec4.create(),
-      hasTarget: false,
+      hasTarget: true,
       speed: init.speed,
     });
 
@@ -188,8 +190,19 @@ export default class BoidSystemComponent extends Component {
       model,
       position,
     });
+
+    var boid = new Boid(
+      this,
+      this.instanceCount,
+      init.position,
+    )
+
+    this.boidRefs.push(boid);
+
     this.instanceCount++;
     this.numBoids.value = this.instanceCount;
+
+    return boid;
   }
 
   public setBoidPosition(index: number, position: vec3): void {
