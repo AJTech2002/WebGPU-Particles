@@ -7,6 +7,7 @@ module.exports = {
         path: path.resolve(__dirname, "dist"),
         publicPath: "/dist/"
     },
+    mode: "development",
 
     module: {
         rules: [
@@ -27,6 +28,11 @@ module.exports = {
     },
     
     resolve: {
-        extensions: [".ts"]
+        extensions: [".ts"],
+        alias: {
+            "@engine": path.resolve(__dirname, 'src/engine/'),
+            "@renderer": path.resolve(__dirname, 'src/engine/renderer/'),
+            "@math": path.resolve(__dirname, 'src/engine/math/src/index.js'),
+        },
     }
 }

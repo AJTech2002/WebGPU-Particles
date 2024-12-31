@@ -1,0 +1,64 @@
+import { vec3 } from "gl-matrix";
+import BoidSystemComponent from "./boid_component";
+import { debug } from "console";
+
+export default class Boid {
+
+  public boidId: number;
+  private boidSystem: BoidSystemComponent;
+
+  private initialPosition: vec3;
+
+  constructor(component: BoidSystemComponent, boidId: number, position: vec3) {
+    this.boidSystem = component;
+    this.boidId = boidId;
+    this.initialPosition = position;
+  }
+
+  public get position(): vec3 {
+    return this.boidSystem.boidObjects[this.boidId].position;
+  }
+
+  public get target(): vec3 {
+    var v4 = this.boidSystem.boids[this.boidId].target;
+    var v3 = vec3.fromValues(v4[0], v4[1], v4[2]);
+    return v3;
+  }
+
+  public set target(target: vec3) {
+    this.boidSystem.setBoidTarget(this.boidId, target);
+  }
+
+  public move (x: number, y: number) {
+    // move in this direction
+    
+    var unitPos = vec3.create();
+
+    if (this.boidSystem.boidObjects[this.boidId] == null) {
+      unitPos = this.initialPosition;
+    }
+    else {
+      // check if the position is NaN
+      if (isNaN(this.boidSystem.boidObjects[this.boidId].position[0]))
+        unitPos = this.initialPosition;
+      else
+        unitPos = this.boidSystem.boidObjects[this.boidId].position;
+    }
+
+
+    var dir = vec3.fromValues(x, y, 0);
+    vec3.normalize(dir, dir);
+    vec3.scale(dir, dir, 1000);
+
+    var targetPos = vec3.create();
+    vec3.add(targetPos, unitPos, dir);
+      
+    console.log("targetPos", targetPos);
+    this.boidSystem.setBoidTarget(this.boidId, targetPos);
+  }
+
+  public moveTo (x: number, y: number) {
+    var targetPos = vec3.fromValues(x, y, 0);
+    this.boidSystem.setBoidTarget(this.boidId, targetPos);
+  }
+}
