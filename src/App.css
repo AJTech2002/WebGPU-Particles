@@ -1,0 +1,50 @@
+@font-face {
+  font-family: 'Lexend';
+  src: url('./res/fonts/Lexend-Variable.ttf') format('truetype'), url('./res/fonts/Lexend-Regular.ttf') format('truetype'), url('./res/fonts/Lexend-Regular.woff') format('woff'), url('./res/fonts/Lexend-Regular.woff2') format('woff2'), url('./res/fonts/Lexend-Regular.eot?#iefix') format('embedded-opentype');
+  font-display: swap;
+}
+
+.radix-themes {
+  --default-font-family: 'Lexend', sans-serif;
+  font-size: 12;
+}
+
+.game-wrapper {
+  width: 100dvw;
+  height: 100dvh;
+}
+
+.unity {
+  border-radius: var(--radius-4);
+}
+
+#game {
+  width: 100%;
+  height: 100%;
+
+}
+
+.game-controls {
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.code-controls {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  outline: none;
+}
+
+textarea,
+input {
+  outline: none;
+}
+
+canvas {
+  width: 100%;
+  height: 100%;
+}
+

@@ -35,19 +35,22 @@ export class Renderer {
     public get uniforms() {
         return this.globalUniformBuffer;
     }
-    
 
     constructor(canvas: HTMLCanvasElement) {
         this.canvas = canvas;
-        this.canvas.width = window.innerWidth;
-        this.canvas.height = window.innerHeight + 20;
+        this.canvas.width = this.canvas.clientWidth;
+        this.canvas.height = this.canvas.clientHeight;
 
         window.addEventListener("resize", () => {
-            this.canvas.width = window.innerWidth;
-            this.canvas.height = window.innerHeight;
-
+          const displayWidth = this.canvas.clientWidth;
+          const displayHeight = this.canvas.clientHeight;
+          const needResize = this.canvas.width !== displayWidth || this.canvas.height !== displayHeight;
+          if (needResize) {
+            this.canvas.width = displayWidth;
+            this.canvas.height = displayHeight;
             // resize the depth buffer
             this.makeDepthBuffer();
+          }
         });
     }
 
@@ -128,12 +131,12 @@ export class Renderer {
 
         const pipelineDesc = {
             vertex: {
-              module,
+              undefined,
               entryPoint: "vs_main",
               buffers: [], // This is passed in because it depends on how the mesh is structured
             },
             fragment: {
-              module,
+              undefined,
               entryPoint: "fs_main",
               targets: [{ format: renderTargetFormat }],
             },
@@ -176,7 +179,7 @@ export class Renderer {
         const renderpass: GPURenderPassEncoder = commandEncoder.beginRenderPass({
             colorAttachments: [{
                 view: textureView,
-                clearValue: { r:1.0, g: 1.0, b: 1.0, a: 1.0 },
+                clearValue: { r: (52.0/255.0) , g: (49.0/255.0), b: (62.0/255.0), a: 1.0 },
                 loadOp: "clear",
                 storeOp: "store"
             }],

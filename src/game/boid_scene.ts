@@ -4,9 +4,9 @@ import GameObject from "@engine/scene/gameobject";
 import BoidSystemComponent from "./boids/boid_component";
 import Mesh, { QuadMesh } from "@engine/scene/core/mesh_component";
 import BoidMaterial from "./boids/boid_material";
-import { StandardDiffuseMaterial } from "@engine/renderer/material";
-import { Matrix4, Quaternion, Vector3 } from "@math";
-import { mat4, vec3 } from "gl-matrix";
+import {vec3 } from "gl-matrix";
+
+import BoidTexture from "../assets/guy-2.png";
 
 export default class BoidScene extends Scene {
 
@@ -26,7 +26,7 @@ export default class BoidScene extends Scene {
     boids.addComponent(new QuadMesh(new BoidMaterial(
       this,
       boidSystem.objectData.gpuBuffer,
-      "dist/guy-2.png"
+      BoidTexture
     )));
 
     this.activeCamera!.gameObject.transform.position.z = -10;
@@ -44,13 +44,13 @@ export default class BoidScene extends Scene {
     if (this.input.getMouseButton(0) ) {
       if (this.boidSystem.instanceCount >= this.boidSystem.maxInstanceCount) {
         for (let i = 0; i < 2; i++) {
-          let randomIndex = Math.floor(Math.random() * this.boidSystem.instanceCount);
+          const randomIndex = Math.floor(Math.random() * this.boidSystem.instanceCount);
           this.boidSystem.setBoidPosition(randomIndex, this.input.mouseToWorld(0).toVec3());
         }
       }
       else {
        for (let i = 0; i < 1; i++) {
-        var b = this.boidSystem.addBoid({
+        const b = this.boidSystem.addBoid({
           position: this.input.mouseToWorld(0).toVec3(),
           speed: 1
         });

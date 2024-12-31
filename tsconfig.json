@@ -1,32 +1,7 @@
 {
-  "compilerOptions": {
-    "target": "ES2020",
-    "lib": ["DOM", "ES2020"],
-    "module": "ESNext",
-    "jsx": "preserve",
-    "noEmit": false,
-    "strict": true,
-
-    "skipLibCheck": true,
-    "isolatedModules": false,
-    "resolveJsonModule": true,
-    "moduleResolution": "node",
-    "useDefineForClassFields": true,
-    "baseUrl": "./",
-    "paths": {
-      "@engine/*": ["src/engine/*"],
-      "@renderer/*": ["src/engine/renderer/*"],
-      "@math": ["src/engine/math/src/index.js"],
-    },
-    "typeRoots": [ 
-      "./node_modules/@webgpu/types", 
-      "./node_modules/@types"
-    ], 
-    "noImplicitAny": false,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "sourceMap": true,
-    "allowJs": true
-  },
-  "include": ["src"]
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ]
 }

@@ -1,34 +1,43 @@
 {
-  "name": "npm-test",
-  "version": "1.0.0",
-  "description": "",
-  "mode": "development",
-  "main": "index.js",
+  "name": "clash-webgpu",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
   "scripts": {
-    "start": "npm run install-missing-dependencies && npm run build && npm run serve || npm run watch",
-    "install-missing-dependencies": "npm i",
-    "build": "webpack --config webpack.config.js",
-    "serve": "live-server --cors",
-    "watch": "webpack --watch --config webpack.config.js",
-    "publish:demo": "gh-pages -d dist"
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
+    "@codemirror/autocomplete": "^6.18.4",
+    "@codemirror/lang-javascript": "^6.2.2",
+    "@typescript/vfs": "^1.6.0",
+    "@uiw/codemirror-theme-duotone": "^4.23.7",
+    "@uiw/codemirror-themes": "^4.23.7",
+    "@uiw/react-codemirror": "^4.23.7",
     "@webgpu/types": "*",
     "gl-matrix": "^3.4.3",
-    "live-server": "*",
     "node": "*",
-    "polyline-normals": "^2.0.2",
-    "structurae": "^4.0.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "ts-shader-loader": "*",
     "webgpu-utils": "^1.9.3",
     "webpack": "*",
     "webpack-cli": "*"
   },
   "devDependencies": {
-    "ts-loader": "^9.5.1",
-    "typescript": "^5.7.2"
+    "@eslint/js": "^9.17.0",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^9.17.0",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "eslint-plugin-react-refresh": "^0.4.16",
+    "globals": "^15.14.0",
+    "typescript": "~5.6.2",
+    "typescript-eslint": "^8.18.2",
+    "vite": "^6.0.5",
+    "vite-plugin-glsl": "^1.3.1"
   }
 }
