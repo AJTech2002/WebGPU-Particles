@@ -113,6 +113,11 @@ export default class Material {
     this.setupBuffer();
   }
 
+  public dispose() {
+
+    this.bindGroup = undefined;
+  }
+
   protected setupUniforms() {
     // This is where the material should store the bind group entries
   }

@@ -60,6 +60,13 @@ export class Renderer {
         await this.setupDevice();
     }
 
+    public dispose() {
+      // Dispose all graphics resources
+      this._device.destroy();
+      this.depthTextureBuffer.destroy();
+      this.globalUniformBuffer.destroy();
+    }
+
     private async setupDevice() {
         //context: similar to vulkan instance (or OpenGL context)
         this.context = this.canvas.getContext("webgpu") as any;
@@ -179,7 +186,9 @@ export class Renderer {
         const renderpass: GPURenderPassEncoder = commandEncoder.beginRenderPass({
             colorAttachments: [{
                 view: textureView,
-                clearValue: { r: (52.0/255.0) , g: (49.0/255.0), b: (62.0/255.0), a: 1.0 },
+                // clearValue: { r: (52.0/255.0) , g: (49.0/255.0), b: (62.0/255.0), a: 1.0 },
+                // white:
+                clearValue: { r: 1.0, g: 1.0, b: 1.0, a: 1.0 },
                 loadOp: "clear",
                 storeOp: "store"
             }],

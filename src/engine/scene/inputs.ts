@@ -22,36 +22,71 @@ export default class Input {
     this.mousePosition = new Vector2(0, 0);
   }
 
+  dispose() {
+    this.inputMappings = {};
+    this.scene = null;
+    this.mouseButtons = MouseButtons.None;
+  }
+
   mapMouse(inputMouseButton: number): number {
     return Math.pow(2, inputMouseButton);
   }
 
   setup() {
     document.addEventListener("keydown", (e) => {
+
+      if (this.scene === null) {
+        return;
+      }
+
       if (!this.keyIsPressed(e.key.toLowerCase()))
         this.scene?.inputEvent(0, e.key.toLowerCase());
       this.inputMappings[e.key.toLowerCase()] = true;
     });
 
+
+
     document.addEventListener("keyup", (e) => {
+      if (this.scene === null) {
+        return;
+      }
+
       if (this.keyIsPressed(e.key.toLowerCase()))
         this.scene?.inputEvent(1, e.key.toLowerCase());
       this.inputMappings[e.key.toLowerCase()] = false;
     });
 
     document.addEventListener("mousemove", (e) => {
+      if (this.scene === null) {
+        return;
+      }
+
       this.mousePosition = new Vector2(e.clientX, e.clientY);
     });
 
     document.addEventListener("mousedown", (e) => {
+        
+      if (this.scene === null) {
+        return;
+      }
+
       this.mouseButtons |= this.mapMouse(e.button);
     });
 
     document.addEventListener("mouseup", (e) => {
+      if (this.scene === null) {
+        return;
+      }
+
       this.mouseButtons &= ~this.mapMouse(e.button);
     });
 
     window.addEventListener("blur", (e) => {
+      // Clear all input mappings
+      if (this.scene === null) {
+        return;
+      }
+
       this.inputMappings = {};
     });
   }

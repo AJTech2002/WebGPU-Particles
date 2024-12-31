@@ -112,5 +112,20 @@ export default class  Scene {
   inputEvent(type: number, key: string) {
     // to override  
   }
+  
+  dispose() {
+    for (let i = 0; i < this._gameObjects.length; i++) {
+      this._gameObjects[i].on_destroy();
+    }
+
+    for (let i = 0; i < this._materials.length; i++) {
+      this._materials[i].dispose();
+    }
+
+    this._gameObjects = [];
+    this._materials = [];
+
+    this.input.dispose();
+  }
 
 }

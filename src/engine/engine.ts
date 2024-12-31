@@ -66,6 +66,11 @@ export default class Engine {
     requestAnimationFrame((t) => this.renderLoop(t));
   }
 
+  public dispose() {
+    this._renderer.dispose();
+    this._scene.dispose();
+  }
+
 }
 
 export let device: GPUDevice;

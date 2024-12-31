@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import Engine, { createEngine } from '@engine/engine';
 import BoidScene from './game/boid_scene';
@@ -14,11 +14,23 @@ function App() {
   const [code, setCode] = useState<string>("");
   const editor = useRef<ReactCodeMirrorRef>(null); 
 
+  const memoizedCanvas = useMemo(() => {
+    return <canvas id="canvas" ref={canvasRef}></canvas>
+  }, []);
+
   useEffect(() => {
     
+    let resolvedEngine : Engine | undefined;
     if (canvasRef.current) {
       const engine : Promise<Engine> = createEngine(canvasRef.current, new BoidScene());
-      console.log("Engine", engine);
+      engine.then((e) => {
+        resolvedEngine = e;
+      });
+    }
+
+    return () => {
+      if (resolvedEngine)
+        resolvedEngine.dispose();
     }
 
   }, []);
@@ -31,7 +43,7 @@ function App() {
         display: 'flex',
         flexDirection: 'column',
       }}>
-        <canvas id="canvas" ref={canvasRef}></canvas>
+        {memoizedCanvas}  
       </div>
       <CodeMirror
         ref={editor}

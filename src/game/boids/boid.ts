@@ -31,7 +31,6 @@ export default class Boid {
 
   public move (x: number, y: number) {
     // move in this direction
-    
     var unitPos = vec3.create();
 
     if (this.boidSystem.boidObjects[this.boidId] == null) {
@@ -45,15 +44,13 @@ export default class Boid {
         unitPos = this.boidSystem.boidObjects[this.boidId].position;
     }
 
-
     var dir = vec3.fromValues(x, y, 0);
     vec3.normalize(dir, dir);
     vec3.scale(dir, dir, 1000);
 
     var targetPos = vec3.create();
     vec3.add(targetPos, unitPos, dir);
-      
-    console.log("targetPos", targetPos);
+
     this.boidSystem.setBoidTarget(this.boidId, targetPos);
   }
 
