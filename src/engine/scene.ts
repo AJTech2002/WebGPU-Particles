@@ -115,6 +115,16 @@ export default class  Scene {
 
   inputEvent(type: number, key: string) {
     // to override  
+    for (let i = 0; i < this._gameObjects.length; i++) {
+      this._gameObjects[i].inputEvent(type, key);
+    }
+  }
+
+  mouseEvent(type: number, button: number) {
+    // to override
+    for (let i = 0; i < this._gameObjects.length; i++) {
+      this._gameObjects[i].mouseEvent(type, button);
+    }
   }
   
   dispose() {

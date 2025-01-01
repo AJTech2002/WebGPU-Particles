@@ -8,6 +8,8 @@ import {vec3 } from "gl-matrix";
 
 import BoidTexture from "../assets/guy-2.png";
 import {Boid} from "./boids/boid";
+import { Vector2, Vector3 } from "@engine/math/src";
+import CameraMovement from "./components/camera_movement";
 
 export default class BoidScene extends Scene {
 
@@ -15,6 +17,9 @@ export default class BoidScene extends Scene {
 
   awake(engine: Engine): void {
     super.awake(engine);
+
+    // Add camera movement 
+    this.activeCamera!.gameObject.addComponent(new CameraMovement());
 
     const boids = new GameObject("boids", this);
 
@@ -32,7 +37,7 @@ export default class BoidScene extends Scene {
 
     this.activeCamera!.gameObject.transform.position.z = -10;
 
-   this.boidSystem.addBoid({
+    this.boidSystem.addBoid({
       position: vec3.fromValues(0, 0, 0),
       speed: 1
     })
@@ -42,6 +47,7 @@ export default class BoidScene extends Scene {
     return this.boidSystem.boidRefs;
   }
 
+  
   render(dT: number): void {
     super.render(dT);
 
@@ -75,23 +81,4 @@ export default class BoidScene extends Scene {
     }
 
   }
-
-  inputEvent(type: number, key: string): void {
-    //
-    console.log(type, key);
-
-    if (key === 'a' && type === 1) {
-      // console.log(this.boidSystem.boidObjects)
-      // const decompose = new Matrix4();
-      // decompose.fromArray(this.boidSystem.boidObjects[0].map((v) => v));
-      
-      // const p = new Vector3();
-      // const q = new Quaternion();
-      // const s = new Vector3();
-      // decompose.decompose(p,q,s);
-      // console.log(p, q, s);
-    }
-
-  }
-
 }

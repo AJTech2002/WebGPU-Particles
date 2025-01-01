@@ -18,8 +18,6 @@ for (const key in lib) {
     }
 }
 
-console.log(libs);
-
 const code = 'const a = "Hello World"; a.';
 fsMap.set('index.ts', code);
 

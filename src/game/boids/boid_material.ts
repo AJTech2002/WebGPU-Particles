@@ -16,7 +16,6 @@ export default class BoidMaterial extends StandardDiffuseMaterial {
 
   setupUniforms(): void {
     super.setupUniforms();
-    console.log("Setting up uniforms for boid material");
     this.setUniformEntry("objects", {
       binding: 3,
       resource: {

@@ -5,21 +5,32 @@ import Scene from "@engine/scene";
 import GameObject from "@engine/scene/gameobject";
 import { mat4 } from "gl-matrix";
 
+import TEST_TEXTURE from "../assets/logo.png";
+import CameraMovement from "./components/camera_movement";
+
 export default class TestScene extends Scene {
 
   private quadMesh!: QuadMesh;
 
   start(): void {
+
+    super.start();
+
+    this.activeCamera!.gameObject.addComponent(
+      new CameraMovement()
+    )
+
     const testGameObject = new GameObject("test_guy", this);
     testGameObject.addComponent(new QuadMesh(
-      new StandardDiffuseMaterial(this, "dist/guy-2.png")
+      new StandardDiffuseMaterial(this, TEST_TEXTURE)
       // new StandardMaterial(this)
     )) // add mesh
     // testGameObject.transform.position.z = -20;
 
-    testGameObject.transform.position.x = 1;
+    testGameObject.transform.position.x = 0;
+    testGameObject.transform.position.z = -20;
 
-    this.activeCamera!.gameObject.transform.position.z = -100;
+    // this.activeCamera!.gameObject.transform.position.z = -100;
     
     testGameObject.transform.localRotateOnAxis(new Vector3(0,0,1), 1);
   }

@@ -34,13 +34,9 @@ export default class Texture {
 
 
   async loadTexture (url: string) {
-    console.log("Loading texture");
     const response: Response = await fetch(url);
-    console.log(response);
     const blob: Blob = await response.blob();
-    console.log(blob);
     const imageData: ImageBitmap = await createImageBitmap(blob);
-    console.log(imageData);
     await this.loadImageBitmap(device, imageData);
 
     const viewDescriptor : GPUTextureViewDescriptor = {

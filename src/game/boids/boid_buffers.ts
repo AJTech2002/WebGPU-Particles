@@ -98,13 +98,8 @@ export class BoidDataBuffer extends ArrayUniform<BoidData> {
       ).elementType;
   
       this.elementSize = elementType.size;
-
-      console.log(elementType.size);
-
       this.byteSize = maxInstanceCount * elementType.size;
-  
       this._value = [];
-  
       this.f32Array = this.toFloat32Array(this._value);
     }
   

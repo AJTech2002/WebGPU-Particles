@@ -36,6 +36,12 @@ export default class Component {
   public update(dT: number) {
   }
 
+  public mouseEvent(type: number, button: number) {
+  }
+
+  public inputEvent(type: number, key: number) {
+  }
+
   public destroy() {
   }
 

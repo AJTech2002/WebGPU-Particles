@@ -7,6 +7,7 @@ import path from 'path';
 export default defineConfig({
   plugins: [react(), glsl()],
   assetsInclude: ['**/*.glsl', '**/*.vs', '**/*.fs', '**/*.png'],
+  base: 'WebGPU-Particles',
   resolve: {
     
     alias: {

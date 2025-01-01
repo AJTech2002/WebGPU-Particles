@@ -10,6 +10,7 @@ import * as duotone from "@uiw/codemirror-theme-duotone";
 import {defaultKeymap} from "@codemirror/commands";
 import CodeRunner from './code_runner/code_runner';
 import { GameContext } from './interface/interface';
+import TestScene from './game/test_scene';
 
 const codeRunner = new CodeRunner();
 let resolvedEngine : Engine | undefined;
@@ -26,6 +27,7 @@ function App() {
 
   const customKeyMap : KeyBinding = {
     key: "Ctrl-Enter",
+    win: "Control-Enter",
     run: (editor: EditorView) => {
       if (resolvedEngine !== undefined) {
         const context : GameContext = new GameContext(resolvedEngine.scene as BoidScene);
@@ -44,7 +46,7 @@ function App() {
   useEffect(() => {
     
     if (canvasRef.current) {
-      const engine : Promise<Engine> = createEngine(canvasRef.current, new BoidScene());
+      const engine : Promise<Engine> = createEngine(canvasRef.current, new TestScene());
       engine.then((e) => {
         resolvedEngine = e;
       });

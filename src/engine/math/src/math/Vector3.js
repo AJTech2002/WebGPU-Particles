@@ -700,6 +700,13 @@ class Vector3 {
 
 	}
 
+  fromVec3 (vec3) {
+    this.x = vec3[0];
+    this.y = vec3[1];
+    this.z = vec3[2];
+    return this;
+  }
+
 	toVec3() {
 		return vec3.fromValues(this.x, this.y, this.z);
 	}

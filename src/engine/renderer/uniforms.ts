@@ -56,7 +56,6 @@ export class Uniform<T> {
 
     if (this.f32Array === undefined) {
       this.f32Array = this.toFloat32Array(this._value!);
-      console.log(this.f32Array);
     }
 
     device.queue.writeBuffer(this.gpuBuffer, 0, this.f32Array.buffer);

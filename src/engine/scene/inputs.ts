@@ -65,6 +65,7 @@ export default class Input {
       }
 
       this.mousePosition = new Vector2(e.clientX, e.clientY);
+      this.scene.mouseEvent(2, 0)
     });
 
     canvas.addEventListener("mousedown", (e) => {
@@ -74,6 +75,7 @@ export default class Input {
       }
 
       this.mouseButtons |= this.mapMouse(e.button);
+      this.scene.mouseEvent(0, e.button);
     });
 
     canvas.addEventListener("mouseup", (e) => {
@@ -82,6 +84,7 @@ export default class Input {
       }
 
       this.mouseButtons &= ~this.mapMouse(e.button);
+      this.scene.mouseEvent(1, e.button);
     });
 
     window.addEventListener("blur", (e) => {
@@ -118,7 +121,7 @@ export default class Input {
     return 0;
   }
 
-  mouseToWorld = (z: number): Vector3 => {
+  mouseToWorld = (z: number, absolute: boolean = true): Vector3 => {
     if (this.scene === null) {
         return new Vector3(0, 0, 0);
     }
@@ -137,7 +140,11 @@ export default class Input {
     var xWorld = bounds[0] + (bounds[1] - bounds[0]) * xNDC;
     var yWorld = bounds[2] + (bounds[3] - bounds[2]) * yNDC;
     var zWorld = 0;
-    return new Vector3(xWorld, yWorld, z);
+    // return new Vector3(xWorld, yWorld, z).sub(this.scene.activeCamera!.gameObject.transform.position.clone());
+    if (absolute) 
+      return new Vector3(xWorld, yWorld, z).sub(this.scene.activeCamera!.gameObject.transform.position.clone());
+    else 
+      return new Vector3(xWorld, yWorld, zWorld);
   };
 
   keyIsPressed(key: string): boolean {

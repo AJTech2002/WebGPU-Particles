@@ -68,7 +68,6 @@ export default class GameObject {
 
   //#region Lifecycle Methods
   public on_awake() {
-    console.log("Awake", this.name, this._components.length);
     for (let i = 0; i < this._components.length; i++) this._components[i].awake();
     this.instantiated = true;
   }
@@ -86,13 +85,22 @@ export default class GameObject {
   }
 
   //#endregion
+  
+  //#region Input Events
+  public mouseEvent(type: number, button: number) {
+    for (let i = 0; i < this._components.length; i++) this._components[i].mouseEvent(type, button);
+  }
 
+  public inputEvent(type: number, key: number) {
+    for (let i = 0; i < this._components.length; i++) this._components[i].inputEvent(type, key);
+  }
+  //#endregion
+  
   //#region Component Management
   public addComponent(component: Component) {
     this._components.push(component);
     component.attach(this);
     if (this.instantiated) component.awake();
-    console.log("Component added", this.name, this._components.length, this.instantiated);
   }
 
   public getComponent<T extends Component>(type: new() => T) {
