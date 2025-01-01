@@ -71,7 +71,6 @@ export default class Mesh extends Component {
   public override awake(): void {
     super.awake();
     // Auto register material if provided
-    console.log("Mesh awake");
     if (this._material) {
       this.setMaterial(this._material);
     }
