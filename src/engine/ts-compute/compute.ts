@@ -168,9 +168,18 @@ export class DynamicUniform<T> extends ArrayUniform<T> {
       console.warn("Index out of bounds");
       return;
     }
+
     
     for (let i = 0; i < this.layout.length; i++) {
-      this.f32Array.set(parsePrimitives(data, this.layout[i]), offset);
+
+      let v = data;
+
+      if (this.layout[i].key) {
+        v = (data as any)[this.layout[i].key!];
+      }
+
+      const primitiveData = parsePrimitives(v, this.layout[i]);
+      this.f32Array.set(primitiveData, offset);
       offset += getPrimitiveByteSize(this.layout[i]) / 4; // Divide by 4 to get the number of floats
     }
 

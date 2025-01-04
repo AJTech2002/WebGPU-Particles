@@ -71,6 +71,23 @@ export default class BoidScene extends Scene {
       });
     }, 100);
 
+
+    // add 10 random boids
+    for (let i = 0; i < 10; i++) {
+      testCompute.setElement("boids", i, {
+        target: vec3.fromValues(Math.random() * 100, Math.random() * 100, Math.random() * 100),
+        avoidance: vec3.fromValues(Math.random() * 100, Math.random() * 100, Math.random() * 100),
+        hasTarget: false,
+        speed: i
+      });
+    }
+
+    setTimeout(() => {
+      testCompute.getBuffer<BoidData>("boids")?.readTo(10).then((boids) => {
+        console.log("Extracted boids", boids);
+      });
+    });
+
     console.log(testCompute);
   }
 
