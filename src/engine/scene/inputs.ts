@@ -129,17 +129,17 @@ export default class Input {
 
     const canvas = this.scene!.engine.outputCanvas;
 
-    var rect = canvas.getBoundingClientRect();
-    var x = this.mousePosition.x - rect.left;
-    var y = this.mousePosition.y - rect.top;
-    var bounds : vec4 = this.scene.activeCamera!.extents;
-    var width = canvas.width;
-    var height = canvas.height;
-    var xNDC = x / width;
-    var yNDC = 1 - ( y / height);
-    var xWorld = bounds[0] + (bounds[1] - bounds[0]) * xNDC;
-    var yWorld = bounds[2] + (bounds[3] - bounds[2]) * yNDC;
-    var zWorld = 0;
+    const rect = canvas.getBoundingClientRect();
+    const x = this.mousePosition.x - rect.left;
+    const y = this.mousePosition.y - rect.top;
+    const bounds : vec4 = this.scene.activeCamera!.extents;
+    const width = canvas.width;
+    const height = canvas.height;
+    const xNDC = x / width;
+    const yNDC = 1 - ( y / height);
+    const xWorld = bounds[0] + (bounds[1] - bounds[0]) * xNDC;
+    const yWorld = bounds[2] + (bounds[3] - bounds[2]) * yNDC;
+    const zWorld = 0;
     // return new Vector3(xWorld, yWorld, z).sub(this.scene.activeCamera!.gameObject.transform.position.clone());
     if (absolute) 
       return new Vector3(xWorld, yWorld, z).sub(this.scene.activeCamera!.gameObject.transform.position.clone());

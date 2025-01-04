@@ -2,6 +2,7 @@ import { ArrayUniform } from "@engine/renderer/uniforms";
 import { boidComputeShader, BoidData, BoidObjectData } from "./boid_component";
 import { makeShaderDataDefinitions, TypeDefinition } from "webgpu-utils";
 import { mat4, vec3, vec4 } from "gl-matrix";
+import { assert } from "console";
 
 export class BoidDataBuffer extends ArrayUniform<BoidData> {
     constructor(maxInstanceCount: number) {
@@ -10,7 +11,7 @@ export class BoidDataBuffer extends ArrayUniform<BoidData> {
       this.usage = GPUBufferUsage.STORAGE |
       GPUBufferUsage.COPY_DST |
       GPUBufferUsage.COPY_SRC ;
-  
+
       const defs = makeShaderDataDefinitions(boidComputeShader);
       const boidDataStorageDescriptor = defs.storages.boids;
       const boidDataElementType: TypeDefinition = (

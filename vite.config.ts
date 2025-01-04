@@ -6,7 +6,7 @@ import path from 'path';
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), glsl()],
-  assetsInclude: ['**/*.glsl', '**/*.vs', '**/*.fs', '**/*.png'],
+  assetsInclude: ['**/*.glsl', '**/*.vs', '**/*.fs', '**/*.png', '**/*.tscompute'],
   base: 'WebGPU-Particles',
   resolve: {
     

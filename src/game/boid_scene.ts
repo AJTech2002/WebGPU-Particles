@@ -1,22 +1,83 @@
 import Engine from "@engine/engine";
 import Scene from "@engine/scene";
 import GameObject from "@engine/scene/gameobject";
-import BoidSystemComponent from "./boids/boid_component";
+import BoidSystemComponent, { BoidData, BoidObjectData } from "./boids/boid_component";
 import { QuadMesh } from "@engine/scene/core/mesh_component";
 import BoidMaterial from "./boids/boid_material";
 import {vec3 } from "gl-matrix";
-
 import BoidTexture from "../assets/guy-2.png";
 import {Boid} from "./boids/boid";
-import { Vector2, Vector3 } from "@engine/math/src";
 import CameraMovement from "./components/camera_movement";
+import Compute from "@engine/ts-compute/compute";
+import { ShaderTypes } from "@engine/ts-compute/datatypes";
 
 export default class BoidScene extends Scene {
 
   private boidSystem!: BoidSystemComponent;
 
+  testCompute() {
+
+    const testCompute : Compute = new Compute();
+    testCompute.addBuffer<BoidData>({
+      name: "boids",
+      isArray: true,
+      type: BoidData,
+      uniform: false,
+      defaultValue: [],
+      maxInstanceCount: 10000
+    });
+
+    testCompute.addBuffer<BoidObjectData>({
+      name: "objects",
+      isArray: true,
+      type: BoidObjectData,
+      uniform: false,
+      defaultValue: [],
+      maxInstanceCount: 10000
+    })
+
+    testCompute.addBuffer<number>({
+      name: "time",
+      uniform: true,
+      isArray: false,
+      type: ShaderTypes.i32,
+      defaultValue: 0,
+    })
+
+    testCompute.addBuffer<number>({
+      name: "dT",
+      uniform: true,
+      isArray: false,
+      type: ShaderTypes.f32,
+      defaultValue: 0,
+    });
+
+    testCompute.addBuffer<number>({
+      name: "numBoids",
+      uniform: true,
+      isArray: false,
+      type: ShaderTypes.i32,
+      defaultValue: 0,
+    })
+
+    testCompute.init();
+
+    console.log("Setting time to 32", testCompute, testCompute.getBuffer("time"));
+    testCompute.set("time", 32);
+    // wait
+    setTimeout(() => {
+      testCompute.get("time").then((time) => {
+        console.log("Extracted : ", time);
+      });
+    }, 100);
+
+    console.log(testCompute);
+  }
+
   awake(engine: Engine): void {
     super.awake(engine);
+
+    this.testCompute();
 
     // Add camera movement 
     this.activeCamera!.gameObject.addComponent(new CameraMovement());
@@ -59,7 +120,7 @@ export default class BoidScene extends Scene {
         }
       }
       else {
-       for (let i = 0; i < 1; i++) {
+       for (let i = 0; i < 10; i++) {
         const b = this.boidSystem.addBoid({
           position: this.input.mouseToWorld(0).toVec3(),
           speed: 1

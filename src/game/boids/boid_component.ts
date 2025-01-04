@@ -4,13 +4,10 @@ import { mat4, vec3, vec4 } from "gl-matrix";
 import matrixShader from "./shaders/matrix.wgsl";
 import computeShaderCode from "./shaders/compute.wgsl";
 import BoidMaterial from "./boid_material";
-import { ArrayUniform, FloatUniform, Uniform } from "@engine/renderer/uniforms";
-import {
-  makeShaderDataDefinitions,
-  TypeDefinition,
-} from "webgpu-utils";
+import {  FloatUniform,  } from "@engine/renderer/uniforms";
 import { BoidDataBuffer, ObjectDataBuffer } from "./boid_buffers";
 import {Boid} from "./boid";
+import { b, f32, m4, v3, v4 } from "@engine/ts-compute/datatypes";
 
 
 interface BoidInitData {
@@ -18,16 +15,23 @@ interface BoidInitData {
   speed: number;
 }
 
-export interface BoidData {
-  target: vec4; // bytes: 16
-  avoidance: vec4; // bytes: 16
-  hasTarget: boolean; // bytes: 4
-  speed: number; // bytes: 4
+export class BoidData {
+  @v4()
+  public target: vec4 = [0,0,0,0]; // bytes: 16
+  @v4()
+  public avoidance: vec4 = [0,0,0,0]; // bytes: 16
+  @b()
+  public hasTarget: boolean = false; // bytes: 4
+  @f32()
+  public speed: number = 0.0; // bytes: 4
 }
 
-export interface BoidObjectData {
-  model: mat4;
-  position: vec3;
+export class BoidObjectData {
+  @m4()
+  public model: mat4 = mat4.create();
+
+  @v3()
+  public position: vec3 = [0,0,0];
 }
 
 export const boidComputeShader = matrixShader + " \n " + computeShaderCode;
@@ -191,7 +195,7 @@ export default class BoidSystemComponent extends Component {
       position,
     });
 
-    let boid = new Boid(
+    const boid = new Boid(
       this,
       this.instanceCount,
       init.position,
@@ -243,7 +247,7 @@ export default class BoidSystemComponent extends Component {
       const sDT = dT / 1000;
 
       this.timeData.value = this.scene.sceneTime / 1000; 
-      this.deltaTimeData.value = sDT * 3;
+      this.deltaTimeData.value = sDT * 2.0;
       this.numBoids.value = this.instanceCount;
 
       const commandEncoder: GPUCommandEncoder = device.createCommandEncoder();

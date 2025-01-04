@@ -1,4 +1,5 @@
 import { device } from "@engine/engine";
+import { BufferSchema } from "@engine/ts-compute/compute";
 import { Color } from "@math";
 
 export class Uniform<T> {
@@ -153,7 +154,7 @@ export class ArrayUniform<T> extends Uniform<T[]> {
 
   protected fromF32Array(f32Array: Float32Array): T[] {
     const result: T[] = [];
-    for (let i = 0; i < f32Array.byteLength / this.packedElementSize; i++) {
+    for (let i = 0; i < f32Array.byteLength / this.elementSize; i++) {
       const res = this.getArrayData(i, f32Array);
       if (res)
         result.push(res);
@@ -248,3 +249,4 @@ export class FloatUniform extends Uniform<number> {
     super.updateBuffer();
   }
 }
+

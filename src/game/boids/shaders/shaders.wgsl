@@ -33,7 +33,8 @@ fn randomColor(id: u32) -> vec4<f32> {
     var g = f32((id * 2) % 155) / 255.0;
     var b = f32((id * 3) % 155) / 255.0;
 
-    return vec4<f32>(r, g, b, 1.0);
+    return vec4<f32>(r, r, r, 1.0);
+    //return vec4<f32>(r, g, b, 1.0);
 }
 
 @vertex
