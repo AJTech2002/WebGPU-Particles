@@ -167,6 +167,10 @@ export class StandardMaterial extends Material {
     })
   }
 
+  public set color(value: Color) {
+    this.colorUniform.value = value;
+  }
+
 }
 
 

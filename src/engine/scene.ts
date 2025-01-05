@@ -14,18 +14,19 @@ export interface CameraData {
   leftRightBottomTop: vec4;
 }
 
-export default class  Scene {
+declare type RenderCallback = (dt: number) => void;
 
+export default class Scene {
   protected _engine!: Engine;
-  
+
   protected _materials: Material[] = [];
   protected _gameObjects: GameObject[] = [];
-  
+
   protected time: number = 0;
 
   protected cameraObject: GameObject;
 
-  protected input : Input;
+  protected input: Input;
 
   constructor() {
     this.cameraObject = new GameObject("MainCamera", this);
@@ -34,7 +35,7 @@ export default class  Scene {
   }
 
   //#region Scene Graph Elements
-  public get activeCamera() : CameraComponent | null {
+  public get activeCamera(): CameraComponent | null {
     return this.cameraObject.getComponent(CameraComponent);
   }
 
@@ -50,7 +51,7 @@ export default class  Scene {
     return this._engine.renderer;
   }
 
-  public get inputSystem() : Input {
+  public get inputSystem(): Input {
     return this.input;
   }
 
@@ -96,25 +97,42 @@ export default class  Scene {
   }
   //#endregion
 
-  render (dT: number) {
+  render(dT: number) {
     this.time += dT;
+
+    for (let i = 0; i < this.callbacks.length; i++) {
+      this.callbacks[i](dT);
+    }
 
     for (let i = 0; i < this._gameObjects.length; i++) {
       this._gameObjects[i].on_update(dT);
     }
   }
 
-  awake (engine: Engine) {
+  // render callback (dt) type
+  private callbacks: Array<RenderCallback> = [];
+  createRenderCallback(callback : RenderCallback) {
+    this.callbacks.push(callback);
+  }
+
+  removeRenderCallback(callback : RenderCallback) {
+    const index = this.callbacks.indexOf(callback);
+    if (index > -1) {
+      this.callbacks.splice(index, 1);
+    }
+  }
+
+  awake(engine: Engine) {
     this._engine = engine;
     this.input.setup();
   }
 
-  start () {
+  start() {
     // to override
   }
 
   inputEvent(type: number, key: string) {
-    // to override  
+    // to override
     for (let i = 0; i < this._gameObjects.length; i++) {
       this._gameObjects[i].inputEvent(type, key);
     }
@@ -126,7 +144,7 @@ export default class  Scene {
       this._gameObjects[i].mouseEvent(type, button);
     }
   }
-  
+
   dispose() {
     for (let i = 0; i < this._gameObjects.length; i++) {
       this._gameObjects[i].on_destroy();
@@ -142,4 +160,57 @@ export default class  Scene {
     this.input.dispose();
   }
 
+  //#region Coroutine Support
+  /**
+   * Wait for the next game tick
+   * @returns Awaitable Promise
+   * @example `await gameManager.tick();`
+   */
+  tick = () =>
+    new Promise<void>((resolve) => {
+      const f = (dt : number) => {
+        resolve();
+        this.removeRenderCallback(f);
+      };
+
+      this.createRenderCallback(f);
+    });
+
+  /**
+   * Wait until a condition is met
+   * @param condition The condition to wait for
+   * @returns Awaitable Promise
+   */
+  until = (condition: () => boolean) =>
+    new Promise<void>((resolve) => {
+      const f = (dt: number) => {
+        if (condition()) {
+          resolve();
+          this.removeRenderCallback(f);
+        }
+      };
+
+      this.createRenderCallback(f);
+    });
+
+  /**
+   * Wait for the next n seconds
+   * @param s Number of seconds to wait
+   * @returns Awaitable Promise
+   * @example `await gameManager.seconds(5);`
+   */
+  seconds = (s: number) =>
+    new Promise<void>((resolve) => {
+      const startTime = this.time;
+
+      const f = (dt: number) => {
+        if (this.time - startTime >= 1) {
+          resolve();
+          this.removeRenderCallback(f);
+        }
+      };
+
+      this.createRenderCallback(f);
+    });
+  //#endregion
 }

@@ -8,13 +8,42 @@ import {vec3 } from "gl-matrix";
 import BoidTexture from "../assets/guy-2.png";
 import {Boid} from "./boids/boid";
 import CameraMovement from "./components/camera_movement";
+import Collider from "@engine/scene/core/collider_component";
+import { StandardDiffuseMaterial, StandardMaterial } from "@engine/renderer/material";
+import { Color, Vector3 } from "@engine/math/src";
 
 export default class BoidScene extends Scene {
 
   private boidSystem!: BoidSystemComponent;
 
+  createCollider() {
+    const collider = new GameObject("collider", this);
+    collider.addComponent(new Collider())
+
+    const mat = new StandardMaterial(this);
+
+    collider.addComponent(new QuadMesh(
+      mat
+    ))
+
+    mat.color = new Color(1,0,0);
+
+    collider.transform.position.z = -9;
+  }
+
+  async spinSquare() {
+    while (true) {
+      await this.tick();
+      this.findGameObject("collider")!.transform.rotateOnAxis(new Vector3(0,0,1), 0.03);
+    }
+  }
+
   awake(engine: Engine): void {
     super.awake(engine);
+
+    this.createCollider();
+
+    this.spinSquare();
 
     // Add camera movement 
     this.activeCamera!.gameObject.addComponent(new CameraMovement());

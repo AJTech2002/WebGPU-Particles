@@ -8,7 +8,7 @@ export default class TransformComponent extends Component {
   //[prop position vec3]
   public position: Vector3 = new Vector3(0, 0, 0);
   //[prop rotation eul3]
-  private rotation: Euler = new Euler(0, 0, 0);
+  private euler: Euler = new Euler(0, 0, 0);
   //[prop scale vec3]
   public scale: Vector3 = new Vector3(1, 1, 1);
   public quaternion: Quaternion = new Quaternion();
@@ -53,11 +53,16 @@ export default class TransformComponent extends Component {
   }
 
   getEulerRotation(): Euler {
-    return this.rotation;
+    return this.euler;
   }
 
   setRotationFromEuler(euler: Euler) {
     this.quaternion.setFromEuler(euler.clone());
+  }
+
+  public set rotation(euler: Euler) {
+    this.euler = euler;
+    this.quaternion.setFromEuler(euler);
   }
 
   getForwardVector(): Vector3 {
@@ -84,7 +89,7 @@ export default class TransformComponent extends Component {
   }
 
   public get worldRotation(): Euler {
-    if (!this.matrix) return this.rotation;
+    if (!this.matrix) return this.euler;
     const outputRotation = new Euler().setFromRotationMatrix(this.matrix);
     return outputRotation;
   }
@@ -121,12 +126,12 @@ export default class TransformComponent extends Component {
   }
 
   override awake() {
-    this.quaternion.setFromEuler(this.rotation).normalize();
+    this.quaternion.setFromEuler(this.euler).normalize();
   }
 
   override update() {
     this.updateTransform();
-    this.rotation.setFromQuaternion(this.quaternion);
+    this.euler.setFromQuaternion(this.quaternion);
 
     if (this.matrix && this.gameObject.parent?.transform?.matrix) {
       this.matrix.copy(
