@@ -3,15 +3,17 @@ import Scene from "@engine/scene";
 
 import MatrixShasder from "./shaders/matrix.wgsl";
 import InstancedShader from "./shaders/shaders.wgsl";
+import { createStruct, createStructs } from "@engine/ts-compute/datatypes";
+import { BoidData, BoidObjectData } from "./boid_component";
 
 export default class BoidMaterial extends StandardDiffuseMaterial {
 
   private buffer: GPUBuffer;
 
   constructor(scene: Scene, objectBuffer: GPUBuffer, url?: string) {
-    super(scene, url, MatrixShasder + InstancedShader);
+    const structCode = createStructs([BoidObjectData]);
+    super(scene, url,structCode + MatrixShasder + InstancedShader);
     this.buffer = objectBuffer;
-    
   }
 
   setupUniforms(): void {

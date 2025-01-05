@@ -1,9 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-wrapper-object-types */
 import "reflect-metadata";
-import { ShaderDataType, ShaderTypes } from "./datatypes";
+import { createStruct, getShaderCode, ShaderDataType, ShaderTypes } from "./datatypes";
 import { ArrayUniform } from "@engine/renderer/uniforms";
 import { mat4, vec3, vec4 } from "gl-matrix";
+import { device } from "@engine/engine";
+
+import matrixShader from "../renderer/shaders/matrix.wgsl";
+import randomNumberGenerator from "../renderer/shaders/random.wgsl";
 
 export interface BufferSchema<T> {
   name: string;
@@ -14,6 +18,7 @@ export interface BufferSchema<T> {
   defaultValue?: T | T[];
   layout: ShaderDataType[];
   type: (new() => T) | keyof typeof ShaderTypes;
+  structured: boolean;
 }
 
 export interface BufferSchemaDescriptor<T> {
@@ -27,28 +32,28 @@ export interface BufferSchemaDescriptor<T> {
 
 function parseFromPrimitives(data: Float32Array, type: ShaderDataType): unknown {
   switch (type.type) {
-    case "mat4": {
+    case ShaderTypes.mat4x4: {
       if (data.length !== 16) {
         throw new Error(`Invalid data length for mat4. Expected 16, got ${data.length}`);
       }
       const mat4: mat4 = Array.from(data) as mat4;
       return mat4;
     }
-    case "vec4": {
+    case ShaderTypes.vec4: {
       if (data.length !== 4) {
         throw new Error(`Invalid data length for vec4. Expected 4, got ${data.length}`);
       }
       const vec4: vec4 = Array.from(data) as vec4;
       return vec4;
     }
-    case "vec3": {
+    case ShaderTypes.vec3: {
       if (data.length !== 3) {
         throw new Error(`Invalid data length for vec3. Expected 3, got ${data.length}`);
       }
       const vec3: vec3 = Array.from(data) as vec3;
       return vec3;
     }
-    case "bool": {
+    case ShaderTypes.bool: {
       if (data.length !== 1) {
         throw new Error(`Invalid data length for bool. Expected 1, got ${data.length}`);
       }
@@ -65,7 +70,7 @@ function parseFromPrimitives(data: Float32Array, type: ShaderDataType): unknown 
 
 function parsePrimitives (data: unknown, type: ShaderDataType) : Float32Array {
   switch (type.type) {
-    case "mat4": {
+    case ShaderTypes.mat4x4: {
       const mat4 = data as mat4;
       const mat4_f32 = new Float32Array(16);
 
@@ -75,15 +80,15 @@ function parsePrimitives (data: unknown, type: ShaderDataType) : Float32Array {
 
       return mat4_f32;
     }
-    case "vec4": {
+    case ShaderTypes.vec4: {
       const vec4 = data as vec4;
       return new Float32Array(vec4);
     }
-    case "vec3": {
+    case ShaderTypes.vec3: {
       const vec3 = data as vec3;
       return new Float32Array(vec3);
     }
-    case "bool": {
+    case ShaderTypes.bool: {
       const bool = data as boolean;
       return new Float32Array([bool ? 1 : 0]);
     }
@@ -98,9 +103,19 @@ function parsePrimitives (data: unknown, type: ShaderDataType) : Float32Array {
 
 function getPrimitiveByteSize (type: ShaderDataType) : number {
   switch (type.type) {
-    case "mat4": return 64;
+    case ShaderTypes.mat4x4: return 64;
+    case ShaderTypes.vec4: return 16;
+    case ShaderTypes.vec3: return 12;
+    case ShaderTypes.bool: return 4;
+    default: return 4;
+  }
+}
+
+function getPrimitiveAlignment (type: ShaderDataType) : number {
+  switch (type.type) {
+    case "mat4": return 16;
     case "vec4": return 16;
-    case "vec3": return 12;
+    case "vec3": return 16;
     case "bool": return 4;
     default: return 4;
   }
@@ -124,18 +139,23 @@ export class DynamicUniform<T> extends ArrayUniform<T> {
                               schema.defaultValue : [schema.defaultValue] : [];
     
     super(name, defaultValue);
-
+    
     this.isArrayed = schema.array;
     this.schema = schema;
 
-    this.usage = GPUBufferUsage.STORAGE |
-    GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST ;
+    if (schema.uniform) {
+      this.usage = GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC;  
+    }
+    else {
+      this.usage = GPUBufferUsage.STORAGE |
+      GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST ;
+    }
 
     let maxVarSize = 0;
     let rawElementSize = 0;
     for (const type of schema.layout) {
       rawElementSize += getPrimitiveByteSize(type);
-      maxVarSize = Math.max(maxVarSize, getPrimitiveByteSize(type));
+      maxVarSize = Math.max(maxVarSize, getPrimitiveAlignment(type));
     }
 
     // round the elementSize to the nearest multiple of maxVarSize for alignment
@@ -201,13 +221,12 @@ export class DynamicUniform<T> extends ArrayUniform<T> {
   
     const packedSize = this.packedElementSize;
     let offset = index * packedSize;
-    console.log("Offset",index, offset, f32Array.length);
     if (offset >= this.f32Array.length) {
       console.warn("Index out of bounds");
       return null;
     }
     
-    const isPrimitive = typeof this.schema.type === "string";
+    const isPrimitive = this.schema.structured === false;
     
     let result!: T;
     if (!isPrimitive) {
@@ -247,6 +266,26 @@ export default class Compute {
   private buffers: DynamicUniform<any>[] = [];
   private mappedBuffers: Map<string, DynamicUniform<any>> = new Map();
 
+  private layout!: GPUBindGroupLayout;
+  private bindGroup!: GPUBindGroup;
+  private shader!: string;
+
+  private entryPoints: string[] = [];
+  private computePipelines: GPUComputePipeline[] = [];
+
+  private structCode = "";
+
+  public ready: boolean = false;
+
+  constructor(shader: string[], pipelines: string[]) {
+
+    const totalShader = shader.join("\n");
+    const constructedShader = randomNumberGenerator + " \n " + matrixShader + " \n " + totalShader;
+
+    this.shader = constructedShader;
+    this.entryPoints = pipelines;
+  }
+
   addBuffer<T extends Object>(descriptor: BufferSchemaDescriptor<T>) {
 
     let constructorName = null;
@@ -276,6 +315,8 @@ export default class Compute {
         }
       }
 
+      this.structCode += createStruct(descriptor.type) + "\n";
+
     }
 
     if (descriptor.isArray && descriptor.maxInstanceCount === undefined) {
@@ -290,20 +331,71 @@ export default class Compute {
       layout: bufferLayout,
       type: descriptor.type,
       defaultValue: descriptor.defaultValue,
-      maxInstanceCount: descriptor.maxInstanceCount || 1
+      maxInstanceCount: descriptor.maxInstanceCount || 1,
+      structured: typeof descriptor.type !== "string"
     }
 
     this.bufferSchemas.push(buffer);
   }
 
   init() {
-    for (const buffer of this.bufferSchemas) {
+
+    this.shader = this.structCode + this.shader; // Append the struct code to the shader
+
+    const bindGroupLayoutEntries: GPUBindGroupLayoutEntry[] = [];
+    const bindGroupEntries : GPUBindGroupEntry[] = [];
+
+    for (let i = 0; i < this.bufferSchemas.length; i++) {
+        const buffer = this.bufferSchemas[i];
+
         const uniform = new DynamicUniform(buffer.name, buffer);
-        console.log("Setting up dynamic uniform", buffer.name, uniform);
-        uniform.setup(!buffer.array)
+        // console.log("Setting up dynamic uniform", buffer.name, uniform);
+
+        uniform.setup(!buffer.array);
+
         this.buffers.push(uniform);
         this.mappedBuffers.set(buffer.name, uniform);
+        
+        bindGroupLayoutEntries.push({
+          binding: i,
+          visibility: GPUShaderStage.COMPUTE,
+          buffer: { type: buffer.uniform ? "uniform" : "storage" },
+        });
+        
+        bindGroupEntries.push({
+          binding: i,
+          resource: { buffer: uniform.gpuBuffer },
+        })
     }
+
+    this.layout = device.createBindGroupLayout({
+      entries: bindGroupLayoutEntries,
+    });
+
+    this.bindGroup = device.createBindGroup({
+      layout: this.layout,
+      entries: bindGroupEntries
+    });
+
+    const shaderModule = device.createShaderModule({
+      code: this.shader,
+    });
+
+    for (const entry of this.entryPoints) {
+      const computePipeline = device.createComputePipeline({
+        compute: {
+          module: shaderModule,
+          entryPoint: entry,
+        },
+        layout: device.createPipelineLayout({
+          bindGroupLayouts: [this.layout],
+        }),
+      });
+
+      this.computePipelines.push(computePipeline);
+    }
+
+    this.ready = true;
   }
 
   getBuffer<T>(name: string): DynamicUniform<T> | null {
@@ -339,4 +431,20 @@ export default class Compute {
     return Promise.resolve(null);
   }
 
+  dispatch(workgroups: GPUIndex32) {
+
+    const commandEncoder = device.createCommandEncoder();
+    const computePass = commandEncoder.beginComputePass();
+
+    for (let i = 0; i < this.computePipelines.length; i++) {
+
+      computePass.setPipeline(this.computePipelines[i]);
+      computePass.setBindGroup(0, this.bindGroup);
+      computePass.dispatchWorkgroups(workgroups);
+      
+    }
+
+    computePass.end();
+    device.queue.submit([commandEncoder.finish()]);
+  }
 }

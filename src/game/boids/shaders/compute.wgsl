@@ -1,44 +1,4 @@
-struct ObjectData {
-    model: mat4x4<f32>,
-    position: vec3<f32>,
-}
-
-struct BoidComputeData {
-    acceleration: vec4<f32>,
-}
-
-// Number of bytes: 32
-struct BoidData {
-    targetPosition: vec4<f32>, // 16 bytes
-    avoidanceVector: vec4<f32>, // 16 bytes
-    hasTarget: u32,            // 4 bytes
-    speed: f32,               // 4 bytes
-}
-
-// the current state within this pixel
-var<private> local_rnd_state:vec4u;
-
-fn random_u32(state:ptr<private,vec4u>) -> u32 {
-  var st:vec4u = *state;
-  /* Algorithm "xor128" from p. 5 of Marsaglia, "Xorshift RNGs" */
-  // Load the state from the storage buffer
-  var t: u32 = st.w;
-  var s: u32 = st.x;
-  t ^= t << 11;
-  t ^= t >> 8;
-  var x:u32 = t ^ s ^ (s >> 19);
-  *state = vec4u(
-    x, s, st.y, st.z
-  );
-  return x;
-}
-
-fn random() -> f32 {
-  return f32(random_u32(&local_rnd_state)) / 0x100000000;
-}
-
-
-@binding(0) @group(0) var<storage, read_write> objects: array<ObjectData>;
+@binding(0) @group(0) var<storage, read_write> objects: array<BoidObjectData>;
 @binding(1) @group(0) var<storage, read_write> boids: array<BoidData>;
 @binding(2) @group(0) var<uniform> time: f32;
 @binding(3) @group(0) var<uniform> dT: f32;
@@ -92,7 +52,7 @@ fn avoidanceMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
 
         
         avoidance.z = 0.0;
-        avoidance *= 3.0;
+        avoidance *= 5.0;
 
         boids[index].avoidanceVector = vec4<f32>(avoidance, 0.0);
 
@@ -116,8 +76,8 @@ fn movementMain (@builtin(global_invocation_id) global_id: vec3<u32>) {
 
     if (index < objectModelLength ) {
 
-        var targetWeight = 0.7;
-        let avoidanceWeight = 1.0;
+        var targetWeight = 0.2;
+        let avoidanceWeight = 0.8;
 
         var avoidance = boids[index].avoidanceVector.xyz;
         avoidance.z = 0.0;
@@ -126,10 +86,10 @@ fn movementMain (@builtin(global_invocation_id) global_id: vec3<u32>) {
         var maxAv = vec3<f32>(1.0, 1.0, 0.0);
 
         var targetP = boids[index].targetPosition.xyz;
+        var lP = get_position(objects[index].model);
         
         var movDir = (targetP - objects[index].position);
         let distanceToTarget = length(movDir);
-
        
 
         movDir = clamp(movDir, minAv, maxAv);
@@ -147,19 +107,17 @@ fn movementMain (@builtin(global_invocation_id) global_id: vec3<u32>) {
         dir = clamp(dir, minV3  * dT,maxV3 * dT);
 
         var lastPosition = objects[index].position;
+        var finalPos = lastPosition + dir;
 
-        objects[index].position = lastPosition + dir;
 
-        // get current position
-        var lP = get_position(objects[index].model);
+        objects[index].position = finalPos;
 
-        // lerp towards position
-        var lerped = mix(lP, objects[index].position, 10 * dT);
+        let distance = distance(objects[index].position, finalPos);
 
-        // set Z based on Y position
-        // lerped.z = numBoids - objects[index].position.y;
+        var lerped = mix(lP, objects[index].position, dT * 2.0);
 
         objects[index].model = set_position(objects[index].model, lerped);
+      
     }
 
     return;

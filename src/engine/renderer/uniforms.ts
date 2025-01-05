@@ -196,7 +196,6 @@ export class ArrayUniform<T> extends Uniform<T[]> {
       return;
     }
 
-    console.log("Updating buffer at", index, data);
     this.setArrayData(index, data);
     const dataOffset = index * this.elementSize; // Offset in bytes for the latest boid
 
