@@ -1,51 +1,84 @@
-import { Color, Vector3 } from "@math";
-import { QuadMesh } from "@engine/scene/core/mesh_component";
-import { StandardDiffuseMaterial, StandardMaterial } from "@engine/renderer/material";
+import Engine from "@engine/engine";
 import Scene from "@engine/scene";
 import GameObject from "@engine/scene/gameobject";
-import { mat4 } from "gl-matrix";
+import BoidSystemComponent from "./boids/boid_component";
+import { QuadMesh } from "@engine/scene/core/mesh_component";
+import BoidMaterial from "./boids/boid_material";
+import {vec3 } from "gl-matrix";
 
-import TEST_TEXTURE from "../assets/logo.png";
+import BoidTexture from "../assets/guy-2.png";
+import {Boid} from "./boids/boid";
+import { Vector2, Vector3 } from "@engine/math/src";
 import CameraMovement from "./components/camera_movement";
 
 export default class TestScene extends Scene {
 
-  private quadMesh!: QuadMesh;
+  private boidSystem!: BoidSystemComponent;
 
-  start(): void {
+  awake(engine: Engine): void {
+    super.awake(engine);
 
-    super.start();
+    // Add camera movement 
+    this.activeCamera!.gameObject.addComponent(new CameraMovement());
 
-    this.activeCamera!.gameObject.addComponent(
-      new CameraMovement()
-    )
+    const boids = new GameObject("boids", this);
 
-    const testGameObject = new GameObject("test_guy", this);
-    testGameObject.addComponent(new QuadMesh(
-      new StandardDiffuseMaterial(this, TEST_TEXTURE)
-      // new StandardMaterial(this)
-    )) // add mesh
-    // testGameObject.transform.position.z = -20;
+    const boidSystem = new BoidSystemComponent();
 
-    testGameObject.transform.position.x = 0;
-    testGameObject.transform.position.z = -20;
+    this.boidSystem = boidSystem;
 
-    // this.activeCamera!.gameObject.transform.position.z = -100;
-    
-    testGameObject.transform.localRotateOnAxis(new Vector3(0,0,1), 1);
+    boids.addComponent(boidSystem);
+
+    boids.addComponent(new QuadMesh(new BoidMaterial(
+      this,
+      boidSystem.objectData.gpuBuffer,
+      BoidTexture
+    )));
+
+    this.activeCamera!.gameObject.transform.position.z = -10;
+
+    this.boidSystem.addBoid({
+      position: vec3.fromValues(0, 0, 0),
+      speed: 1
+    })
   }
 
+  public get units() : Boid[] {
+    return this.boidSystem.boidRefs;
+  }
+
+  
   render(dT: number): void {
     super.render(dT);
-    this.gameObjects.forEach((gameObject) => {
-      // gameObject.transform.localRotateOnAxis(new Vector3(0,0,1), 0.001);
-    });
 
-    // this.activeCamera?.gameObject.transform.rotateOnAxis(new Vector3(0,1,0), 0.01);
-    this.findGameObject("test_guy")?.transform.localRotateOnAxis(new Vector3(0,0,1), 0.01);
-    (this.findGameObject("test_guy")?.mesh?.material as StandardDiffuseMaterial).colorUniform.value = new Color(Math.sin(this.time*0.01), Math.cos(this.time*0.01), 0);
+    if (this.input.getMouseButton(0) ) {
+      if (this.boidSystem.instanceCount >= this.boidSystem.maxInstanceCount) {
+        for (let i = 0; i < 2; i++) {
+          const randomIndex = Math.floor(Math.random() * this.boidSystem.instanceCount);
+          this.boidSystem.setBoidPosition(randomIndex, this.input.mouseToWorld(0).toVec3());
+        }
+      }
+      else {
+       for (let i = 0; i < 10; i++) {
+        const b = this.boidSystem.addBoid({
+          position: this.input.mouseToWorld(0).toVec3(),
+          speed: 1
+        });
+       }
+      }
+    }
 
-    this.activeCamera
+    for (let i = 0; i < this.boidSystem.instanceCount; i++) {
+
+      if (this.boidSystem.boidObjects[i] == null) continue;
+       
+      const mouse = this.input.mouseToWorld(0).toVec3();
+      const boid = this.boidSystem.boidObjects[i].position;
+      const distance = vec3.distance(mouse, boid);
+      if (distance < 0) {
+        this.boidSystem.setBoidTarget(i, this.input.mouseToWorld(0).toVec3());
+      }
+    }
+
   }
-
 }

@@ -46,7 +46,7 @@ function App() {
   useEffect(() => {
     
     if (canvasRef.current) {
-      const engine : Promise<Engine> = createEngine(canvasRef.current, new TestScene());
+      const engine : Promise<Engine> = createEngine(canvasRef.current, new BoidScene());
       engine.then((e) => {
         resolvedEngine = e;
       });
@@ -55,7 +55,7 @@ function App() {
     return () => {
       if (resolvedEngine)
         resolvedEngine.dispose();
-    }
+      }
 
   }, []);
 

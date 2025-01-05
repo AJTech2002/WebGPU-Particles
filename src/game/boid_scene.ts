@@ -5,10 +5,8 @@ import BoidSystemComponent from "./boids/boid_component";
 import { QuadMesh } from "@engine/scene/core/mesh_component";
 import BoidMaterial from "./boids/boid_material";
 import {vec3 } from "gl-matrix";
-
 import BoidTexture from "../assets/guy-2.png";
 import {Boid} from "./boids/boid";
-import { Vector2, Vector3 } from "@engine/math/src";
 import CameraMovement from "./components/camera_movement";
 
 export default class BoidScene extends Scene {
@@ -31,16 +29,12 @@ export default class BoidScene extends Scene {
 
     boids.addComponent(new QuadMesh(new BoidMaterial(
       this,
-      boidSystem.objectData.gpuBuffer,
+      boidSystem.objectBuffer,
       BoidTexture
     )));
 
     this.activeCamera!.gameObject.transform.position.z = -10;
 
-    this.boidSystem.addBoid({
-      position: vec3.fromValues(0, 0, 0),
-      speed: 1
-    })
   }
 
   public get units() : Boid[] {
@@ -59,10 +53,10 @@ export default class BoidScene extends Scene {
         }
       }
       else {
-       for (let i = 0; i < 1; i++) {
+       for (let i = 0; i < 10; i++) {
         const b = this.boidSystem.addBoid({
           position: this.input.mouseToWorld(0).toVec3(),
-          speed: 1
+          speed: 0.6
         });
        }
       }

@@ -19,7 +19,7 @@ export class Boid {
   }
 
   public get target(): vec3 {
-    const v4 = this.boidSystem.boids[this.boidId].target;
+    const v4 = this.boidSystem.boids[this.boidId].targetPosition;
     const v3 = vec3.fromValues(v4[0], v4[1], v4[2]);
     return v3;
   }

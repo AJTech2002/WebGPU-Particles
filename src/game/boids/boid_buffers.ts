@@ -2,6 +2,7 @@ import { ArrayUniform } from "@engine/renderer/uniforms";
 import { boidComputeShader, BoidData, BoidObjectData } from "./boid_component";
 import { makeShaderDataDefinitions, TypeDefinition } from "webgpu-utils";
 import { mat4, vec3, vec4 } from "gl-matrix";
+import { assert } from "console";
 
 export class BoidDataBuffer extends ArrayUniform<BoidData> {
     constructor(maxInstanceCount: number) {
@@ -10,7 +11,7 @@ export class BoidDataBuffer extends ArrayUniform<BoidData> {
       this.usage = GPUBufferUsage.STORAGE |
       GPUBufferUsage.COPY_DST |
       GPUBufferUsage.COPY_SRC ;
-  
+
       const defs = makeShaderDataDefinitions(boidComputeShader);
       const boidDataStorageDescriptor = defs.storages.boids;
       const boidDataElementType: TypeDefinition = (
@@ -34,15 +35,15 @@ export class BoidDataBuffer extends ArrayUniform<BoidData> {
   
       const packedSize = this.packedElementSize;
   
-      this.f32Array[index * packedSize] = data.target[0];
-      this.f32Array[index * packedSize + 1] = data.target[1];
-      this.f32Array[index * packedSize + 2] = data.target[2];
-      this.f32Array[index * packedSize + 3] = data.target[3];
+      this.f32Array[index * packedSize] = data.targetPosition[0];
+      this.f32Array[index * packedSize + 1] = data.targetPosition[1];
+      this.f32Array[index * packedSize + 2] = data.targetPosition[2];
+      this.f32Array[index * packedSize + 3] = data.targetPosition[3];
   
-      this.f32Array[index * packedSize + 4] = data.avoidance[0];
-      this.f32Array[index * packedSize + 5] = data.avoidance[1];
-      this.f32Array[index * packedSize + 6] = data.avoidance[2];
-      this.f32Array[index * packedSize + 7] = data.avoidance[3];
+      this.f32Array[index * packedSize + 4] = data.avoidanceVector[0];
+      this.f32Array[index * packedSize + 5] = data.avoidanceVector[1];
+      this.f32Array[index * packedSize + 6] = data.avoidanceVector[2];
+      this.f32Array[index * packedSize + 7] = data.avoidanceVector[3];
   
       this.f32Array[index * packedSize + 8] = data.hasTarget ? 1 : 0;
       this.f32Array[index * packedSize + 9] = data.speed;
@@ -75,8 +76,8 @@ export class BoidDataBuffer extends ArrayUniform<BoidData> {
       const speed = this.f32Array[index * packedSize + 9];
   
       return {
-        target,
-        avoidance,
+        targetPosition: target,
+        avoidanceVector: avoidance,
         hasTarget,
         speed,
       };
