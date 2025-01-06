@@ -7,37 +7,14 @@ import collisionShaderCode from "./shaders/collisions.wgsl";
 import BoidMaterial from "./boid_material";
 import {Boid} from "./boid";
 import Compute from "@engine/ts-compute/compute";
-import { shaderProperty, ShaderTypes } from "@engine/ts-compute/datatypes";
 import Collider from "@engine/scene/core/collider_component";
+import { BoidCompute, BoidData, BoidObjectData } from "./boid_compute";
 
 
 interface BoidInitData {
   position: vec3;
   speed: number;
 }
-
-export class BoidData {
-  @shaderProperty(ShaderTypes.vec4)
-  public targetPosition: vec4 = [0,0,0,0]; // bytes: 16
-
-  @shaderProperty(ShaderTypes.vec4)
-  public avoidanceVector: vec4 = [0,0,0,0]; // bytes: 16
-
-  @shaderProperty(ShaderTypes.u32)
-  public hasTarget: boolean = false; // bytes: 4
-
-  @shaderProperty(ShaderTypes.f32)
-  public speed: number = 0.0; // bytes: 4
-}
-
-export class BoidObjectData {
-  @shaderProperty(ShaderTypes.mat4x4)
-  public model: mat4 = mat4.create();
-
-  @shaderProperty(ShaderTypes.vec3)
-  public position: vec3 = [0,0,0];
-}
-
 
 // This will be responsible for storing boid data & running compute pipeline
 // Updating boid data & setting boid data should be done in the BoidRunnerComponent
@@ -50,94 +27,13 @@ export default class BoidSystemComponent extends Component {
   public boidObjects: BoidObjectData[] = [];
   public boidRefs: Boid[] = [];
 
-  private compute: Compute;
+  private compute: BoidCompute;
   private warned: boolean = false;
   
   constructor() {
     super();
 
-    const bindings = `
-    @binding(0) @group(0) var<storage, read_write> objects: array<BoidObjectData>;
-    @binding(1) @group(0) var<storage, read_write> boids: array<BoidData>;
-    @binding(2) @group(0) var<storage, read_write> colliders: array<Collider>;
-    
-    @binding(3) @group(0) var<uniform> time: f32;
-    @binding(4) @group(0) var<uniform> dT: f32;
-    @binding(5) @group(0) var<uniform> numBoids: f32;
-    @binding(6) @group(0) var<uniform> numColliders: f32; 
-    `;
-
-
-    this.compute = new Compute([
-      bindings,
-      computeShaderCode,
-      collisionShaderCode 
-    ], [
-      "avoidanceMain",
-      "movementMain",
-      "collisionMain"
-    ]);
-   
-    this.compute.addBuffer<BoidObjectData>({
-      name: "objects",
-      isArray: true,
-      type: BoidObjectData,
-      uniform: false,
-      defaultValue: [],
-      maxInstanceCount:  this.maxInstanceCount
-    })
-
-    this.compute.addBuffer<BoidData>({
-      name: "boids",
-      isArray: true,
-      type: BoidData,
-      uniform: false,
-      defaultValue: [],
-      maxInstanceCount: this.maxInstanceCount
-    });
-
-    this.compute.addBuffer<Collider>({
-      name: "colliders",
-      isArray: true,
-      type: Collider,
-      uniform: false,
-      defaultValue: [],
-      maxInstanceCount: 100
-    });
-
-
-    this.compute.addBuffer<number>({
-      name: "time",
-      uniform: true,
-      isArray: false,
-      type: ShaderTypes.i32,
-      defaultValue: 0,
-    })
-
-    this.compute.addBuffer<number>({
-      name: "dT",
-      uniform: true,
-      isArray: false,
-      type: ShaderTypes.f32,
-      defaultValue: 0,
-    });
-
-    this.compute.addBuffer<number>({
-      name: "numBoids",
-      uniform: true,
-      isArray: false,
-      type: ShaderTypes.i32,
-      defaultValue: 0,
-    });
-
-    this.compute.addBuffer<number>({
-      name: "numColliders",
-      uniform: true,
-      isArray: false,
-      type: ShaderTypes.i32,
-      defaultValue: 0,
-    });
-
+    this.compute = new BoidCompute();
     this.compute.init();
   }
 

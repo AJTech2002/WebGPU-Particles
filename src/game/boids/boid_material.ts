@@ -4,7 +4,7 @@ import Scene from "@engine/scene";
 import MatrixShasder from "./shaders/matrix.wgsl";
 import InstancedShader from "./shaders/shaders.wgsl";
 import { createStruct, createStructs } from "@engine/ts-compute/datatypes";
-import { BoidData, BoidObjectData } from "./boid_system";
+import { BoidObjectData } from "./boid_compute";
 
 export default class BoidMaterial extends StandardDiffuseMaterial {
 

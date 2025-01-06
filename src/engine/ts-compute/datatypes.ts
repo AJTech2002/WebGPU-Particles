@@ -1,4 +1,6 @@
 import "reflect-metadata";
+import { BufferSchemaDescriptor } from "./compute";
+import { isArray } from "util";
 
 export enum ShaderTypes {
   f32 = "f32",
@@ -28,6 +30,51 @@ export function getShaderCode (type: keyof typeof ShaderTypes): string {
       console.error("Unknown shader type, using f32 as default");
       return "f32";
   }
+}
+
+
+export function createBinding (index: number, group: number, bufferSchema: BufferSchemaDescriptor<any>) : string {
+ let binding  = `@binding(${index}) @group(${group}) var<`;
+ if (bufferSchema.storageMode === StorageMode.uniform) {
+   binding += "uniform";
+ }
+ else if (bufferSchema.storageMode === StorageMode.read) {
+   binding += "storage, read";
+ }
+ else if (bufferSchema.storageMode === StorageMode.write) {
+   binding += "storage, read_write";
+ }
+ else if (bufferSchema.storageMode === StorageMode.read_write) {
+   binding += "storage, read_write";
+ }
+ else {
+   console.error("Unknown storage mode, using uniform as default");
+   binding += "uniform";
+ }
+
+  binding += `> ${bufferSchema.name}: `;
+
+  let bindingTypeName = "";
+  if (typeof bufferSchema.type === "string") {
+    bindingTypeName = getShaderCode(bufferSchema.type as keyof typeof ShaderTypes);
+  }
+  else {
+    bindingTypeName = (new bufferSchema.type()).constructor.name;
+  }
+
+
+
+  if (bufferSchema.isArray) {
+    binding += `array<${bindingTypeName}>`;
+  }
+  else {
+    binding += bindingTypeName;
+  }
+
+  binding += ";\n";
+
+  return binding;
+
 }
 
 // key of shader type as string
@@ -89,4 +136,38 @@ export function shaderProperty (shaderType: keyof typeof ShaderTypes): PropertyD
   };
 }
 
+export enum StorageMode {
+  uniform = "uniform",
+  read = "read",
+  write = "write",
+  read_write = "read_write",
+}
+
+
+
+export function shaderBuffer<T>(
+  type : (new() => T) | keyof typeof ShaderTypes,
+  storageMode = StorageMode.uniform,
+  defaultValue: T | T[],
+  maxInstanceCount = -1,
+): PropertyDecorator {
+  return (target: Object, propertyKey: string | symbol) => {
+    // Retrieve the design type of the property
+    const propertyType = type;
+    // Define the buffer descriptor with the retrieved type
+    const bufferDescriptor: BufferSchemaDescriptor<T> = {
+      name: propertyKey.toString(),
+      isArray: Array.isArray(defaultValue), 
+      type: propertyType,
+      uniform: storageMode === StorageMode.uniform,
+      defaultValue: defaultValue, 
+      maxInstanceCount: maxInstanceCount,
+      storageMode: storageMode,
+    };
+
+    // Define the metadata for the property
+    Reflect.defineMetadata('buffer', bufferDescriptor, target, propertyKey);
+  };
+}
+ 
 

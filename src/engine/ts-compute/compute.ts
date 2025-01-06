@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-wrapper-object-types */
 import "reflect-metadata";
-import { createStruct, getShaderCode, ShaderDataType, ShaderTypes } from "./datatypes";
+import { createBinding, createStruct, getShaderCode, ShaderDataType, ShaderTypes, StorageMode } from "./datatypes";
 import { ArrayUniform } from "@engine/renderer/uniforms";
 import { mat4, vec3, vec4 } from "gl-matrix";
 import { device } from "@engine/engine";
@@ -27,6 +27,7 @@ export interface BufferSchemaDescriptor<T> {
   isArray: boolean;
   maxInstanceCount?: number;
   type: (new() => T) | keyof typeof ShaderTypes;
+  storageMode: StorageMode;
   defaultValue?: T | T[];
 }
 
@@ -274,6 +275,7 @@ export default class Compute {
   private computePipelines: GPUComputePipeline[] = [];
 
   private structCode = "";
+  private bindingCode = "";
 
   public ready: boolean = false;
 
@@ -286,7 +288,22 @@ export default class Compute {
     this.entryPoints = pipelines;
   }
 
-  addBuffer<T extends Object>(descriptor: BufferSchemaDescriptor<T>) {
+  private addBuffers() {
+    // from this
+    let bindingIndex = 0;
+    let groupIndex = 0;
+
+    for (const prop of Object.getOwnPropertyNames(this)) {
+      const buffer = Reflect.getMetadata("buffer", this, prop);
+      if (buffer) {
+        this.addBuffer(buffer);
+        this.bindingCode += createBinding(bindingIndex, groupIndex, buffer);
+        bindingIndex++;
+      }
+    }
+  }
+
+  private addBuffer<T extends Object>(descriptor: BufferSchemaDescriptor<T>) {
 
     let constructorName = null;
     const bufferLayout : ShaderDataType[] = [];
@@ -336,9 +353,15 @@ export default class Compute {
     }
 
     this.bufferSchemas.push(buffer);
+
   }
 
   init() {
+
+    this.addBuffers();
+
+    
+
 
     const bindGroupLayoutEntries: GPUBindGroupLayoutEntry[] = [];
     const bindGroupEntries : GPUBindGroupEntry[] = [];
@@ -366,8 +389,8 @@ export default class Compute {
         })
     }
 
-    this.shader = this.structCode + this.shader; // Append the struct code to the shader
-
+    this.shader = this.bindingCode + this.structCode + this.shader; // Append the struct code to the shader
+    console.log(this.shader);
 
     this.layout = device.createBindGroupLayout({
       entries: bindGroupLayoutEntries,
