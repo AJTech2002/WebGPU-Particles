@@ -6,6 +6,7 @@ import Material from "./renderer/material";
 import GameObject from "./scene/gameobject";
 import CameraComponent from "./scene/core/camera_component";
 import Input from "./scene/inputs";
+import Component from "./scene/component";
 
 export interface CameraData {
   view: mat4;
@@ -27,6 +28,8 @@ export default class Scene {
   protected cameraObject: GameObject;
 
   protected input: Input;
+
+  private disposed: boolean = false;
 
   constructor() {
     this.cameraObject = new GameObject("MainCamera", this);
@@ -88,6 +91,17 @@ export default class Scene {
     return null;
   }
 
+  public findObjectsOfType<T extends Component>(type: new (...args: any[]) => T): T[] {
+    const result: T[] = [];
+    for (let i = 0; i < this._gameObjects.length; i++) {
+      const component = this._gameObjects[i].getComponent(type);
+      if (component) {
+        result.push(component);
+      }
+    }
+    return result;
+  }
+
   public get gameObjects() {
     return this._gameObjects;
   }
@@ -98,6 +112,11 @@ export default class Scene {
   //#endregion
 
   render(dT: number) {
+
+    if (this.disposed) {
+      return;
+    }
+
     this.time += dT;
 
     for (let i = 0; i < this.callbacks.length; i++) {
@@ -154,6 +173,8 @@ export default class Scene {
       this._materials[i].dispose();
     }
 
+    this.disposed = true;
+
     this._gameObjects = [];
     this._materials = [];
 
@@ -204,7 +225,7 @@ export default class Scene {
       const startTime = this.time;
 
       const f = (dt: number) => {
-        if (this.time - startTime >= 1) {
+        if (this.time - startTime >= s * 1000) {
           resolve();
           this.removeRenderCallback(f);
         }

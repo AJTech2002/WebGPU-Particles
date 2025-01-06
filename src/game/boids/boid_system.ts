@@ -1,10 +1,14 @@
 import Component from "@engine/scene/component";
 import { mat4, vec3, vec4 } from "gl-matrix";
+
 import computeShaderCode from "./shaders/compute.wgsl";
+import collisionShaderCode from "./shaders/collisions.wgsl";
+
 import BoidMaterial from "./boid_material";
 import {Boid} from "./boid";
 import Compute from "@engine/ts-compute/compute";
 import { shaderProperty, ShaderTypes } from "@engine/ts-compute/datatypes";
+import Collider from "@engine/scene/core/collider_component";
 
 
 interface BoidInitData {
@@ -47,13 +51,31 @@ export default class BoidSystemComponent extends Component {
   public boidRefs: Boid[] = [];
 
   private compute: Compute;
+  private warned: boolean = false;
   
   constructor() {
     super();
 
-    this.compute = new Compute([computeShaderCode], [
+    const bindings = `
+    @binding(0) @group(0) var<storage, read_write> objects: array<BoidObjectData>;
+    @binding(1) @group(0) var<storage, read_write> boids: array<BoidData>;
+    @binding(2) @group(0) var<storage, read_write> colliders: array<Collider>;
+    
+    @binding(3) @group(0) var<uniform> time: f32;
+    @binding(4) @group(0) var<uniform> dT: f32;
+    @binding(5) @group(0) var<uniform> numBoids: f32;
+    @binding(6) @group(0) var<uniform> numColliders: f32; 
+    `;
+
+
+    this.compute = new Compute([
+      bindings,
+      computeShaderCode,
+      collisionShaderCode 
+    ], [
       "avoidanceMain",
-      "movementMain"
+      "movementMain",
+      "collisionMain"
     ]);
    
     this.compute.addBuffer<BoidObjectData>({
@@ -72,6 +94,15 @@ export default class BoidSystemComponent extends Component {
       uniform: false,
       defaultValue: [],
       maxInstanceCount: this.maxInstanceCount
+    });
+
+    this.compute.addBuffer<Collider>({
+      name: "colliders",
+      isArray: true,
+      type: Collider,
+      uniform: false,
+      defaultValue: [],
+      maxInstanceCount: 100
     });
 
 
@@ -97,7 +128,15 @@ export default class BoidSystemComponent extends Component {
       isArray: false,
       type: ShaderTypes.i32,
       defaultValue: 0,
-    })
+    });
+
+    this.compute.addBuffer<number>({
+      name: "numColliders",
+      uniform: true,
+      isArray: false,
+      type: ShaderTypes.i32,
+      defaultValue: 0,
+    });
 
     this.compute.init();
   }
@@ -119,7 +158,6 @@ export default class BoidSystemComponent extends Component {
     if (objectInfo != null) this.boidObjects = objectInfo;
   }
 
-  private warned: boolean = false;
   public addBoid(init: BoidInitData): Boid | undefined{
 
     if (this.instanceCount >= this.maxInstanceCount) {
@@ -130,10 +168,12 @@ export default class BoidSystemComponent extends Component {
       return;
     }
 
+    init.position[2] = 10; // Set the w component to 10
+
     this.compute.setElement<BoidData>("boids", this.instanceCount, {
       targetPosition: [init.position[0], init.position[1], init.position[2], 0],
       avoidanceVector: vec4.create(),
-      hasTarget: true,
+      hasTarget: false,
       speed: init.speed,
     });
 
@@ -210,6 +250,13 @@ export default class BoidSystemComponent extends Component {
       this.compute.set("time", this.scene.sceneTime / 1000);
       this.compute.set("dT", sDT * 4.0);
       this.compute.set("numBoids", this.instanceCount);
+
+      var colliders = this.scene.findObjectsOfType<Collider>(Collider);
+      this.compute.set("numColliders", colliders.length);
+
+      colliders.forEach((collider, index) => {
+        this.compute.setElement<Collider>("colliders", index, collider);
+      });
 
       this.compute.dispatch(Math.ceil(this.instanceCount / 64));
       

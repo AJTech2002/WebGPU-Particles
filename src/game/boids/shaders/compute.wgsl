@@ -1,9 +1,3 @@
-@binding(0) @group(0) var<storage, read_write> objects: array<BoidObjectData>;
-@binding(1) @group(0) var<storage, read_write> boids: array<BoidData>;
-@binding(2) @group(0) var<uniform> time: f32;
-@binding(3) @group(0) var<uniform> dT: f32;
-@binding(4) @group(0) var<uniform> numBoids: f32;
-
 @compute @workgroup_size(64)
 fn avoidanceMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
     let index = global_id.x;
@@ -24,7 +18,7 @@ fn avoidanceMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
 
         var avoidanceDistance = 0.4;
         var randomDirection = vec3(0.0, 1.0, 0.0);
-        var angle = f32(index) * 0.1;
+        var angle = f32(random_u32(&local_rnd_state)) * 0.01;
         randomDirection = rotate_v3(randomDirection, angle, vec3(0.0, 0.0, 1.0));
 
         for (var i = 0u; i < objectModelLength; i = i + 1u) {
@@ -99,6 +93,8 @@ fn movementMain (@builtin(global_invocation_id) global_id: vec3<u32>) {
         }
 
         var v = clamp((avoidance * avoidanceWeight) + (movDir*targetWeight), minAv, maxAv);
+
+
         var dir = v * dT * boids[index].speed;
 
         var minV3 = vec3<f32>(-boids[index].speed, -boids[index].speed, 0.0);
@@ -117,6 +113,7 @@ fn movementMain (@builtin(global_invocation_id) global_id: vec3<u32>) {
         var lerped = mix(lP, objects[index].position, dT * 2.0);
 
         objects[index].model = set_position(objects[index].model, lerped);
+        boids[index].avoidanceVector = vec4<f32>(0.0, 0.0, 0.0, 0.0);
       
     }
 

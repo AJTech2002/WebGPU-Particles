@@ -113,10 +113,10 @@ function getPrimitiveByteSize (type: ShaderDataType) : number {
 
 function getPrimitiveAlignment (type: ShaderDataType) : number {
   switch (type.type) {
-    case "mat4": return 16;
-    case "vec4": return 16;
-    case "vec3": return 16;
-    case "bool": return 4;
+    case ShaderTypes.mat4x4: return 16;
+    case ShaderTypes.vec4: return 16;
+    case ShaderTypes.vec3: return 16;
+    case ShaderTypes.bool: return 4;
     default: return 4;
   }
 }
@@ -340,8 +340,6 @@ export default class Compute {
 
   init() {
 
-    this.shader = this.structCode + this.shader; // Append the struct code to the shader
-
     const bindGroupLayoutEntries: GPUBindGroupLayoutEntry[] = [];
     const bindGroupEntries : GPUBindGroupEntry[] = [];
 
@@ -367,6 +365,9 @@ export default class Compute {
           resource: { buffer: uniform.gpuBuffer },
         })
     }
+
+    this.shader = this.structCode + this.shader; // Append the struct code to the shader
+
 
     this.layout = device.createBindGroupLayout({
       entries: bindGroupLayoutEntries,

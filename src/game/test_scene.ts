@@ -1,7 +1,7 @@
 import Engine from "@engine/engine";
 import Scene from "@engine/scene";
 import GameObject from "@engine/scene/gameobject";
-import BoidSystemComponent from "./boids/boid_component";
+import BoidSystemComponent from "./boids/boid_system";
 import { QuadMesh } from "@engine/scene/core/mesh_component";
 import BoidMaterial from "./boids/boid_material";
 import {vec3 } from "gl-matrix";

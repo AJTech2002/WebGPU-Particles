@@ -1,7 +1,8 @@
 import Engine from "@engine/engine";
+import CircleTexture from "../assets/circle.png";
 import Scene from "@engine/scene";
 import GameObject from "@engine/scene/gameobject";
-import BoidSystemComponent from "./boids/boid_component";
+import BoidSystemComponent from "./boids/boid_system";
 import { QuadMesh } from "@engine/scene/core/mesh_component";
 import BoidMaterial from "./boids/boid_material";
 import {vec3 } from "gl-matrix";
@@ -20,13 +21,13 @@ export default class BoidScene extends Scene {
     const collider = new GameObject("collider", this);
     collider.addComponent(new Collider())
 
-    const mat = new StandardMaterial(this);
+    const mat = new StandardDiffuseMaterial(this, CircleTexture); 
 
     collider.addComponent(new QuadMesh(
       mat
     ))
 
-    mat.color = new Color(1,0,0);
+    mat.color = new Color(1,1,1);
 
     collider.transform.position.z = -9;
   }
@@ -35,6 +36,19 @@ export default class BoidScene extends Scene {
     while (true) {
       await this.tick();
       this.findGameObject("collider")!.transform.rotateOnAxis(new Vector3(0,0,1), 0.03);
+      this.findGameObject("collider")!.transform.position.x = Math.sin(this.time * 0.001) * 2;
+    }
+  }
+
+  async spawnUnits() {
+    while (true) {
+
+      this.boidSystem.addBoid({
+        position: vec3.fromValues(0,0,0),
+        speed: 0.6
+      });
+      await this.seconds(0.25);
+
     }
   }
 
@@ -63,6 +77,7 @@ export default class BoidScene extends Scene {
     )));
 
     this.activeCamera!.gameObject.transform.position.z = -10;
+    this.spawnUnits();
 
   }
 
@@ -82,7 +97,7 @@ export default class BoidScene extends Scene {
         }
       }
       else {
-       for (let i = 0; i < 10; i++) {
+       for (let i = 0; i < 4; i++) {
         const b = this.boidSystem.addBoid({
           position: this.input.mouseToWorld(0).toVec3(),
           speed: 0.6

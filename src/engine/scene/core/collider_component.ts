@@ -1,4 +1,5 @@
 import Component from "@engine/scene/component";
+import { mat4 } from "gl-matrix";
 import { shaderProperty, ShaderTypes } from "@engine/ts-compute/datatypes";
 import { vec3 } from "gl-matrix";
 
@@ -12,8 +13,8 @@ export default class Collider extends Component {
   public isTrigger: boolean = false;
   public isStatic: boolean = false;
 
-  @shaderProperty(ShaderTypes.vec3)
-  public center: vec3 = [0,0,0];
+  @shaderProperty(ShaderTypes.mat4x4)
+  public model: mat4 = mat4.create();
 
   @shaderProperty(ShaderTypes.vec3)
   public size: vec3 = [1,1,1];
@@ -32,6 +33,7 @@ export default class Collider extends Component {
   }
 
   update(deltaTime: number) {
+    this.model = this.transform.worldModelMatrix;
   }
 
   render(deltaTime: number) {
