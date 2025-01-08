@@ -1,3 +1,4 @@
+
 @compute @workgroup_size(64)
 fn avoidanceMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
     let index = global_id.x;
@@ -11,12 +12,11 @@ fn avoidanceMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
 
     let objectModelLength: u32 = u32(clamp(numBoids, 0.0, f32(100000)));
 
-
     if (index <  objectModelLength) {
 
         var avoidance = vec3(0.0, 0.0, 0.0);
 
-        var avoidanceDistance = 0.4;
+        var avoidanceDistance = 0.27;
         var randomDirection = vec3(0.0, 1.0, 0.0);
         var angle = f32(random_u32(&local_rnd_state)) * 0.01;
         randomDirection = rotate_v3(randomDirection, angle, vec3(0.0, 0.0, 1.0));
@@ -58,8 +58,6 @@ fn avoidanceMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
 
     return;
 }
-
-
 
 @compute @workgroup_size(64)
 fn movementMain (@builtin(global_invocation_id) global_id: vec3<u32>) {
@@ -110,7 +108,7 @@ fn movementMain (@builtin(global_invocation_id) global_id: vec3<u32>) {
 
         let distance = distance(objects[index].position, finalPos);
 
-        var lerped = mix(lP, objects[index].position, dT * 2.0);
+        var lerped = mix(lP, objects[index].position, dT * 8.0);
 
         objects[index].model = set_position(objects[index].model, lerped);
         boids[index].avoidanceVector = vec4<f32>(0.0, 0.0, 0.0, 0.0);

@@ -60,6 +60,20 @@ function parseFromPrimitives(data: Float32Array, type: ShaderDataType): unknown 
       }
       return data[0] !== 0; // Convert back to boolean
     }
+    case ShaderTypes.u32: {
+      if (data.length !== 1) {
+        throw new Error(`Invalid data length for u32. Expected 1, got ${data.length}`);
+      }
+      const u32Array = new Uint32Array(data.buffer);
+      return u32Array[0];
+    }
+    case ShaderTypes.i32: {
+      if (data.length !== 1) {
+        throw new Error(`Invalid data length for i32. Expected 1, got ${data.length}`);
+      }
+      const i32Array = new Int32Array(data.buffer);
+      return i32Array[0];
+    }
     default: {
       if (data.length !== 1) {
         throw new Error(`Invalid data length for scalar. Expected 1, got ${data.length}`);
@@ -69,7 +83,7 @@ function parseFromPrimitives(data: Float32Array, type: ShaderDataType): unknown 
   }
 }
 
-function parsePrimitives (data: unknown, type: ShaderDataType) : Float32Array {
+function parsePrimitives (data: unknown, type: ShaderDataType) : Float32Array | Uint32Array {
   switch (type.type) {
     case ShaderTypes.mat4x4: {
       const mat4 = data as mat4;
@@ -92,6 +106,22 @@ function parsePrimitives (data: unknown, type: ShaderDataType) : Float32Array {
     case ShaderTypes.bool: {
       const bool = data as boolean;
       return new Float32Array([bool ? 1 : 0]);
+    }
+    case ShaderTypes.u32:
+    {
+      const u32 = data as number;
+      const u32Array = new Uint32Array(1);
+      const f32Array = new Float32Array(u32Array.buffer);
+      u32Array[0] = u32;
+      return f32Array;
+    }
+    case ShaderTypes.i32:
+    {
+      const i32 = data as number;
+      const i32Array = new Int32Array(1);
+      const f32Array = new Float32Array(i32Array.buffer);
+      i32Array[0] = i32;
+      return f32Array;
     }
     default:
     {
@@ -390,7 +420,6 @@ export default class Compute {
     }
 
     this.shader = this.bindingCode + this.structCode + this.shader; // Append the struct code to the shader
-    console.log(this.shader);
 
     this.layout = device.createBindGroupLayout({
       entries: bindGroupLayoutEntries,

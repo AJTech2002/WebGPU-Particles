@@ -8,7 +8,7 @@ import BoidMaterial from "./boid_material";
 import {Boid} from "./boid";
 import Compute from "@engine/ts-compute/compute";
 import Collider from "@engine/scene/core/collider_component";
-import { BoidCompute, BoidData, BoidObjectData } from "./boid_compute";
+import { BoidCompute, BoidData, BoidObjectData, maxInstanceCount } from "./boid_compute";
 
 
 interface BoidInitData {
@@ -21,7 +21,7 @@ interface BoidInitData {
 export default class BoidSystemComponent extends Component {
 
   public instanceCount: number = 0;
-  public maxInstanceCount: number = 3000;
+  public maxInstanceCount: number = maxInstanceCount;
 
   public boids: BoidData[] = [];
   public boidObjects: BoidObjectData[] = [];
@@ -144,7 +144,7 @@ export default class BoidSystemComponent extends Component {
       const sDT = dT / 1000;
 
       this.compute.set("time", this.scene.sceneTime / 1000);
-      this.compute.set("dT", sDT * 4.0);
+      this.compute.set("dT", sDT * 2.0);
       this.compute.set("numBoids", this.instanceCount);
 
       var colliders = this.scene.findObjectsOfType<Collider>(Collider);

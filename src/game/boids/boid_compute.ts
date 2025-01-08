@@ -6,7 +6,6 @@ import BoidCollisionShader from "./shaders/collisions.wgsl";
 import {mat4, vec4} from "gl-matrix";
 import { shaderBuffer, shaderProperty, StorageMode, ShaderTypes } from "@engine/ts-compute/datatypes";
 import Collider from "@engine/scene/core/collider_component"; 
-import { esLint } from "@codemirror/lang-javascript";
 
 
 export class BoidData {
@@ -31,18 +30,21 @@ export class BoidObjectData {
   public position: vec3 = [0,0,0];
 }
 
-
+export const maxInstanceCount = 3000;
 
 export class BoidCompute extends Compute {
 
-  @shaderBuffer(BoidObjectData, StorageMode.read_write, [], 3000) 
+  @shaderBuffer(BoidObjectData, StorageMode.read_write, [], maxInstanceCount) 
   private objects: BoidObjectData[];
 
-  @shaderBuffer(BoidData, StorageMode.read_write, [], 3000)
+  @shaderBuffer(BoidData, StorageMode.read_write, [], maxInstanceCount)
   private boids: BoidData[];
 
   @shaderBuffer(Collider, StorageMode.write, [], 100)
   private colliders: Collider[];
+
+  @shaderBuffer("f32", StorageMode.uniform, 100)
+  private gridWidth: number;
   
   @shaderBuffer("f32", StorageMode.uniform, 0)
   private time: number;

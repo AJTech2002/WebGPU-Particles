@@ -9,9 +9,10 @@ import {vec3 } from "gl-matrix";
 import BoidTexture from "../assets/guy-2.png";
 import {Boid} from "./boids/boid";
 import CameraMovement from "./components/camera_movement";
-import Collider from "@engine/scene/core/collider_component";
+import Collider, { ColliderShape } from "@engine/scene/core/collider_component";
 import { StandardDiffuseMaterial, StandardMaterial } from "@engine/renderer/material";
 import { Color, Vector3 } from "@engine/math/src";
+import SquareTexture from "../assets/square.png";
 
 export default class BoidScene extends Scene {
 
@@ -19,24 +20,48 @@ export default class BoidScene extends Scene {
 
   createCollider() {
     const collider = new GameObject("collider", this);
-    collider.addComponent(new Collider())
+    collider.addComponent(new Collider([0.6, 0.6, 0.6], ColliderShape.Circle, false, false));
+
+    const squareCollider = new GameObject("squareCollider", this);
+
+    squareCollider.addComponent(new Collider([1,1,1], ColliderShape.Square, false, false));
 
     const mat = new StandardDiffuseMaterial(this, CircleTexture); 
+    const squareMat = new StandardDiffuseMaterial(this, SquareTexture);
+    
+    squareCollider.addComponent(new QuadMesh(squareMat));
 
     collider.addComponent(new QuadMesh(
       mat
     ))
 
     mat.color = new Color(1,1,1);
+    squareMat.color = new Color(1, 0, 0);
 
     collider.transform.position.z = -9;
+    squareCollider.transform.position.z = -9;
+    squareCollider.transform.position.x = 0;
   }
 
   async spinSquare() {
     while (true) {
       await this.tick();
-      this.findGameObject("collider")!.transform.rotateOnAxis(new Vector3(0,0,1), 0.03);
-      this.findGameObject("collider")!.transform.position.x = Math.sin(this.time * 0.001) * 2;
+      // this.findGameObject("collider")!.transform.rotateOnAxis(new Vector3(0,0,1), 0.03);
+      //
+      //
+      const sin = Math.cos(this.time * 0.001) * 2;
+      this.findGameObject("collider")!.transform.position.x = sin; 
+      this.findGameObject("collider")!.transform.scale = new Vector3(0.75 + sin, 0.75 + sin, 0.75 + sin);
+      const v3Pos = new Vector3(-2, sin, -9);
+
+      /*this.findGameObject("squareCollider")!.transform.localRotateOnAxis(
+        new Vector3(0,0,1),
+        0.03
+      );*/
+
+      this.findGameObject("squareCollider")!.transform.rotation.z += 0.03; 
+
+      this.findGameObject("squareCollider")!.transform.position = v3Pos;
     }
   }
 
@@ -44,10 +69,10 @@ export default class BoidScene extends Scene {
     while (true) {
 
       this.boidSystem.addBoid({
-        position: vec3.fromValues(0,0,0),
+        position: this.findGameObject("collider")!.transform.position.toVec3(), 
         speed: 0.6
       });
-      await this.seconds(0.25);
+      await this.seconds(0.05);
 
     }
   }
@@ -100,7 +125,7 @@ export default class BoidScene extends Scene {
        for (let i = 0; i < 4; i++) {
         const b = this.boidSystem.addBoid({
           position: this.input.mouseToWorld(0).toVec3(),
-          speed: 0.6
+          speed: 1.0
         });
        }
       }

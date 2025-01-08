@@ -7,10 +7,8 @@ import { saveFile, typescriptCompletionSource } from './tsUtils';
 import { javascript } from '@codemirror/lang-javascript';
 import CodeMirror, { EditorView, KeyBinding, keymap, ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import * as duotone from "@uiw/codemirror-theme-duotone";
-import {defaultKeymap} from "@codemirror/commands";
 import CodeRunner from './code_runner/code_runner';
 import { GameContext } from './interface/interface';
-import TestScene from './game/test_scene';
 
 const codeRunner = new CodeRunner();
 let resolvedEngine : Engine | undefined;

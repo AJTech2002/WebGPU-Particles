@@ -60,6 +60,10 @@ export default class TransformComponent extends Component {
     this.quaternion.setFromEuler(euler.clone());
   }
 
+  public get rotation (): Euler {
+    return this.euler;
+  }
+
   public set rotation(euler: Euler) {
     this.euler = euler;
     this.quaternion.setFromEuler(euler);
@@ -110,17 +114,18 @@ export default class TransformComponent extends Component {
   
     // Create an identity matrix
     const m = mat4.create();
-  
-    // Apply scale first
+ 
+
+ 
+    mat4.fromRotationTranslation(m, [worldR.x, worldR.y, worldR.z, worldR.w], [worldP.x, worldP.y, worldP.z]);
+
     mat4.scale(m, m, [worldS.x, worldS.y, worldS.z]);
-  
     // Apply rotation next
-    const quatMat = mat4.create();
-    mat4.fromQuat(quatMat, [worldR.x, worldR.y, worldR.z, worldR.w]);
-    mat4.multiply(m, quatMat, m); // Order: rotation * scale
+    //const quatMat = mat4.create();
+    // mat4.fromQuat(quatMat, [worldR.x, worldR.y, worldR.z, worldR.w]);
+    // mat4.multiply(m, quatMat, m); // Order: rotation * scale
   
     // Apply translation last
-    mat4.translate(m, m, [worldP.x, worldP.y, worldP.z]);
   
     return m;
   }
@@ -130,8 +135,10 @@ export default class TransformComponent extends Component {
   }
 
   override update() {
+    
+    this.quaternion.setFromEuler(this.euler).normalize();
     this.updateTransform();
-    this.euler.setFromQuaternion(this.quaternion);
+
 
     if (this.matrix && this.gameObject.parent?.transform?.matrix) {
       this.matrix.copy(

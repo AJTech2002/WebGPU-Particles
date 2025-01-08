@@ -2,6 +2,7 @@ import Component from "@engine/scene/component";
 import { mat4 } from "gl-matrix";
 import { shaderProperty, ShaderTypes } from "@engine/ts-compute/datatypes";
 import { vec3 } from "gl-matrix";
+import CameraComponent from "./camera_component";
 
 export enum ColliderShape {
   Square = 0,
@@ -22,8 +23,17 @@ export default class Collider extends Component {
   @shaderProperty(ShaderTypes.u32)
   public shape: ColliderShape = ColliderShape.Square;
   
-  constructor() {
+  constructor(
+    size: vec3 = [1,1,1],
+    shape: ColliderShape = ColliderShape.Square,
+    isTrigger: boolean = false,
+    isStatic: boolean = false,
+  ) {
     super();
+    this.size = size;
+    this.shape = shape;
+    this.isTrigger = isTrigger;
+    this.isStatic = isStatic;
   }
 
   awake() {
