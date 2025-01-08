@@ -17,6 +17,9 @@ export default class Collider extends Component {
   @shaderProperty(ShaderTypes.mat4x4)
   public model: mat4 = mat4.create();
 
+  @shaderProperty(ShaderTypes.mat4x4)
+  public inverted: mat4 = mat4.create();
+
   @shaderProperty(ShaderTypes.vec3)
   public size: vec3 = [1,1,1];
 
@@ -44,6 +47,7 @@ export default class Collider extends Component {
 
   update(deltaTime: number) {
     this.model = this.transform.worldModelMatrix;
+    this.inverted = mat4.invert(mat4.create(), this.model);
   }
 
   render(deltaTime: number) {

@@ -49,8 +49,8 @@ export default class BoidScene extends Scene {
       // this.findGameObject("collider")!.transform.rotateOnAxis(new Vector3(0,0,1), 0.03);
       //
       //
-      const sin = Math.cos(this.time * 0.001) * 2;
-      this.findGameObject("collider")!.transform.position.x = sin; 
+      const sin = Math.abs(Math.cos(this.time * 0.001) * 2);
+      this.findGameObject("collider")!.transform.position.x = Math.sin(this.time * 0.003) * 5;; 
       this.findGameObject("collider")!.transform.scale = new Vector3(0.75 + sin, 0.75 + sin, 0.75 + sin);
       const v3Pos = new Vector3(-2, sin, -9);
 
@@ -60,7 +60,7 @@ export default class BoidScene extends Scene {
       );*/
 
       this.findGameObject("squareCollider")!.transform.rotation.z += 0.03; 
-
+      this.findGameObject("squareCollider")!.transform.scale.x = 1.75 + Math.abs(sin);
       this.findGameObject("squareCollider")!.transform.position = v3Pos;
     }
   }

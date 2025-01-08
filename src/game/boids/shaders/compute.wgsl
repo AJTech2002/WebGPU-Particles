@@ -31,7 +31,7 @@ fn avoidanceMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
                 }
                 else if (distance < avoidanceDistance) {
                     var avoidancePerc = clamp(avoidanceDistance - distance, 0.0, 1.0);
-                    avoidancePerc = pow(avoidancePerc / avoidanceDistance, 2.0); // Exponential curve
+                    avoidancePerc = pow(avoidancePerc / avoidanceDistance, 1.4); // Exponential curve
 
                     // avoidancePerc = clamp(avoidancePerc, 0.5, 1.0);
 
@@ -46,7 +46,7 @@ fn avoidanceMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
 
         
         avoidance.z = 0.0;
-        avoidance *= 5.0;
+        //avoidance *= 5.0;
 
         boids[index].avoidanceVector = vec4<f32>(avoidance, 0.0);
 
@@ -108,9 +108,7 @@ fn movementMain (@builtin(global_invocation_id) global_id: vec3<u32>) {
 
         let distance = distance(objects[index].position, finalPos);
 
-        var lerped = mix(lP, objects[index].position, dT * 8.0);
 
-        objects[index].model = set_position(objects[index].model, lerped);
         boids[index].avoidanceVector = vec4<f32>(0.0, 0.0, 0.0, 0.0);
       
     }
