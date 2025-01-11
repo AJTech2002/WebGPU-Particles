@@ -3,25 +3,13 @@ import Component from "@engine/scene/component";
 
 export default class CameraComponent extends Component {
   public projection: mat4;
-  protected cameraScale: number = 200;
   private leftRightBottomTop: vec4;
+  private cameraScale: number = 200;
 
   constructor() {
     super();
     this.projection = mat4.create();
     this.leftRightBottomTop = [-8, 8, -6, 6];
-
-    //TODO: Move this into a sub-class
-    // listen for zoom events and change scaling
-    window.addEventListener("wheel", (e) => {
-      if (e.deltaY > 0) {
-        this.cameraScale += 5;
-      } else {
-        this.cameraScale -= 5;
-      }
-
-      this.updateCamera();
-    });
   }
 
   public get view() : mat4 {
@@ -30,6 +18,14 @@ export default class CameraComponent extends Component {
 
   public get extents() : vec4 {
     return this.leftRightBottomTop;
+  }
+
+  public set scale(value: number) {
+    this.cameraScale = value;
+  }
+
+  public get scale() : number {
+    return this.cameraScale;
   }
 
   private updateCamera() {

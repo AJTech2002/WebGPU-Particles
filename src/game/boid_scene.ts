@@ -13,10 +13,12 @@ import Collider, { ColliderShape } from "@engine/scene/core/collider_component";
 import { StandardDiffuseMaterial, StandardMaterial } from "@engine/renderer/material";
 import { Color, Vector3 } from "@engine/math/src";
 import SquareTexture from "../assets/square.png";
+import { Grid } from "./grid/grid_go";
 
 export default class BoidScene extends Scene {
 
   private boidSystem!: BoidSystemComponent;
+  private grid!: Grid;
 
   createCollider() {
     const collider = new GameObject("collider", this);
@@ -49,7 +51,7 @@ export default class BoidScene extends Scene {
       // this.findGameObject("collider")!.transform.rotateOnAxis(new Vector3(0,0,1), 0.03);
       //
       //
-      const sin = Math.abs(Math.cos(this.time * 0.001) * 2);
+      const sin = Math.cos(this.time * 0.001) * 2;
       this.findGameObject("collider")!.transform.position.x = Math.sin(this.time * 0.003) * 5;; 
       this.findGameObject("collider")!.transform.scale = new Vector3(0.75 + sin, 0.75 + sin, 0.75 + sin);
       const v3Pos = new Vector3(-2, sin, -9);
@@ -80,12 +82,14 @@ export default class BoidScene extends Scene {
 
     this.spinSquare();
 
+    this.grid = new Grid(this, 50, 50); 
+
     // Add camera movement 
     this.activeCamera!.gameObject.addComponent(new CameraMovement());
 
     const boids = new GameObject("boids", this);
 
-    const boidSystem = new BoidSystemComponent();
+    const boidSystem = new BoidSystemComponent(this.grid);
 
     this.boidSystem = boidSystem;
 
@@ -115,6 +119,15 @@ export default class BoidScene extends Scene {
     }
   }
 
+  async flashUnit (id: number) {
+    await this.seconds(0.05);
+    this.boidSystem.setBoidColor(id, [
+      Math.random(),
+      Math.random(),
+      Math.random()
+    ]);
+  }
+
   
   render(dT: number): void {
     super.render(dT);
@@ -123,15 +136,28 @@ export default class BoidScene extends Scene {
       if (this.boidSystem.instanceCount >= this.boidSystem.maxInstanceCount) {
         for (let i = 0; i < 2; i++) {
           const randomIndex = Math.floor(Math.random() * this.boidSystem.instanceCount);
-          this.boidSystem.setBoidPosition(randomIndex, this.input.mouseToWorld(0).toVec3());
+
+          const id = this.boidSystem.boidObjects[randomIndex]?.boidId;
+
+          this.boidSystem.setBoidPosition(id, this.input.mouseToWorld(0).toVec3());
         }
       }
       else {
-       for (let i = 0; i < 4; i++) {
-        const b = this.boidSystem.addBoid({
-          position: this.input.mouseToWorld(0).toVec3(),
-          speed: 2.0
+       for (let i = 0; i < 10; i++) {
+        
+         const rV3 = new Vector3(
+           Math.random() * 0.2 - 0.1,
+           Math.random() * 0.2 - 0.1,
+           0
+         );
+
+         const b = this.boidSystem.addBoid({
+          position: (this.input.mouseToWorld(0).clone().add(rV3)).toVec3(),
+          speed: 3.0
         });
+        
+        if (b)
+          this.flashUnit(b!.boidId);
        }
       }
     }

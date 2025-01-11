@@ -91,7 +91,7 @@ export default class GameObject {
     for (let i = 0; i < this._components.length; i++) this._components[i].mouseEvent(type, button);
   }
 
-  public inputEvent(type: number, key: number) {
+  public inputEvent(type: number, key: string) {
     for (let i = 0; i < this._components.length; i++) this._components[i].inputEvent(type, key);
   }
   //#endregion

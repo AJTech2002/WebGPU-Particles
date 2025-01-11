@@ -27,7 +27,7 @@ fn avoidanceMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
 
     var avoidance = vec3(0.0, 0.0, 0.0);
 
-    var avoidanceDistance = 0.18 * 2;
+    var avoidanceDistance = 0.25;
     var randomDirection = unique_direction(index, objectModelLength);
     //var angle = f32(random_u32(&local_rnd_state)*index) * 0.01;
 
@@ -53,7 +53,7 @@ fn avoidanceMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
           let direction = safe_normalize(avVector);
           var pushStrength = clamp(avoidanceDistance - d, 0.0, 1.0);
 
-          pushStrength *= (avoidanceDistance - d) / (avoidanceDistance);
+          //pushStrength *= (avoidanceDistance - d) / (avoidanceDistance);
 
           if (d < 0.1) {
             pushStrength = 1.0;
@@ -90,7 +90,7 @@ fn movementMain (@builtin(global_invocation_id) global_id: vec3<u32>) {
   if (index < objectModelLength ) {
 
     var targetWeight = 1.0;
-    let avoidanceWeight = 10.0;
+    let avoidanceWeight = 40.0;
 
     var avoidance = boids[index].avoidanceVector.xyz;
     avoidance.z = 0.0;
@@ -125,13 +125,17 @@ fn movementMain (@builtin(global_invocation_id) global_id: vec3<u32>) {
     var finalPos = lastPosition + dir;
 
 
-    objects[index].position = finalPos;
+    objects[index].position = finalPos + (boids[index].collisionVector.xyz);
 
     let distance = distance(objects[index].position, finalPos);
 
+    var lerpSpeed = dT * 10.00; 
+    if (length(boids[index].collisionVector) > 0.0) {
+      lerpSpeed = 25.0 * dT; 
+    }
 
     boids[index].avoidanceVector = vec4<f32>(0.0, 0.0, 0.0, 0.0);
-    var lerped = mix(lP, objects[index].position, dT * 15.00);
+    var lerped = mix(lP, objects[index].position, lerpSpeed); 
     objects[index].model = set_position(objects[index].model, lerped); 
   }
 

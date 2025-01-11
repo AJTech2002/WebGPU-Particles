@@ -165,6 +165,7 @@ export class DynamicUniform<T> extends ArrayUniform<T> {
 
   private maxInstanceCount: number = 1;
   private layout: ShaderDataType[] = [];
+  private alignmentBytes: number = 0;
   private mappedLayoutByKey: Map<string, {
     type: ShaderDataType,
     offset: number,
@@ -198,6 +199,7 @@ export class DynamicUniform<T> extends ArrayUniform<T> {
       maxVarSize = Math.max(maxVarSize, getPrimitiveAlignment(type));
     }
 
+    this.alignmentBytes = maxVarSize;
     // round the elementSize to the nearest multiple of maxVarSize for alignment
     this.elementSize = Math.ceil(rawElementSize / maxVarSize) * maxVarSize;
 
@@ -422,9 +424,9 @@ export default class Compute {
     else {
 
       const instance = new descriptor.type();
-      constructorName = instance.constructor.name;
       const props = Object.getOwnPropertyNames(instance);
-
+      constructorName = Reflect.getMetadata("structName", descriptor.type); 
+      
       for (const prop of props) {
         const type = Reflect.getMetadata("type", instance, prop);
         if (type) {

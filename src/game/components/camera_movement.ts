@@ -13,6 +13,19 @@ export default class CameraMovement extends Component {
 
   constructor() {
     super();
+    
+    //TODO: Move this into a sub-class
+    // listen for zoom events and change scaling
+    window.addEventListener("wheel", (e) => {
+      if (e.deltaY > 0) {
+        this.activeCamera.scale += 5;
+      } else {
+        this.activeCamera.scale -= 5;
+      }
+
+      this.activeCamera.scale = Math.min(200, Math.max(50, this.activeCamera.scale));
+    });
+
   }
 
   public awake(): void {

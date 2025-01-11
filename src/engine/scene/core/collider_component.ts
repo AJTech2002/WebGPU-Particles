@@ -1,14 +1,14 @@
 import Component from "@engine/scene/component";
 import { mat4 } from "gl-matrix";
-import { shaderProperty, ShaderTypes } from "@engine/ts-compute/datatypes";
+import { shaderProperty, shaderStruct, ShaderTypes } from "@engine/ts-compute/datatypes";
 import { vec3 } from "gl-matrix";
-import CameraComponent from "./camera_component";
 
 export enum ColliderShape {
   Square = 0,
   Circle = 1,
 }
 
+@shaderStruct("Collider")
 export default class Collider extends Component {
 
   public isTrigger: boolean = false;

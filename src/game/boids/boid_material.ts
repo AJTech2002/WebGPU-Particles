@@ -19,7 +19,7 @@ export default class BoidMaterial extends StandardDiffuseMaterial {
   setupUniforms(): void {
     super.setupUniforms();
     this.setUniformEntry("objects", {
-      binding: 3,
+      binding: 5,
       resource: {
         buffer: this.buffer
       }

@@ -16,13 +16,17 @@ export class Boid {
   }
 
   public get position(): vec3 {
-    return this.boidSystem.boidObjects[this.boidId].position;
+    return this.boidSystem.getBoidInfo(this.boidId)?.object.position ?? vec3.create(); 
   }
 
   public get target(): vec3 {
-    const v4 = this.boidSystem.boids[this.boidId].targetPosition;
+    const v4 = this.boidSystem.getBoidInfo(this.boidId)?.data.targetPosition ?? vec3.create();
     const v3 = vec3.fromValues(v4[0], v4[1], v4[2]);
     return v3;
+  }
+
+  public get color(): vec3 {
+    return this.boidSystem.getBoidInfo(this.boidId)?.object.diffuseColor ?? vec3.create();
   }
 
   public set target(target: vec3) {

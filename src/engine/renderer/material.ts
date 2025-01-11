@@ -5,8 +5,8 @@ import BasicTextureFragShader from "@renderer/shaders/simple_textured_shader.wgs
 import Scene from "../scene";
 import Engine, { renderTargetFormat, device } from "@engine/engine";
 import Texture from "@engine/texture";
-import { ColorUniform } from "./uniforms";
-import { Color } from "@math";
+import { ColorUniform, Vec3Uniform } from "./uniforms";
+import { Color, Vector2 } from "@math";
 
 export default class Material {
   private device: GPUDevice;
@@ -177,7 +177,10 @@ export class StandardMaterial extends Material {
 export class StandardDiffuseMaterial extends StandardMaterial {
   
   private texture!: Texture;
-  
+
+  private offsetUniform: Vec3Uniform = new Vec3Uniform([0,0,0]);
+  private scaleUniform: Vec3Uniform = new Vec3Uniform([1, 1, 1])
+
   constructor(scene: Scene, url?: string, shaderOverride?: string) {
     super(scene, shaderOverride ?? BasicTextureFragShader);
     this.texture = new Texture();
@@ -185,6 +188,9 @@ export class StandardDiffuseMaterial extends StandardMaterial {
     if (url) {
       (() => this.textureUrl = url)(); // Load the texture
     }
+
+    this.offsetUniform.setup();
+    this.scaleUniform.setup();
   }
 
   override setupUniforms() {
@@ -199,6 +205,20 @@ export class StandardDiffuseMaterial extends StandardMaterial {
       binding: 2,
       resource: this.texture.sampler
     });
+
+    this.setUniformEntry("offset", {
+      binding: 3,
+      resource: {
+        buffer: this.offsetUniform.gpuBuffer,
+      }
+    });
+
+    this.setUniformEntry("scale", {
+      binding: 4,
+      resource: {
+        buffer: this.scaleUniform.gpuBuffer,
+      }
+    });
   }
 
   public set textureUrl(url: string) {
@@ -206,6 +226,14 @@ export class StandardDiffuseMaterial extends StandardMaterial {
       // recreate bind group
       this.setupBuffer();
     });
+  }
+
+  public set offset(value: Vector2) {
+    this.offsetUniform.value = [value.x, value.y, 0];
+  }
+
+  public set scale(value: Vector2) {
+    this.scaleUniform.value = [value.x, value.y, 1];
   }
   
 }
