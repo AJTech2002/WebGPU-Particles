@@ -27,7 +27,7 @@ fn avoidanceMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
 
     var avoidance = vec3(0.0, 0.0, 0.0);
 
-    var avoidanceDistance = 0.18;
+    var avoidanceDistance = 0.18 * 2;
     var randomDirection = unique_direction(index, objectModelLength);
     //var angle = f32(random_u32(&local_rnd_state)*index) * 0.01;
 
@@ -45,7 +45,7 @@ fn avoidanceMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
 
         if (d == 0) {
           randomDirection = safe_normalize(randomDirection) * avoidanceDistance;
-          avoidance = avoidance +  (randomDirection * 2 * avoidanceDistance);
+          avoidance = avoidance +  (randomDirection *  avoidanceDistance);
         }
       else if (d < avoidanceDistance ) {
           var avVector = objects[index].position - objects[i].position;
@@ -54,6 +54,11 @@ fn avoidanceMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
           var pushStrength = clamp(avoidanceDistance - d, 0.0, 1.0);
 
           pushStrength *= (avoidanceDistance - d) / (avoidanceDistance);
+
+          if (d < 0.1) {
+            pushStrength = 1.0;
+          }
+
           avVector = direction * pushStrength;
           avoidance = avoidance + avVector;
         } 
@@ -62,7 +67,7 @@ fn avoidanceMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
 
     //avoidance.y += avoidance.z;
     avoidance.z = 0.0;
-    avoidance = safe_normalize(avoidance) ;
+    //avoidance = safe_normalize(avoidance) ;
 
     boids[index].avoidanceVector = vec4<f32>(avoidance, 0.0);
 
@@ -85,7 +90,7 @@ fn movementMain (@builtin(global_invocation_id) global_id: vec3<u32>) {
   if (index < objectModelLength ) {
 
     var targetWeight = 1.0;
-    let avoidanceWeight = 5.0;
+    let avoidanceWeight = 10.0;
 
     var avoidance = boids[index].avoidanceVector.xyz;
     avoidance.z = 0.0;
@@ -106,7 +111,7 @@ fn movementMain (@builtin(global_invocation_id) global_id: vec3<u32>) {
       targetWeight = 0.0;
     }
 
-    var v = (avoidance * avoidanceWeight) + (movDir*targetWeight*boids[index].speed);
+    var v = (avoidance * avoidanceWeight) + (movDir*targetWeight);
 
 
     var dir = v * dT; 
@@ -126,7 +131,7 @@ fn movementMain (@builtin(global_invocation_id) global_id: vec3<u32>) {
 
 
     boids[index].avoidanceVector = vec4<f32>(0.0, 0.0, 0.0, 0.0);
-    var lerped = mix(lP, objects[index].position, dT * 8.00);
+    var lerped = mix(lP, objects[index].position, dT * 15.00);
     objects[index].model = set_position(objects[index].model, lerped); 
   }
 

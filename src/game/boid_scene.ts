@@ -106,6 +106,15 @@ export default class BoidScene extends Scene {
     return this.boidSystem.boidRefs;
   }
 
+  public getUnit (index: number) : Boid {
+    if (this.boidSystem.idMappedBoidRefs.has(index)) {
+      return this.boidSystem.idMappedBoidRefs.get(index)!;
+    }
+    else {
+      throw new Error(`Unit ${index} not found`);
+    }
+  }
+
   
   render(dT: number): void {
     super.render(dT);
@@ -121,7 +130,7 @@ export default class BoidScene extends Scene {
        for (let i = 0; i < 4; i++) {
         const b = this.boidSystem.addBoid({
           position: this.input.mouseToWorld(0).toVec3(),
-          speed: 20.0
+          speed: 2.0
         });
        }
       }

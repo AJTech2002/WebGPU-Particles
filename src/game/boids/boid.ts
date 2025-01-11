@@ -1,5 +1,6 @@
 import { vec3 } from "gl-matrix";
 import BoidSystemComponent from "./boid_system";
+import { BoidData } from "./boid_compute";
 
 export class Boid {
 
@@ -26,6 +27,10 @@ export class Boid {
 
   public set target(target: vec3) {
     this.boidSystem.setBoidTarget(this.boidId, target);
+  }
+
+  public attack (x: number, y: number) {
+  
   }
 
   public move (x: number, y: number) {

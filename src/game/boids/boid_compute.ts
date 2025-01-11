@@ -15,7 +15,7 @@ export class BoidData {
   @shaderProperty(ShaderTypes.vec4)
   public avoidanceVector: vec4 = [0,0,0,0]; // bytes: 16
 
-  @shaderProperty(ShaderTypes.u32)
+  @shaderProperty(ShaderTypes.bool)
   public hasTarget: boolean = false; // bytes: 4
 
   @shaderProperty(ShaderTypes.f32)

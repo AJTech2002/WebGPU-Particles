@@ -185,7 +185,7 @@ export class ArrayUniform<T> extends Uniform<T[]> {
     return null;
   }
 
-  public updateBufferAt(index: number, data: T) {
+  public updateBufferAt(index: number, data: T, byteOffset: number = 0) {
     if (this.buffer === undefined || this.f32Array === undefined) {
       console.error("Uniform buffer not initialized.");
       return;
@@ -201,10 +201,10 @@ export class ArrayUniform<T> extends Uniform<T[]> {
 
     device.queue.writeBuffer(
       this.buffer,
-      dataOffset, // Offset within the buffer
+      dataOffset + byteOffset, // Offset within the buffer
 
       this.f32Array.buffer,
-      dataOffset, // Offset within the f32Array
+      dataOffset + byteOffset, // Offset within the f32Array
 
       this.elementSize
     );

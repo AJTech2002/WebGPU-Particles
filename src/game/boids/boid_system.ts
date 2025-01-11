@@ -25,6 +25,9 @@ export default class BoidSystemComponent extends Component {
 
   public boids: BoidData[] = [];
   public boidObjects: BoidObjectData[] = [];
+
+  public idMappedBoidRefs = new Map<number, Boid>();
+  public hashMappedBoidRefs = new Map<number, Boid>();
   public boidRefs: Boid[] = [];
 
   private compute: BoidCompute;
@@ -52,6 +55,12 @@ export default class BoidSystemComponent extends Component {
 
     const objectInfo = await objectData.readTo(this.instanceCount);
     if (objectInfo != null) this.boidObjects = objectInfo;
+
+    // Hashing support
+    for (let i = 0; i < this.instanceCount; i++) {
+      const boid = this.idMappedBoidRefs.get(i);
+    }
+
   }
 
   public addBoid(init: BoidInitData): Boid | undefined{
@@ -91,6 +100,7 @@ export default class BoidSystemComponent extends Component {
     )
 
     this.boidRefs.push(boid);
+    this.idMappedBoidRefs.set(this.instanceCount, boid);
 
     this.instanceCount++;
 
@@ -128,11 +138,9 @@ export default class BoidSystemComponent extends Component {
       return;
     }
 
-    this.compute.setElement<BoidData>("boids", index, {
+    this.compute.setPartialElement<BoidData>("boids", index, {
       targetPosition: [target[0], target[1], target[2], 0],
-      avoidanceVector: vec4.create(),
       hasTarget: true,
-      speed: 1,
     });
   }
 

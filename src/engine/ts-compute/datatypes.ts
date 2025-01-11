@@ -26,6 +26,8 @@ export function getShaderCode (type: keyof typeof ShaderTypes): string {
       return "mat4x4<f32>";
     case ShaderTypes.i32:
       return "i32";
+    case ShaderTypes.bool:
+      return "u32";
     default:
       console.error("Unknown shader type, using f32 as default");
       return "f32";

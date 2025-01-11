@@ -92,22 +92,16 @@ fn collisionMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
     var center = center_pos.xyz;
 
     if (colliders[i].shape == 1u) {
-      let avoidance = circle_collision(unitPosition, center, colliders[i].size.x * scale.x);
+      var avoidance = circle_collision(unitPosition, center, colliders[i].size.x * scale.x);
+      avoidance.z = 0.0;
       unitPosition = unitPosition + avoidance;
     }
     else if (colliders[i].shape == 0u) {
-      let avoidance = box_collision(unitPosition, center, colliders[i].size, colliders[i].model, colliders[i].inverted);
-
+      var avoidance = box_collision(unitPosition, center, colliders[i].size, colliders[i].model, colliders[i].inverted);
+      avoidance.z = 0.0;
       unitPosition = unitPosition + avoidance;
     }
 
   }
-
-  var lerpSpeed = 8.0;
-
-  if (distance(unitPosition, objects[index].position) > 0.1) {
-    lerpSpeed = 100.0;
-  }
-
   objects[index].position = unitPosition;
 }
