@@ -103,9 +103,11 @@ fn collisionMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
 
   }
 
-  objects[index].position = unitPosition;
-  var lP = get_position(objects[index].model);
-  var lerped = mix(lP, objects[index].position, dT * 8.0);
-  objects[index].model = set_position(objects[index].model, objects[index].position);
+  var lerpSpeed = 8.0;
 
+  if (distance(unitPosition, objects[index].position) > 0.1) {
+    lerpSpeed = 100.0;
+  }
+
+  objects[index].position = unitPosition;
 }

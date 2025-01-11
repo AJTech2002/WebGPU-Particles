@@ -144,7 +144,7 @@ export default class BoidSystemComponent extends Component {
       const sDT = dT / 1000;
 
       this.compute.set("time", this.scene.sceneTime / 1000);
-      this.compute.set("dT", sDT * 2.0);
+      this.compute.set("dT", sDT * 1.0);
       this.compute.set("numBoids", this.instanceCount);
 
       var colliders = this.scene.findObjectsOfType<Collider>(Collider);

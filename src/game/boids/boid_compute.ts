@@ -62,9 +62,9 @@ export class BoidCompute extends Compute {
     super(
       [MainBoidComputeShader, BoidCollisionShader],
       [
+        "collisionMain",
         "avoidanceMain",
         "movementMain",
-        "collisionMain"
       ]
     );
   }

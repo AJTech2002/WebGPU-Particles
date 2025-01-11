@@ -68,10 +68,6 @@ export default class BoidScene extends Scene {
   async spawnUnits() {
     while (true) {
 
-      this.boidSystem.addBoid({
-        position: this.findGameObject("collider")!.transform.position.toVec3(), 
-        speed: 0.6
-      });
       await this.seconds(0.05);
 
     }
@@ -125,7 +121,7 @@ export default class BoidScene extends Scene {
        for (let i = 0; i < 4; i++) {
         const b = this.boidSystem.addBoid({
           position: this.input.mouseToWorld(0).toVec3(),
-          speed: 1.0
+          speed: 20.0
         });
        }
       }

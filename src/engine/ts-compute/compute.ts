@@ -487,17 +487,16 @@ export default class Compute {
   dispatch(workgroups: GPUIndex32) {
 
     const commandEncoder = device.createCommandEncoder();
-    const computePass = commandEncoder.beginComputePass();
 
     for (let i = 0; i < this.computePipelines.length; i++) {
 
+      const computePass = commandEncoder.beginComputePass();
       computePass.setPipeline(this.computePipelines[i]);
       computePass.setBindGroup(0, this.bindGroup);
       computePass.dispatchWorkgroups(workgroups);
-      
+      computePass.end();
     }
 
-    computePass.end();
     device.queue.submit([commandEncoder.finish()]);
   }
 }
