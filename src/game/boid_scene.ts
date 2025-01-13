@@ -10,7 +10,7 @@ import BoidTexture from "../assets/guy-2.png";
 import {Boid} from "./boids/boid";
 import CameraMovement from "./components/camera_movement";
 import Collider, { ColliderShape } from "@engine/scene/core/collider_component";
-import { StandardDiffuseMaterial, StandardMaterial } from "@engine/renderer/material";
+import { StandardDiffuseMaterial } from "@engine/renderer/material";
 import { Color, Vector3 } from "@engine/math/src";
 import SquareTexture from "../assets/square.png";
 import { Grid } from "./grid/grid_go";
@@ -79,7 +79,6 @@ export default class BoidScene extends Scene {
     super.awake(engine);
 
     this.createCollider();
-
     this.spinSquare();
 
     this.grid = new Grid(this, 50, 50); 
@@ -119,16 +118,7 @@ export default class BoidScene extends Scene {
     }
   }
 
-  async flashUnit (id: number) {
-    await this.seconds(0.05);
-    this.boidSystem.setBoidColor(id, [
-      Math.random(),
-      Math.random(),
-      Math.random()
-    ]);
-  }
-
-  
+    
   render(dT: number): void {
     super.render(dT);
 
@@ -143,8 +133,7 @@ export default class BoidScene extends Scene {
         }
       }
       else {
-       for (let i = 0; i < 10; i++) {
-        
+       for (let i = 0; i < 1; i++) {
          const rV3 = new Vector3(
            Math.random() * 0.2 - 0.1,
            Math.random() * 0.2 - 0.1,
@@ -153,11 +142,11 @@ export default class BoidScene extends Scene {
 
          const b = this.boidSystem.addBoid({
           position: (this.input.mouseToWorld(0).clone().add(rV3)).toVec3(),
-          speed: 3.0
+          speed: 5.0
         });
         
         if (b)
-          this.flashUnit(b!.boidId);
+          this.boidSystem.setUnitColor(b!.boidId);
        }
       }
     }

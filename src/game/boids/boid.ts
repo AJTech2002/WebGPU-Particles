@@ -8,6 +8,7 @@ export class Boid {
   private boidSystem: BoidSystemComponent;
 
   private initialPosition: vec3;
+  public __origColor__: vec3 = vec3.create();
 
   constructor(component: BoidSystemComponent, boidId: number, position: vec3) {
     this.boidSystem = component;
@@ -34,7 +35,8 @@ export class Boid {
   }
 
   public attack (x: number, y: number) {
-  
+    // get the neighbours 
+    this.boidSystem.attack(this.boidId, x, y); 
   }
 
   public move (x: number, y: number) {
@@ -61,6 +63,7 @@ export class Boid {
 
     this.boidSystem.setBoidTarget(this.boidId, targetPos);
   }
+
 
   public moveTo (x: number, y: number) {
     const targetPos = vec3.fromValues(x, y, 0);

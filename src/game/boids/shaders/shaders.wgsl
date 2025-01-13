@@ -36,7 +36,7 @@ fn vs_main( @builtin(instance_index) ID: u32, @location(0) vertexPostion: vec3<f
     var output : Fragment;
 
     //var idToF32 = f32(objects[ID].hash);
-    //var col = randomColor( objects[ID].hash); 
+    //var col = randomColor( objects[ID].hash) * objects[ID].diffuseColor.r; 
     //var col = randomColor(objects[ID].boidId);
     var objModel = objects[ID].model;
     var pos = get_position(objModel);
@@ -52,6 +52,7 @@ fn vs_main( @builtin(instance_index) ID: u32, @location(0) vertexPostion: vec3<f
 
     output.Position =  uniformUBO.projection * uniformUBO.view * model * objModel * vec4<f32>(vertexPostion , 1.0);
 
+    //output.Color = vec4<f32>(col.rgb, 1.0);
     output.Color = vec4<f32>(objects[ID].diffuseColor, 1.0);
     // output.Color = vec4<f32>( y, 0.0, 0.0, 1.0);
     output.UV = vec2<f32>(uv.x, 1.0 - uv.y);

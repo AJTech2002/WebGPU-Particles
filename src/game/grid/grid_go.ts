@@ -41,6 +41,24 @@ export class GridComponent extends Component {
     return x + y * this.sizeX;
   }
 
+  public getNeighbours (x: number, y: number) {
+    const neighbours = [
+      {x: x - 1, y: y - 1},
+      {x: x, y: y - 1},
+      {x: x + 1, y: y - 1},
+      {x: x - 1, y: y},
+      {x: x + 1, y: y},
+      {x: x - 1, y: y + 1},
+      {x: x, y: y + 1},
+      {x: x + 1, y: y + 1},
+      {x: x, y: y} // include self
+    ];
+
+    return neighbours.filter((neighbour) => {
+      return neighbour.x >= 0 && neighbour.x < this.sizeX && neighbour.y >= 0 && neighbour.y < this.sizeY;
+    });
+  }
+
 }
 
 export class Grid {

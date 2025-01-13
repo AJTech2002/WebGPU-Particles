@@ -123,12 +123,9 @@ fn movementMain (@builtin(global_invocation_id) global_id: vec3<u32>) {
 
     var lastPosition = objects[index].position;
     var finalPos = lastPosition + dir;
-
-
-    objects[index].position = finalPos + (boids[index].collisionVector.xyz);
+    objects[index].position = finalPos + (boids[index].collisionVector.xyz) + (boids[index].externalForce.xyz * dT);
 
     let distance = distance(objects[index].position, finalPos);
-
     var lerpSpeed = dT * 10.00; 
     if (length(boids[index].collisionVector) > 0.0) {
       lerpSpeed = 25.0 * dT; 
@@ -136,7 +133,8 @@ fn movementMain (@builtin(global_invocation_id) global_id: vec3<u32>) {
 
     boids[index].avoidanceVector = vec4<f32>(0.0, 0.0, 0.0, 0.0);
     var lerped = mix(lP, objects[index].position, lerpSpeed); 
-    objects[index].model = set_position(objects[index].model, lerped); 
+    objects[index].model = set_position(objects[index].model, lerped);
+    boids[index].externalForce = mix(boids[index].externalForce, vec4<f32>(0.0, 0.0, 0.0, 0.0), 10.0 * dT);
   }
 
   return;

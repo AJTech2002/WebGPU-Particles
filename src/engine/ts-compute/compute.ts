@@ -8,6 +8,7 @@ import { device } from "@engine/engine";
 
 import matrixShader from "../renderer/shaders/matrix.wgsl";
 import randomNumberGenerator from "../renderer/shaders/random.wgsl";
+import { off } from "process";
 
 export interface BufferSchema<T> {
   name: string;
@@ -270,6 +271,12 @@ export class DynamicUniform<T> extends ArrayUniform<T> {
   }
 
   public setElementPartial (index: number, value: Partial<T>) {
+
+    if (index < 0 || index >= this.maxInstanceCount) {
+      console.warn("Index out of bounds", index, this.maxInstanceCount);
+      return;
+    }
+
     // find the keys inside the partial 
     //debugger;
     const keys = Object.getOwnPropertyNames(value);
@@ -302,8 +309,20 @@ export class DynamicUniform<T> extends ArrayUniform<T> {
       return;
     }
 
+    if (offset < 0) {
+      console.warn("Negative offset");
+      return;
+    }
+
     const primitiveData = parsePrimitives(value, data);
-    this.f32Array.set(primitiveData, offset);
+
+    try {
+      this.f32Array.set(primitiveData, offset);
+    }
+    catch (e) {
+      console.log({primitiveData, offset, bOffset, f32Length: this.f32Array.length, f32: this.f32Array});
+      console.error("Error setting data", e);
+    }
 
     device.queue.writeBuffer(
       this.buffer,

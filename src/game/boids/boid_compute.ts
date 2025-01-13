@@ -18,6 +18,9 @@ export class BoidData {
   @shaderProperty(ShaderTypes.vec4)
   public collisionVector: vec4 = [0,0,0,0]; // bytes: 16
 
+  @shaderProperty(ShaderTypes.vec4)
+  public externalForce: vec4 = [0,0,0,0]; // bytes: 16
+
   @shaderProperty(ShaderTypes.bool)
   public hasTarget: boolean = false; // bytes: 4
 
