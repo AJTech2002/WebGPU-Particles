@@ -21,6 +21,12 @@ export class BoidData {
   @shaderProperty(ShaderTypes.vec4)
   public externalForce: vec4 = [0,0,0,0]; // bytes: 16
 
+  @shaderProperty(ShaderTypes.vec4)
+  public lastModelPosition: vec4 = [0,0,0,0]; // bytes: 16
+
+  @shaderProperty(ShaderTypes.vec4)
+  public position: vec4 = [0,0,0,0]; // bytes: 16
+
   @shaderProperty(ShaderTypes.bool)
   public hasTarget: boolean = false; // bytes: 4
 
@@ -32,12 +38,6 @@ export class BoidData {
 export class BoidObjectData {
   @shaderProperty(ShaderTypes.mat4x4)
   public model: mat4 = mat4.create();
-
-  @shaderProperty(ShaderTypes.vec3)
-  public position: vec3 = [0,0,0];
-
-  @shaderProperty(ShaderTypes.f32)
-  public padding1: number = 0;
 
   @shaderProperty(ShaderTypes.vec3)
   public diffuseColor: vec3 = [0,0,0];
@@ -52,6 +52,7 @@ export class BoidObjectData {
   public boidId: number = 0; // bytes: 4
 
 }
+
 
 export const maxInstanceCount = 2000;
 
@@ -92,6 +93,11 @@ export class BoidCompute extends Compute {
     );
   }
 
+  public upload() {
+    this.getBuffer("objects")?.upload();
+    this.getBuffer("boids")?.upload();
+    this.getBuffer("colliders")?.upload();
+  }
 
   public set Time (time: number) {
     this.set("time", time);

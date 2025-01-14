@@ -1,14 +1,9 @@
 import Component from "@engine/scene/component";
 import { mat4, vec3, vec4 } from "gl-matrix";
-
-import computeShaderCode from "./shaders/compute.wgsl";
-import collisionShaderCode from "./shaders/collisions.wgsl";
-
-import BoidMaterial from "./boid_material";
-import {Boid} from "./boid";
-import Compute from "@engine/ts-compute/compute";
+import BoidMaterial from "./rendering/boid_material";
+import {BoidInterface} from "./interfaces/boid_interface";
 import Collider from "@engine/scene/core/collider_component";
-import { BoidCompute, BoidData, BoidObjectData, maxInstanceCount } from "./boid_compute";
+import { BoidCompute, BoidInputData, BoidObjectData, maxInstanceCount } from "./boid_compute";
 import { Grid } from "../grid/grid_go";
 
 
@@ -18,7 +13,7 @@ interface BoidInitData {
 }
 
 interface BoidInformation {
-  data: BoidData;
+  data: BoidInputData;
   object: BoidObjectData;
 }
 
@@ -29,14 +24,14 @@ export default class BoidSystemComponent extends Component {
   public instanceCount: number = 0;
   public maxInstanceCount: number = maxInstanceCount;
 
-  public boids: BoidData[] = [];
+  public boids: BoidInputData[] = [];
   public boidObjects: BoidObjectData[] = [];
 
   public idMappedBoidData = new Map<number, BoidInformation>();
   public idMappedIndex = new Map<number, number>();
-  public idMappedBoidRefs = new Map<number, Boid>();
+  public idMappedBoidRefs = new Map<number, BoidInterface>();
   public hashMappedBoidRefs = new Map<number, number[]>();
-  public boidRefs: Boid[] = [];
+  public boidRefs: BoidInterface[] = [];
 
   private compute: BoidCompute;
   private warned: boolean = false;
@@ -52,7 +47,7 @@ export default class BoidSystemComponent extends Component {
 
   public async updateBoidInformation () : Promise<void> {
 
-    const boidData = this.compute.getBuffer<BoidData>("boids");
+    const boidData = this.compute.getBuffer<BoidInputData>("boids");
     const objectData = this.compute.getBuffer<BoidObjectData>("objects");
 
     if (!boidData || !objectData) {
@@ -66,6 +61,8 @@ export default class BoidSystemComponent extends Component {
     const objectInfo = await objectData.readTo(this.instanceCount);
     if (objectInfo != null) this.boidObjects = objectInfo;
 
+    // reset back to the buffer value 
+
     // Hashing support
 
     this.hashMappedBoidRefs.clear();
@@ -73,14 +70,20 @@ export default class BoidSystemComponent extends Component {
     // this.idMappedIndex.clear();
 
     //TODO: Remove this and optimize on GPU 
-    if (boidInfo)
+    if (boidInfo && objectInfo)
       for (let i = 0; i < boidInfo?.length; i++) {
         if (this.boidObjects[i] == null) continue;
 
-        const boid = this.boidObjects[i];
+        const boid = this.boids[i];
+        const model = this.boidObjects[i];
         const boidId = this.boidObjects[i].boidId;
 
-        const tile = this.grid.gridComponent.gridTileAt(this.boidObjects[i].position);
+        boidData.setElement(i, boidInfo[i]);
+        objectData.setElement(i, objectInfo[i]);
+
+        const tile = this.grid.gridComponent.gridTileAt(
+          vec3.fromValues(boid.position[0], boid.position[1], boid.position[2])
+        );
         const hash = this.grid.gridComponent.hashedTileIndex(
           tile.x, tile.y
         );
@@ -88,15 +91,15 @@ export default class BoidSystemComponent extends Component {
         if (boid) {
           if (this.hashMappedBoidRefs.has(hash)) {
             const b = this.hashMappedBoidRefs.get(hash)!;
-            b.push(boid.boidId);
+            b.push(model.boidId);
           }
           else {
-            this.hashMappedBoidRefs.set(hash, [boid.boidId]); 
+            this.hashMappedBoidRefs.set(hash, [model.boidId]); 
           }
 
           this.idMappedBoidData.set(boidId, {
             data: boidInfo[i],
-            object: boid
+            object: model
           });
 
           // this.idMappedIndex.set(boidId, i);
@@ -133,7 +136,7 @@ export default class BoidSystemComponent extends Component {
     return neighbourBoids;
   }
 
-  public boidIdsToBoids (boidId: number[]) : (Boid | undefined)[] {
+  public boidIdsToBoids (boidId: number[]) : (BoidInterface | undefined)[] {
     return boidId.map((id) => this.idMappedBoidRefs.get(id));
   }
 
@@ -171,7 +174,7 @@ export default class BoidSystemComponent extends Component {
 
   public attack (boidId: number, x: number, y: number) {
     const neighbours = this.getBoidNeighbours(boidId);
-    const boids = this.boidIdsToBoids(neighbours) as Boid[];
+    const boids = this.boidIdsToBoids(neighbours) as BoidInterface[];
 
     for (let i = 0; i < boids.length; i++) {
       if (boids[i].boidId == boidId) continue;
@@ -204,7 +207,7 @@ export default class BoidSystemComponent extends Component {
 
   }
 
-  public addBoid(init: BoidInitData): Boid | undefined{
+  public addBoid(init: BoidInitData): BoidInterface | undefined{
 
     if (this.instanceCount >= this.maxInstanceCount) {
       if (!this.warned) {
@@ -216,13 +219,16 @@ export default class BoidSystemComponent extends Component {
 
     init.position[2] = 10; // Set the w component to 10
 
-    this.compute.setElement<BoidData>("boids", this.instanceCount, {
+    this.compute.setElement<BoidInputData>("boids", this.instanceCount, {
       targetPosition: [init.position[0], init.position[1], init.position[2], 0],
       avoidanceVector: vec4.create(),
       hasTarget: false,
       speed: init.speed,
       collisionVector: vec4.create(),
-      externalForce: vec4.create()
+      externalForce: vec4.create(),
+      position: [init.position[0], init.position[1], init.position[2], 0],
+      lastModelPosition: [init.position[0], init.position[1], init.position[2], 0],
+
     });
 
     const model = mat4.identity(mat4.create());
@@ -234,15 +240,13 @@ export default class BoidSystemComponent extends Component {
     const boidId =  this.boidIdCounter++;
     this.compute.setElement<BoidObjectData>("objects", this.instanceCount, {
       model,
-      position,
       hash: this.grid.gridComponent.hashedTileIndex(tile.x, tile.y),
       boidId:boidId,
       diffuseColor: [1.0, 1.0, 1.0],
-      padding1: 0,
       padding2: 0,
     });
 
-    const boid = new Boid(
+    const boid = new BoidInterface(
       this, boidId, init.position
     )
 
@@ -253,6 +257,8 @@ export default class BoidSystemComponent extends Component {
     this.instanceCount++;
 
     this.compute.set("numBoids", this.instanceCount);
+
+    this.compute.getBuffer("objects")?.upload();
 
 
     return boid;
@@ -272,7 +278,7 @@ export default class BoidSystemComponent extends Component {
       return;
     }
 
-    this.compute.setPartialElement<BoidData>("boids", index, {
+    this.compute.setPartialElement<BoidInputData>("boids", index, {
       externalForce: [force[0], force[1], force[2], 0]
     });
   }
@@ -335,39 +341,65 @@ export default class BoidSystemComponent extends Component {
       return;
     }
 
-    this.compute.setPartialElement<BoidData>("boids", index, {
+    this.compute.setPartialElement<BoidInputData>("boids", index, {
       targetPosition: [target[0], target[1], target[2], 0],
       hasTarget: true,
     });
   }
 
-  public awake(): void {}
+  private dispatch() {
+    const sDT = this.scene.dT / 1000; 
 
-  public update(dT: number): void {
-    if (this.compute.ready) {
+    this.compute.set("time", this.scene.sceneTime / 1000);
+    this.compute.set("dT", sDT * 1.0);
+    this.compute.set("numBoids", this.instanceCount);
 
-      const sDT = dT / 1000;
+    var colliders = this.scene.findObjectsOfType<Collider>(Collider);
+    this.compute.set("numColliders", colliders.length);
 
-      this.compute.set("time", this.scene.sceneTime / 1000);
-      this.compute.set("dT", sDT * 1.0);
-      this.compute.set("numBoids", this.instanceCount);
+    colliders.forEach((collider, index) => {
+      this.compute.setElement<Collider>("colliders", index, collider);
+    });
+    
 
-      var colliders = this.scene.findObjectsOfType<Collider>(Collider);
-      this.compute.set("numColliders", colliders.length);
+    this.compute.dispatch(Math.ceil(this.instanceCount / 64));
 
-      colliders.forEach((collider, index) => {
-        this.compute.setElement<Collider>("colliders", index, collider);
-      });
+  }
 
-      this.compute.dispatch(Math.ceil(this.instanceCount / 64));
-
-      // [ ~~ Update Boid Information ~~ ]
-      this.updateBoidInformation(); 
-
-      if (this.gameObject.mesh?.material)
-        (this.gameObject.mesh?.material as BoidMaterial).instanceCount =
-        this.instanceCount;
+  private async renderLoop() {
+    while (true) {
+      if (this.compute.ready) {
+        this.compute.upload();
+        // await this.updateBoidInformation();
+         await this.scene.tick();
+       
+      }
     }
+  } 
+
+  private async run() {
+    while (true) {
+      await this.scene.tick();
+      if (this.compute.ready) {
+        this.compute.upload();
+        this.dispatch();
+        await this.updateBoidInformation();
+        
+        if (this.gameObject.mesh?.material)
+          (this.gameObject.mesh?.material as BoidMaterial).instanceCount =
+          this.instanceCount;
+      }
+    }
+  }
+
+  public awake(): void {
+    this.run();
+  }
+
+  
+  public update(dT: number): void {
+    
+
   }
 
 }

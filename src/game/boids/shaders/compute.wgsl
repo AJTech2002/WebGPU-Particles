@@ -33,12 +33,12 @@ fn avoidanceMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
 
     randomDirection = safe_normalize(randomDirection);
     var numBoidsAvoided = 0.0;
-    var bP = objects[index].position;
+    var bP = boids[index].position;
     //bP.z = bP.y;
     bP.z = 0.0;
     for (var i = 0u; i < objectModelLength; i = i + 1u) {
       if (i != index) {
-        var bP2 = objects[i].position;
+        var bP2 = boids[i].position;
         //bP2.z = bP2.y;
         bP2.z = 0.0;
         var d = distance(bP, bP2);
@@ -48,7 +48,7 @@ fn avoidanceMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
           avoidance = avoidance +  (randomDirection *  avoidanceDistance);
         }
       else if (d < avoidanceDistance ) {
-          var avVector = objects[index].position - objects[i].position;
+          var avVector = (boids[index].position - boids[i].position).xyz;
           // Normalize to get only the direction
           let direction = safe_normalize(avVector);
           var pushStrength = clamp(avoidanceDistance - d, 0.0, 1.0);
@@ -99,9 +99,8 @@ fn movementMain (@builtin(global_invocation_id) global_id: vec3<u32>) {
     var maxAv = vec3<f32>(1.0, 1.0, 0.0);
 
     var targetP = boids[index].targetPosition.xyz;
-    var lP = get_position(objects[index].model);
 
-    var movDir = (targetP - objects[index].position);
+    var movDir = (targetP - boids[index].position.xyz);
     let distanceToTarget = length(movDir);
 
 
@@ -121,19 +120,22 @@ fn movementMain (@builtin(global_invocation_id) global_id: vec3<u32>) {
 
     dir = clamp(dir, minV3  * dT,maxV3 * dT);
 
-    var lastPosition = objects[index].position;
+    var lastPosition = boids[index].position.xyz;
     var finalPos = lastPosition + dir;
-    objects[index].position = finalPos + (boids[index].collisionVector.xyz) + (boids[index].externalForce.xyz * dT);
+    var outputPos = vec4<f32>((finalPos + (boids[index].collisionVector.xyz) + (boids[index].externalForce.xyz * dT)), 0.0);
 
-    let distance = distance(objects[index].position, finalPos);
+    let distance = distance(boids[index].position.xyz, finalPos);
     var lerpSpeed = dT * 10.00; 
     if (length(boids[index].collisionVector) > 0.0) {
-      lerpSpeed = 25.0 * dT; 
+      lerpSpeed = dT * 20.0; 
     }
 
     boids[index].avoidanceVector = vec4<f32>(0.0, 0.0, 0.0, 0.0);
-    var lerped = mix(lP, objects[index].position, lerpSpeed); 
-    objects[index].model = set_position(objects[index].model, lerped);
+    let lP = boids[index].lastModelPosition;
+    var lerped = mix(lP, boids[index].position, lerpSpeed); 
+    objects[index].model = set_position(objects[index].model,  lerped.xyz);
+    boids[index].lastModelPosition = lerped;
+    boids[index].position = outputPos;
     boids[index].externalForce = mix(boids[index].externalForce, vec4<f32>(0.0, 0.0, 0.0, 0.0), 10.0 * dT);
   }
 

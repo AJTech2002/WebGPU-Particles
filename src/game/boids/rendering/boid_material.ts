@@ -1,10 +1,10 @@
 import { StandardDiffuseMaterial } from "@engine/renderer/material";
 import Scene from "@engine/scene";
 
-import MatrixShasder from "./shaders/matrix.wgsl";
-import InstancedShader from "./shaders/shaders.wgsl";
-import { createStruct, createStructs } from "@engine/ts-compute/datatypes";
-import { BoidObjectData } from "./boid_compute";
+import MatrixShasder from "./../shaders/matrix.wgsl";
+import InstancedShader from "./../shaders/shaders.wgsl";
+import {createStructs } from "@engine/ts-compute/datatypes";
+import { BoidObjectData } from "../boid_compute";
 
 export default class BoidMaterial extends StandardDiffuseMaterial {
 

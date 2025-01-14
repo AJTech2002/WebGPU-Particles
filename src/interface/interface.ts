@@ -1,6 +1,6 @@
 import { vec3 } from "gl-matrix";
 import BoidScene from "../game/boid_scene";
-import { Boid } from "../game/boids/boid";
+import { BoidInterface } from "../game/boids/interfaces/boid_interface";
 
 export class GameContext {
 
@@ -14,11 +14,11 @@ export class GameContext {
     return this.scene.inputSystem.mouseToWorld(0).toVec3();
   }
 
-  public get units() : Boid[] {
+  public get units() : BoidInterface[] {
     return this.scene.units;
   }
 
-  public getUnit (index: number) : Boid {
+  public getUnit (index: number) : BoidInterface {
     return this.scene.getUnit(index);
   }
 

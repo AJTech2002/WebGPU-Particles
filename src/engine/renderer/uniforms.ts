@@ -29,7 +29,7 @@ export class Uniform<T> {
       size: this.byteSize,
       usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
     });
-
+    
     if (autoWrite)
       this.updateBuffer();
   }

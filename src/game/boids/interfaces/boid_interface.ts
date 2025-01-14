@@ -1,8 +1,7 @@
 import { vec3 } from "gl-matrix";
-import BoidSystemComponent from "./boid_system";
-import { BoidData } from "./boid_compute";
+import BoidSystemComponent from "../boid_system";
 
-export class Boid {
+export class BoidInterface {
 
   public boidId: number;
   private boidSystem: BoidSystemComponent;
