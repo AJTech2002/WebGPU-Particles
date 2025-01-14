@@ -18,4 +18,8 @@ export class GameContext {
     return this.scene.units;
   }
 
+  public getUnit (index: number) : Boid {
+    return this.scene.getUnit(index);
+  }
+
 }

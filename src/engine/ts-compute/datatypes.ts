@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { BufferSchemaDescriptor } from "./compute";
+import { BufferSchema, BufferSchemaDescriptor } from "./compute";
 import { isArray } from "util";
 
 export enum ShaderTypes {
@@ -26,6 +26,8 @@ export function getShaderCode (type: keyof typeof ShaderTypes): string {
       return "mat4x4<f32>";
     case ShaderTypes.i32:
       return "i32";
+    case ShaderTypes.bool:
+      return "u32";
     default:
       console.error("Unknown shader type, using f32 as default");
       return "f32";
@@ -59,7 +61,7 @@ export function createBinding (index: number, group: number, bufferSchema: Buffe
     bindingTypeName = getShaderCode(bufferSchema.type as keyof typeof ShaderTypes);
   }
   else {
-    bindingTypeName = (new bufferSchema.type()).constructor.name;
+    bindingTypeName = Reflect.getMetadata("structName", bufferSchema.type); 
   }
 
 
@@ -79,9 +81,9 @@ export function createBinding (index: number, group: number, bufferSchema: Buffe
 
 // key of shader type as string
 
-export function createStruct (type: (new() => T)) : string {
+export function createStruct<T extends Object> (type: (new() => T)) : string {
 
-    const constructorName = type.name;
+    const constructorName = Reflect.getMetadata("structName", type);
     const instance = new type();
 
     const props = Object.getOwnPropertyNames(instance);
@@ -89,7 +91,7 @@ export function createStruct (type: (new() => T)) : string {
     const bufferLayout : ShaderDataType[] = [];
 
     for (const prop of props) {
-      const type = Reflect.getMetadata("type", instance, prop);
+      const type = Reflect.getMetadata("type", instance as Object, prop);
       if (type) {
         bufferLayout.push(type);
       }
@@ -133,6 +135,13 @@ export function shaderProperty (shaderType: keyof typeof ShaderTypes): PropertyD
     }
 
     Reflect.defineMetadata("type", type, target, propertyKey);
+  };
+}
+
+
+export function shaderStruct (structName: string): ClassDecorator {
+  return (target: Function) => {
+    Reflect.defineMetadata("structName", structName, target);
   };
 }
 

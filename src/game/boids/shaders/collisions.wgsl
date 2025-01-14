@@ -82,6 +82,7 @@ fn box_collision (unit_position: vec3<f32>, center: vec3<f32>, extents: vec3<f32
 fn collisionMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
   let index = global_id.x;
   var unitPosition = objects[index].position;
+  var collisionOffset = vec3<f32>(0.0, 0.0, 0.0);
   let objectModelLength: u32 = u32(clamp(numColliders, 0.0, f32(100000)));
 
   // Loop through all colliders in scene `colliders`
@@ -92,22 +93,19 @@ fn collisionMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
     var center = center_pos.xyz;
 
     if (colliders[i].shape == 1u) {
-      let avoidance = circle_collision(unitPosition, center, colliders[i].size.x * scale.x);
+      var avoidance = circle_collision(unitPosition, center, colliders[i].size.x * scale.x);
+      avoidance.z = 0.0;
       unitPosition = unitPosition + avoidance;
+      collisionOffset = collisionOffset + avoidance;
     }
     else if (colliders[i].shape == 0u) {
-      let avoidance = box_collision(unitPosition, center, colliders[i].size, colliders[i].model, colliders[i].inverted);
-
+      var avoidance = box_collision(unitPosition, center, colliders[i].size, colliders[i].model, colliders[i].inverted);
+      avoidance.z = 0.0;
       unitPosition = unitPosition + avoidance;
+      collisionOffset = collisionOffset + avoidance;
     }
 
   }
-
-  var lerpSpeed = 8.0;
-
-  if (distance(unitPosition, objects[index].position) > 0.1) {
-    lerpSpeed = 100.0;
-  }
-
-  objects[index].position = unitPosition;
+ 
+  boids[index].collisionVector = vec4<f32>(collisionOffset, 0.0);
 }

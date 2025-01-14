@@ -3,11 +3,11 @@
 import Compute from "@engine/ts-compute/compute";
 import MainBoidComputeShader from "./shaders/compute.wgsl";
 import BoidCollisionShader from "./shaders/collisions.wgsl";
-import {mat4, vec4} from "gl-matrix";
-import { shaderBuffer, shaderProperty, StorageMode, ShaderTypes } from "@engine/ts-compute/datatypes";
+import {mat4, vec3, vec4} from "gl-matrix";
+import { shaderBuffer, shaderStruct, shaderProperty, StorageMode, ShaderTypes } from "@engine/ts-compute/datatypes";
 import Collider from "@engine/scene/core/collider_component"; 
 
-
+@shaderStruct("BoidData")
 export class BoidData {
   @shaderProperty(ShaderTypes.vec4)
   public targetPosition: vec4 = [0,0,0,0]; // bytes: 16
@@ -15,48 +15,71 @@ export class BoidData {
   @shaderProperty(ShaderTypes.vec4)
   public avoidanceVector: vec4 = [0,0,0,0]; // bytes: 16
 
-  @shaderProperty(ShaderTypes.u32)
+  @shaderProperty(ShaderTypes.vec4)
+  public collisionVector: vec4 = [0,0,0,0]; // bytes: 16
+
+  @shaderProperty(ShaderTypes.vec4)
+  public externalForce: vec4 = [0,0,0,0]; // bytes: 16
+
+  @shaderProperty(ShaderTypes.bool)
   public hasTarget: boolean = false; // bytes: 4
 
   @shaderProperty(ShaderTypes.f32)
   public speed: number = 0.0; // bytes: 4
 }
 
+@shaderStruct("BoidObjectData")
 export class BoidObjectData {
   @shaderProperty(ShaderTypes.mat4x4)
   public model: mat4 = mat4.create();
 
   @shaderProperty(ShaderTypes.vec3)
   public position: vec3 = [0,0,0];
+
+  @shaderProperty(ShaderTypes.f32)
+  public padding1: number = 0;
+
+  @shaderProperty(ShaderTypes.vec3)
+  public diffuseColor: vec3 = [0,0,0];
+
+  @shaderProperty(ShaderTypes.f32)
+  public padding2: number = 0;
+
+  @shaderProperty(ShaderTypes.u32)
+  public hash: number = 0;
+
+  @shaderProperty(ShaderTypes.u32)
+  public boidId: number = 0; // bytes: 4
+
 }
 
-export const maxInstanceCount = 3000;
+export const maxInstanceCount = 2000;
 
 export class BoidCompute extends Compute {
 
   @shaderBuffer(BoidObjectData, StorageMode.read_write, [], maxInstanceCount) 
-  private objects: BoidObjectData[];
+  private objects!: BoidObjectData[];
 
   @shaderBuffer(BoidData, StorageMode.read_write, [], maxInstanceCount)
-  private boids: BoidData[];
+  private boids!: BoidData[];
 
   @shaderBuffer(Collider, StorageMode.write, [], 100)
-  private colliders: Collider[];
+  private colliders!: Collider[];
 
   @shaderBuffer("f32", StorageMode.uniform, 100)
-  private gridWidth: number;
+  private gridWidth!: number;
   
   @shaderBuffer("f32", StorageMode.uniform, 0)
-  private time: number;
+  private time!: number;
 
   @shaderBuffer("f32", StorageMode.uniform, 0)
-  private dT: number;
+  private dT!: number;
 
   @shaderBuffer("f32", StorageMode.uniform, 0)
-  private numBoids: number;
+  private numBoids!: number;
 
   @shaderBuffer("f32", StorageMode.uniform, 0)
-  private numColliders: number;
+  private numColliders!: number;
 
   constructor() {
     super(

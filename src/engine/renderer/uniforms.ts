@@ -1,5 +1,6 @@
 import { device } from "@engine/engine";
 import { Color } from "@math";
+import { vec3 } from "gl-matrix";
 
 export class Uniform<T> {
   public name: string;
@@ -105,7 +106,7 @@ export class Uniform<T> {
     try {
       await this.stagingBuffer.mapAsync(GPUMapMode.READ);
     } catch (error) {
-      console.error("Failed to map staging buffer:", error);
+      //console.error("Failed to map staging buffer:", error);
       this.mapPending = false;
       return null;
     }
@@ -249,3 +250,21 @@ export class FloatUniform extends Uniform<number> {
   }
 }
 
+export class Vec3Uniform extends Uniform<vec3> {
+  constructor(defaultValue: vec3) {
+    super("vec3", defaultValue);
+    this.byteSize = 12;
+  }
+
+  protected toFloat32Array(value: vec3): Float32Array {
+    return new Float32Array(value);
+  }
+
+  protected fromF32Array(f32Array: Float32Array): vec3 {
+    return vec3.fromValues(f32Array[0], f32Array[1], f32Array[2]);
+  }
+
+  protected updateBuffer(): void {
+    super.updateBuffer();
+  }
+}

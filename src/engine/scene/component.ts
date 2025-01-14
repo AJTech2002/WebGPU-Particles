@@ -39,7 +39,7 @@ export default class Component {
   public mouseEvent(type: number, button: number) {
   }
 
-  public inputEvent(type: number, key: number) {
+  public inputEvent(type: number, key: string) {
   }
 
   public destroy() {

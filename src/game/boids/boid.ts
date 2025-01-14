@@ -1,5 +1,6 @@
 import { vec3 } from "gl-matrix";
 import BoidSystemComponent from "./boid_system";
+import { BoidData } from "./boid_compute";
 
 export class Boid {
 
@@ -7,6 +8,7 @@ export class Boid {
   private boidSystem: BoidSystemComponent;
 
   private initialPosition: vec3;
+  public __origColor__: vec3 = vec3.create();
 
   constructor(component: BoidSystemComponent, boidId: number, position: vec3) {
     this.boidSystem = component;
@@ -15,17 +17,26 @@ export class Boid {
   }
 
   public get position(): vec3 {
-    return this.boidSystem.boidObjects[this.boidId].position;
+    return this.boidSystem.getBoidInfo(this.boidId)?.object.position ?? vec3.create(); 
   }
 
   public get target(): vec3 {
-    const v4 = this.boidSystem.boids[this.boidId].targetPosition;
+    const v4 = this.boidSystem.getBoidInfo(this.boidId)?.data.targetPosition ?? vec3.create();
     const v3 = vec3.fromValues(v4[0], v4[1], v4[2]);
     return v3;
   }
 
+  public get color(): vec3 {
+    return this.boidSystem.getBoidInfo(this.boidId)?.object.diffuseColor ?? vec3.create();
+  }
+
   public set target(target: vec3) {
     this.boidSystem.setBoidTarget(this.boidId, target);
+  }
+
+  public attack (x: number, y: number) {
+    // get the neighbours 
+    this.boidSystem.attack(this.boidId, x, y); 
   }
 
   public move (x: number, y: number) {
@@ -52,6 +63,7 @@ export class Boid {
 
     this.boidSystem.setBoidTarget(this.boidId, targetPos);
   }
+
 
   public moveTo (x: number, y: number) {
     const targetPos = vec3.fromValues(x, y, 0);

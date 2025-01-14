@@ -8,6 +8,7 @@ import { device } from "@engine/engine";
 
 import matrixShader from "../renderer/shaders/matrix.wgsl";
 import randomNumberGenerator from "../renderer/shaders/random.wgsl";
+import { off } from "process";
 
 export interface BufferSchema<T> {
   name: string;
@@ -58,7 +59,9 @@ function parseFromPrimitives(data: Float32Array, type: ShaderDataType): unknown 
       if (data.length !== 1) {
         throw new Error(`Invalid data length for bool. Expected 1, got ${data.length}`);
       }
-      return data[0] !== 0; // Convert back to boolean
+      
+      const u32Array = new Uint32Array(data.buffer);
+      return u32Array[0] === 1;
     }
     case ShaderTypes.u32: {
       if (data.length !== 1) {
@@ -104,8 +107,11 @@ function parsePrimitives (data: unknown, type: ShaderDataType) : Float32Array | 
       return new Float32Array(vec3);
     }
     case ShaderTypes.bool: {
-      const bool = data as boolean;
-      return new Float32Array([bool ? 1 : 0]);
+      const u32 = (data as boolean) ? 1 : 0;
+      const u32Array = new Uint32Array(1);
+      const f32Array = new Float32Array(u32Array.buffer);
+      u32Array[0] = u32;
+      return f32Array;
     }
     case ShaderTypes.u32:
     {
@@ -160,6 +166,11 @@ export class DynamicUniform<T> extends ArrayUniform<T> {
 
   private maxInstanceCount: number = 1;
   private layout: ShaderDataType[] = [];
+  private alignmentBytes: number = 0;
+  private mappedLayoutByKey: Map<string, {
+    type: ShaderDataType,
+    offset: number,
+  }> = new Map();
   private schema: BufferSchema<T>;
   private isArrayed: boolean = false;
 
@@ -189,10 +200,25 @@ export class DynamicUniform<T> extends ArrayUniform<T> {
       maxVarSize = Math.max(maxVarSize, getPrimitiveAlignment(type));
     }
 
+    this.alignmentBytes = maxVarSize;
     // round the elementSize to the nearest multiple of maxVarSize for alignment
     this.elementSize = Math.ceil(rawElementSize / maxVarSize) * maxVarSize;
 
     this.layout = schema.layout;
+
+    let offset = 0;
+    for (const layout of this.layout) {
+      if (layout.key) {
+        this.mappedLayoutByKey.set(layout.key, {
+          type: layout,
+          offset: offset
+        });
+      }
+
+      offset += getPrimitiveByteSize(layout);
+    }
+
+    // console.log("Layout", this.layout, this.mappedLayoutByKey);
 
     if (schema.array) {
       this.maxInstanceCount = schema.maxInstanceCount!;
@@ -241,7 +267,72 @@ export class DynamicUniform<T> extends ArrayUniform<T> {
   }
 
   public setElement (index: number, value: T) {
-    this.updateBufferAt(index, value);
+    this.updateBufferAt(index, value as T);
+  }
+
+  public setElementPartial (index: number, value: Partial<T>) {
+
+    if (index < 0 || index >= this.maxInstanceCount) {
+      console.warn("Index out of bounds", index, this.maxInstanceCount);
+      return;
+    }
+
+    // find the keys inside the partial 
+    //debugger;
+    const keys = Object.getOwnPropertyNames(value);
+
+    for (const key of keys) {
+      // get the offset of the key within the struct 
+      const layout = this.mappedLayoutByKey.get(key);
+      if (layout) {
+        const offset = layout.offset;
+        const type = layout.type;
+
+        this.setArrayDataExact(index, offset, type, (value as any)[key]);
+      }
+    }
+
+  }
+
+  private setArrayDataExact (index: number, byteOffset: number, data: ShaderDataType, value: any) {
+    if (!this.f32Array  || !this.buffer)  {
+      console.error("Uniform buffer not initialized!");
+      return;
+    }
+
+    const packedSize = this.packedElementSize;
+    let offset = index * packedSize + (byteOffset / 4);
+    let bOffset = (index * this.elementSize) + byteOffset;
+
+    if (offset >= this.f32Array.length) {
+      console.warn("Index out of bounds");
+      return;
+    }
+
+    if (offset < 0) {
+      console.warn("Negative offset");
+      return;
+    }
+
+    const primitiveData = parsePrimitives(value, data);
+
+    try {
+      this.f32Array.set(primitiveData, offset);
+    }
+    catch (e) {
+      console.log({primitiveData, offset, bOffset, f32Length: this.f32Array.length, f32: this.f32Array});
+      console.error("Error setting data", e);
+    }
+
+    device.queue.writeBuffer(
+      this.buffer,
+      bOffset, // Offset within the bufferLayout
+
+      this.f32Array.buffer,
+      bOffset,
+
+      primitiveData.byteLength
+    );
   }
 
   protected getArrayData(index: number, f32Array: Float32Array): T | null {
@@ -352,9 +443,9 @@ export default class Compute {
     else {
 
       const instance = new descriptor.type();
-      constructorName = instance.constructor.name;
       const props = Object.getOwnPropertyNames(instance);
-
+      constructorName = Reflect.getMetadata("structName", descriptor.type); 
+      
       for (const prop of props) {
         const type = Reflect.getMetadata("type", instance, prop);
         if (type) {
@@ -472,6 +563,13 @@ export default class Compute {
     const buffer = this.getBuffer(name);
     if (buffer) {
       buffer.setElement(index, value);
+    }
+  }
+
+  setPartialElement<T> (name: string, index: number, value: Partial<T>) {
+    const buffer = this.getBuffer(name);
+    if (buffer) {
+      buffer.setElementPartial(index, value);
     }
   }
 
