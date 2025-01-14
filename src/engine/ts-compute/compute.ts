@@ -217,10 +217,10 @@ export default class Compute {
     }
   }
 
-  setPartialElement<T> (name: string, index: number, value: Partial<T>) {
+  setPartialElement<T> (name: string, index: number, value: Partial<T>, autoUpload: bool = true) {
     const buffer = this.getBuffer(name);
     if (buffer) {
-      buffer.setElementPartial(index, value);
+      buffer.setElementPartial(index, value, autoUpload);
     }
   }
 

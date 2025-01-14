@@ -40,6 +40,8 @@ export default class BoidSystemComponent extends Component {
 
   private grid: Grid; 
 
+  private boidScale: number = 0.3;
+
   constructor( grid: Grid ) {
     super();
     this.grid = grid;
@@ -126,14 +128,21 @@ export default class BoidSystemComponent extends Component {
 
   private boidIdCounter: number = 0;
 
+  private colorPalette: vec3[] = [
+    [152/255, 187/255, 105/255],
+    [233/255, 252/255, 172/255],
+    [203/255, 239/255, 155/255],
+    [255/255, 188/255, 129/255],
+    [255/255, 148/255, 118/255],
+    [243/255, 94/255, 133/255]
+  ];
+
   async setUnitColor (id: number) {
     await this.scene.tick();
     await this.scene.seconds(0.05);
-    const boidColor : vec3 = [
-      Math.random(),
-      Math.random(),
-      Math.random()
-    ]
+    
+    const boidColor = this.colorPalette[Math.floor(Math.random() * this.colorPalette.length)];
+
     this.setBoidColor(id, boidColor);
     // get boid 
     const boid = this.idMappedBoidRefs.get(id);
@@ -141,17 +150,21 @@ export default class BoidSystemComponent extends Component {
       boid.__origColor__ = boidColor;
   }
 
-  async flashUnit (id: number) {
+  async knockbackForce (id: number, force: vec3) {
 
     const boid = this.idMappedBoidRefs.get(id);
 
     if (!boid) return;
 
+    this.setBoidExternalForce(id, force);
     this.setBoidColor(id, [1, 1, 1]);
+    this.setBoidScale(id, this.boidScale * 1.2);
 
-    await this.scene.seconds(0.3);
+    await this.scene.seconds(Math.random() * 0.1 + 0.05);
 
     this.setBoidColor(id, boid.__origColor__);
+    this.setBoidExternalForce(id, vec3.create());
+    this.setBoidScale(id, this.boidScale);
 
   }
 
@@ -177,11 +190,10 @@ export default class BoidSystemComponent extends Component {
         const dot = vec3.dot(dir, boidDir);
         // check if roughly parallel and in the same direction
         if (dot > 0.6 ) {
-          this.flashUnit(boids[i].boidId);
           // set external force away from the boid
           const force = vec3.create();
-          vec3.scale(force, boidDir, 6.5);
-          this.setBoidExternalForce(boids[i].boidId, force);
+          vec3.scale(force, boidDir, 0.3);
+          this.knockbackForce(boids[i].boidId, force);
 
         }
       }
@@ -206,7 +218,9 @@ export default class BoidSystemComponent extends Component {
       targetPosition: [init.position[0], init.position[1], init.position[2], 0],
       hasTarget: false,
       speed: init.speed,
-      externalForce: [0, 0, 0, 0]
+      externalForce: [0, 0, 0, 0],
+      diffuseColor: [1.0, 1.0, 1.0, 0],
+      scale: this.boidScale,
     });
 
     this.compute.setElement<BoidGPUData>("boids", this.instanceCount, {
@@ -219,7 +233,7 @@ export default class BoidSystemComponent extends Component {
 
     const model = mat4.identity(mat4.create());
     mat4.translate(model, model, init.position);
-    mat4.scale(model, model, [0.3, 0.3, 0.3]);
+    mat4.scale(model, model, [this.boidScale, this.boidScale, this.boidScale]);
 
     const position = vec3.clone(init.position);
     const tile = this.grid.gridComponent.gridTileAt(position);
@@ -262,9 +276,27 @@ export default class BoidSystemComponent extends Component {
       return;
     }
 
-    this.compute.setPartialElement<BoidInputData>("boids", index, {
+    this.compute.setPartialElement<BoidInputData>("boid_input", index, {
       externalForce: [force[0], force[1], force[2], 0]
-    });
+    }, false);
+  }
+
+  public setBoidScale(id: number, scale: number): void {
+    const index = this.idMappedIndex.get(id) ?? -1;
+
+    if (index >= this.instanceCount) {
+      console.error("Index out of bounds", index, this.instanceCount);
+      return;
+    }
+
+    if (index == -1) {
+      console.error("Index not found", id);
+      return;
+    }
+
+    this.compute.setPartialElement<BoidInputData>("boid_input", index, {
+      scale: scale
+    }, false);
   }
 
   public setBoidColor (id: number, color: vec3) {
@@ -281,15 +313,14 @@ export default class BoidSystemComponent extends Component {
       return;
     }
 
-    this.compute.setPartialElement<BoidObjectData>("objects", index, {
-      diffuseColor: color
+    //TODO: Set the input data -> model color
+    this.compute.setPartialElement<BoidInputData>("boid_input", index, {
+      diffuseColor: [color[0], color[1], color[2], 0]
     });
   }
 
   //TODO
   public setBoidPosition(id: number, position: vec3): void {
-    console.error("Not implemented");
-    return;
 
     const index = this.idMappedIndex.get(id) ?? -1;
 
@@ -305,10 +336,15 @@ export default class BoidSystemComponent extends Component {
 
     const model = mat4.create();
     mat4.translate(model, model, position);
-    mat4.scale(model, model, [0.3, 0.3, 0.3]);
+    mat4.scale(model, model, [, 0.3, 0.3]);
 
     this.compute.setPartialElement<BoidObjectData>("objects", index, {
       model,
+    });
+
+    this.compute.setPartialElement<BoidGPUData>("boids", index, {
+      position: [position[0], position[1], position[2], 0],
+      lastModelPosition: [position[0], position[1], position[2], 0],
     });
   }
 
@@ -325,10 +361,10 @@ export default class BoidSystemComponent extends Component {
       return;
     }
 
-    this.compute.setPartialElement<BoidInputData>("boids", index, {
+    this.compute.setPartialElement<BoidInputData>("boid_input", index, {
       targetPosition: [target[0], target[1], target[2], 0],
       hasTarget: true,
-    });
+    }, false);
   }
 
   private dispatch(dT) {
@@ -350,18 +386,6 @@ export default class BoidSystemComponent extends Component {
 
   }
 
-  private async run() {
-    while (true) {
-      await this.scene.tick();
-      if (this.compute.ready) {
-        this.dispatch();
-        this.updateBoidInformation();
-        
-       
-      }
-    }
-  }
-
   public awake(): void {
     // this.run();
   }
@@ -369,8 +393,11 @@ export default class BoidSystemComponent extends Component {
   public override update(dT: number): void {
     super.update(dT);
     if (this.compute.ready) {
+
+      this.compute.getBuffer("boid_input")?.upload(this.instanceCount);
+
       this.dispatch(dT);
-      // this.updateBoidInformation();
+      this.updateBoidInformation();
       if (this.gameObject.mesh?.material)
         (this.gameObject.mesh?.material as BoidMaterial).instanceCount =
         this.instanceCount;

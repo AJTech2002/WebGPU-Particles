@@ -15,12 +15,18 @@ export class BoidInputData {
   @shaderProperty(ShaderTypes.vec4)
   public externalForce: vec4 = [0,0,0,0]; // bytes: 16
 
+  @shaderProperty(ShaderTypes.vec4)
+  public diffuseColor: vec4 = [0,0,0,0]; // bytes: 16
+
   @shaderProperty(ShaderTypes.bool)
   public hasTarget: boolean = false; // bytes: 4
 
   @shaderProperty(ShaderTypes.f32)
   public speed: number = 0.0; // bytes: 4
 
+  @shaderProperty(ShaderTypes.f32)
+  public scale: number = 0.0;
+  
   // -- assume padding to align to 16 bytes for vec4 --
 }
 

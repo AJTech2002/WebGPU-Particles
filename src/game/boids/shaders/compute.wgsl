@@ -85,6 +85,9 @@ fn movementMain (@builtin(global_invocation_id) global_id: vec3<u32>) {
     let targetP = boid_input[index].targetPosition.xyz;
     let boidSpeed = boid_input[index].speed;
     let lastVisualBoidPosition = boids[index].lastModelPosition;
+    let inputExternalForce = boid_input[index].externalForce.xyz;
+
+    boids[index].externalForce += vec4<f32>(inputExternalForce, 0.0);
     
     // Movement clamping vars
     let minAv = vec3<f32>(-1.0, -1.0, 0.0);
@@ -119,7 +122,6 @@ fn movementMain (@builtin(global_invocation_id) global_id: vec3<u32>) {
     }
 
     var lerped = mix(lastModelPos, outputPos.xyz, lerpSpeed); 
-    objects[index].model = set_position(objects[index].model,lerped);
     boids[index].lastModelPosition = vec4<f32>(lerped, 0.0);
     boids[index].position = outputPos;
     boid_output[index].position = outputPos.xyz;
@@ -128,6 +130,13 @@ fn movementMain (@builtin(global_invocation_id) global_id: vec3<u32>) {
     boids[index].avoidanceVector = vec4<f32>(0.0, 0.0, 0.0, 0.0);
     boids[index].externalForce = mix(boids[index].externalForce, vec4<f32>(0.0, 0.0, 0.0, 0.0), 10.0 * dT);
     boids[index].collisionVector = vec4<f32>(0.0, 0.0, 0.0, 0.0);
+
+    // Color/Data transfer
+    objects[index].model = set_position(objects[index].model,lerped);
+
+    let input_scale = boid_input[index].scale;
+    objects[index].model = set_scale(objects[index].model, vec3<f32>(input_scale, input_scale, input_scale));
+    objects[index].diffuseColor = boid_input[index].diffuseColor.xyz;
   }
 
   return;

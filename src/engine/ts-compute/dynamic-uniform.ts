@@ -125,7 +125,7 @@ export class DynamicUniform<T> extends ArrayUniform<T> {
     this.updateBufferAt(index, value);
   }
 
-  public upload() {
+  public upload(instanceCount: number) {
     if (this.buffer === undefined || this.f32Array === undefined) {
       console.error("Uniform buffer not initialized.");
       return;
@@ -134,11 +134,13 @@ export class DynamicUniform<T> extends ArrayUniform<T> {
     device.queue.writeBuffer(
       this.buffer,
       0, // Offset within the bufferLayout
-      this.f32Array.buffer
+      this.f32Array.buffer,
+      0,
+      this.elementSize * instanceCount
     );
   }
 
-  public setElementPartial (index: number, value: Partial<T>) {
+  public setElementPartial (index: number, value: Partial<T>, upload : boolean) {
 
     if (index < 0 || index >= this.maxInstanceCount) {
       console.warn("Index out of bounds", index, this.maxInstanceCount);
@@ -156,21 +158,21 @@ export class DynamicUniform<T> extends ArrayUniform<T> {
         const offset = layout.offset;
         const type = layout.type;
 
-        this.setArrayDataExact(index, offset, type, (value as any)[key]);
+        this.setArrayDataExact(index, offset, type, (value as any)[key], upload);
       }
     }
 
   }
 
-  private setArrayDataExact (index: number, byteOffset: number, data: ShaderDataType, value: any) {
+  private setArrayDataExact (index: number, byteOffset: number, data: ShaderDataType, value: any, upload : boolean = true) {
     if (!this.f32Array  || !this.buffer)  {
       console.error("Uniform buffer not initialized!");
       return;
     }
 
     const packedSize = this.packedElementSize;
-    let offset = index * packedSize + (byteOffset / 4);
-    let bOffset = (index * this.elementSize) + byteOffset;
+    const offset = index * packedSize + (byteOffset / 4);
+    const bOffset = (index * this.elementSize) + byteOffset;
 
     if (offset >= this.f32Array.length) {
       console.warn("Index out of bounds");
@@ -191,18 +193,21 @@ export class DynamicUniform<T> extends ArrayUniform<T> {
       console.log({primitiveData, offset, bOffset, f32Length: this.f32Array.length, f32: this.f32Array});
       console.error("Error setting data", e);
     }
-
-    device.queue.writeBuffer(
-      this.buffer,
-      bOffset, // Offset within the bufferLayout
-
-      this.f32Array.buffer,
-      bOffset,
-
-      primitiveData.byteLength
-    );
+    
+    if (upload)
+    {
+      device.queue.writeBuffer(
+        this.buffer,
+        bOffset, // Offset within the bufferLayout
+  
+        this.f32Array.buffer,
+        bOffset,
+  
+        primitiveData.byteLength
+      );
+    }
   }
-
+ 
   protected getArrayData(index: number, f32Array: Float32Array): T | null {
     if (!this.f32Array) {
       console.warn("Boid data not initialized");

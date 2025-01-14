@@ -138,15 +138,19 @@ export default class BoidScene extends Scene {
     if (this.input.getMouseButton(0) ) {
       if (this.boidSystem.instanceCount >= this.boidSystem.maxInstanceCount) {
         for (let i = 0; i < 2; i++) {
-          const randomIndex = Math.floor(Math.random() * this.boidSystem.instanceCount);
+          const randomIndex = Math.floor(Math.random() * (this.boidSystem.instanceCount - 1));
 
-          const id = this.boidSystem.boidObjects[randomIndex]?.boidId;
-
-          this.boidSystem.setBoidPosition(id, this.input.mouseToWorld(0).toVec3());
+          const id = this.boidSystem.indexMappedId.get(randomIndex)!;
+          const rV3 = new Vector3(
+            Math.random() * 0.1 - 0.05,
+            Math.random() * 0.1 - 0.05,
+            0
+          );
+          this.boidSystem.setBoidPosition(id, this.input.mouseToWorld(0).clone().add(rV3).toVec3());
         }
       }
       else {
-       for (let i = 0; i < 2; i++) {
+       for (let i = 0; i < 5; i++) {
          const rV3 = new Vector3(
            Math.random() * 0.1 - 0.05,
            Math.random() * 0.1 - 0.05,
