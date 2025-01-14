@@ -4,16 +4,15 @@ import Scene from "@engine/scene";
 import GameObject from "@engine/scene/gameobject";
 import BoidSystemComponent from "./boids/boid_system";
 import { QuadMesh } from "@engine/scene/core/mesh_component";
-import BoidMaterial from "./boids/boid_material";
-import {vec3 } from "gl-matrix";
+import BoidMaterial from "./boids/rendering/boid_material";
 import BoidTexture from "../assets/guy-2.png";
-import {Boid} from "./boids/boid";
 import CameraMovement from "./components/camera_movement";
 import Collider, { ColliderShape } from "@engine/scene/core/collider_component";
 import { StandardDiffuseMaterial } from "@engine/renderer/material";
 import { Color, Vector3 } from "@engine/math/src";
 import SquareTexture from "../assets/square.png";
 import { Grid } from "./grid/grid_go";
+import { BoidInterface } from "./boids/interfaces/boid_interface";
 
 export default class BoidScene extends Scene {
 
@@ -48,19 +47,11 @@ export default class BoidScene extends Scene {
   async spinSquare() {
     while (true) {
       await this.tick();
-      // this.findGameObject("collider")!.transform.rotateOnAxis(new Vector3(0,0,1), 0.03);
-      //
-      //
       const sin = Math.cos(this.time * 0.001) * 2;
       this.findGameObject("collider")!.transform.position.x = Math.sin(this.time * 0.003) * 5;; 
       this.findGameObject("collider")!.transform.scale = new Vector3(0.75 + sin, 0.75 + sin, 0.75 + sin);
+
       const v3Pos = new Vector3(-2, sin, -9);
-
-      /*this.findGameObject("squareCollider")!.transform.localRotateOnAxis(
-        new Vector3(0,0,1),
-        0.03
-      );*/
-
       this.findGameObject("squareCollider")!.transform.rotation.z += 0.03; 
       this.findGameObject("squareCollider")!.transform.scale.x = 1.75 + Math.abs(sin);
       this.findGameObject("squareCollider")!.transform.position = v3Pos;
@@ -75,11 +66,21 @@ export default class BoidScene extends Scene {
     }
   }
 
+  async reportFPS() {
+    while (true) {
+      await this.seconds(5);
+      console.log("FPS: ", (this.dT * 1000/60.0));
+    }
+  }
+
   awake(engine: Engine): void {
     super.awake(engine);
+    this.reportFPS();
 
     this.createCollider();
     this.spinSquare();
+
+    
 
     this.grid = new Grid(this, 50, 50); 
 
@@ -101,15 +102,27 @@ export default class BoidScene extends Scene {
     )));
 
     this.activeCamera!.gameObject.transform.position.z = -10;
+
+    this.boidSystem.addBoid({
+      position: [0, 0, 0], 
+      speed: 3.0
+    });
+
+    this.boidSystem.addBoid({
+      position: [1, 0, 0], 
+      speed: 3.0
+    });
+
+
     this.spawnUnits();
 
   }
 
-  public get units() : Boid[] {
+  public get units() : BoidInterface[] {
     return this.boidSystem.boidRefs;
   }
 
-  public getUnit (index: number) : Boid {
+  public getUnit (index: number) : BoidInterface {
     if (this.boidSystem.idMappedBoidRefs.has(index)) {
       return this.boidSystem.idMappedBoidRefs.get(index)!;
     }
@@ -133,33 +146,21 @@ export default class BoidScene extends Scene {
         }
       }
       else {
-       for (let i = 0; i < 10; i++) {
+       for (let i = 0; i < 2; i++) {
          const rV3 = new Vector3(
-           Math.random() * 0.2 - 0.1,
-           Math.random() * 0.2 - 0.1,
+           Math.random() * 0.1 - 0.05,
+           Math.random() * 0.1 - 0.05,
            0
          );
 
          const b = this.boidSystem.addBoid({
           position: (this.input.mouseToWorld(0).clone().add(rV3)).toVec3(),
-          speed: 3.0
+          speed: 1.0
         });
         
         if (b)
           this.boidSystem.setUnitColor(b!.boidId);
        }
-      }
-    }
-
-    for (let i = 0; i < this.boidSystem.instanceCount; i++) {
-
-      if (this.boidSystem.boidObjects[i] == null) continue;
-       
-      const mouse = this.input.mouseToWorld(0).toVec3();
-      const boid = this.boidSystem.boidObjects[i].position;
-      const distance = vec3.distance(mouse, boid);
-      if (distance < 0) {
-        this.boidSystem.setBoidTarget(i, this.input.mouseToWorld(0).toVec3());
       }
     }
 

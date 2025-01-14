@@ -1,6 +1,4 @@
 import { mat4, vec4 } from "gl-matrix";
-import { Renderer } from "@renderer/renderer";
-import Mesh from "./scene/core/mesh_component";
 import Engine from "./engine";
 import Material from "./renderer/material";
 import GameObject from "./scene/gameobject";
@@ -111,13 +109,18 @@ export default class Scene {
   }
   //#endregion
 
+  public dT: number = 0;
+  public frame: number = 0;
+
   render(dT: number) {
 
     if (this.disposed) {
       return;
     }
 
+    this.dT = dT;
     this.time += dT;
+    this.frame++;
 
     for (let i = 0; i < this.callbacks.length; i++) {
       this.callbacks[i](dT);

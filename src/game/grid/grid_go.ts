@@ -24,10 +24,10 @@ export class GridComponent extends Component {
 
   public gridTileAt (position: vec3) {
 
-    var relativePosition = new Vector3(position[0] - this.origin.x, position[1] - this.origin.y, 0);
+    const relativePosition = new Vector3(position[0] - this.origin.x, position[1] - this.origin.y, 0);
 
-    var x = Math.floor(relativePosition.x /  this.cellSize);
-    var y = Math.floor(relativePosition.y / this.cellSize);
+    let x = Math.floor(relativePosition.x /  this.cellSize);
+    let y = Math.floor(relativePosition.y / this.cellSize);
 
     // clamp to the grid
     x = Math.min(this.sizeX - 1, Math.max(0, x));

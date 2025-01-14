@@ -1,8 +1,7 @@
 import { vec3 } from "gl-matrix";
-import BoidSystemComponent from "./boid_system";
-import { BoidData } from "./boid_compute";
+import BoidSystemComponent from "../boid_system";
 
-export class Boid {
+export class BoidInterface {
 
   public boidId: number;
   private boidSystem: BoidSystemComponent;
@@ -17,17 +16,20 @@ export class Boid {
   }
 
   public get position(): vec3 {
-    return this.boidSystem.getBoidInfo(this.boidId)?.object.position ?? vec3.create(); 
+    return this.boidSystem.getBoidInfo(this.boidId)?.data.position ?? vec3.create(); 
   }
 
   public get target(): vec3 {
-    const v4 = this.boidSystem.getBoidInfo(this.boidId)?.data.targetPosition ?? vec3.create();
-    const v3 = vec3.fromValues(v4[0], v4[1], v4[2]);
-    return v3;
+    // const v4 = this.boidSystem.getBoidInfo(this.boidId)?.data.targetPosition ?? vec3.create();
+    // const v3 = vec3.fromValues(v4[0], v4[1], v4[2]);
+    // return v3;
+    //TODO
+    return [0,0,0];
   }
 
   public get color(): vec3 {
-    return this.boidSystem.getBoidInfo(this.boidId)?.object.diffuseColor ?? vec3.create();
+    // return this.boidSystem.getBoidInfo(this.boidId)?.object.diffuseColor ?? vec3.create();
+    return this.__origColor__;
   }
 
   public set target(target: vec3) {
@@ -43,15 +45,15 @@ export class Boid {
     // move in this direction
     let unitPos = vec3.create();
 
-    if (this.boidSystem.boidObjects[this.boidId] == null) {
+    if (this.boidSystem.getBoidInfo(this.boidId) == null) {
       unitPos = this.initialPosition;
     }
     else {
       // check if the position is NaN
-      if (isNaN(this.boidSystem.boidObjects[this.boidId].position[0]))
+      if (isNaN(this.position[0]))
         unitPos = this.initialPosition;
       else
-        unitPos = this.boidSystem.boidObjects[this.boidId].position;
+        unitPos = this.position;
     }
 
     const dir = vec3.fromValues(x, y, 0);

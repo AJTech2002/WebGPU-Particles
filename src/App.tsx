@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
+import Stats from "stats.js";
 import Engine, { createEngine } from '@engine/engine';
 import BoidScene from './game/boid_scene';
 import { autocompletion } from '@codemirror/autocomplete';
@@ -44,11 +45,16 @@ function App() {
   useEffect(() => {
     
     if (canvasRef.current) {
-      const engine : Promise<Engine> = createEngine(canvasRef.current, new BoidScene());
+      const stats = new Stats();
+      stats.showPanel(0);
+      document.body.appendChild(stats.dom);
+      const engine : Promise<Engine> = createEngine(canvasRef.current, new BoidScene(), stats);
       engine.then((e) => {
         resolvedEngine = e;
+
       });
     }
+
 
     return () => {
       if (resolvedEngine)

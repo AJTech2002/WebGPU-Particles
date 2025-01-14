@@ -1,6 +1,8 @@
 import Scene from "./scene";
-import Material from "./renderer/material";
 import { Renderer } from "./renderer/renderer";
+import Stats from "stats.js";
+
+let stats : Stats | undefined = undefined;
 
 export default class Engine {
 
@@ -51,6 +53,8 @@ export default class Engine {
   }
 
   private renderLoop(t : number) {
+    stats?.begin();
+    
     const time = t;
     const deltaTime = time - this.lastTime;
     this.lastTime = time;
@@ -63,7 +67,10 @@ export default class Engine {
 
     this._renderer.render(deltaTime, this._scene.materials); // 3. Render the scene
 
+    stats?.end();
+
     requestAnimationFrame((t) => this.renderLoop(t));
+    
   }
 
   public dispose() {
@@ -77,8 +84,9 @@ export let device: GPUDevice;
 export let renderTargetFormat: GPUTextureFormat = "bgra8unorm";
 export let adapter: GPUAdapter;
 
-export async function createEngine(canvas: HTMLCanvasElement, scene: Scene) : Promise<Engine> {
+export async function createEngine(canvas: HTMLCanvasElement, scene: Scene, _stats: Stats) : Promise<Engine> {
   adapter = <GPUAdapter>await navigator.gpu?.requestAdapter();
   device = <GPUDevice>await adapter?.requestDevice();
+  stats = _stats;
   return new Engine(canvas, scene);
 }
