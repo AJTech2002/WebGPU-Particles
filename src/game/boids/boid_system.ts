@@ -70,7 +70,7 @@ export default class BoidSystemComponent extends Component {
 
     this.hashMappedBoidRefs.clear();
     this.idMappedBoidData.clear();
-    this.idMappedIndex.clear();
+    // this.idMappedIndex.clear();
 
     //TODO: Remove this and optimize on GPU 
     if (boidInfo)
@@ -99,7 +99,7 @@ export default class BoidSystemComponent extends Component {
             object: boid
           });
 
-          this.idMappedIndex.set(boidId, i);
+          // this.idMappedIndex.set(boidId, i);
         }
 
         this.compute.setPartialElement("objects", i, {
@@ -248,6 +248,7 @@ export default class BoidSystemComponent extends Component {
 
     this.boidRefs.push(boid);
     this.idMappedBoidRefs.set(boidId, boid);
+    this.idMappedIndex.set(boidId, this.instanceCount);
 
     this.instanceCount++;
 
