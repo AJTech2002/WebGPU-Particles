@@ -146,16 +146,16 @@ export default class BoidScene extends Scene {
         }
       }
       else {
-       for (let i = 0; i < 1; i++) {
+       for (let i = 0; i < 2; i++) {
          const rV3 = new Vector3(
-           Math.random() * 0.2 - 0.1,
-           Math.random() * 0.2 - 0.1,
+           Math.random() * 0.1 - 0.05,
+           Math.random() * 0.1 - 0.05,
            0
          );
 
          const b = this.boidSystem.addBoid({
           position: (this.input.mouseToWorld(0).clone().add(rV3)).toVec3(),
-          speed: 3.0
+          speed: 1.0
         });
         
         if (b)
