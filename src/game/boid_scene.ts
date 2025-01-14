@@ -5,7 +5,6 @@ import GameObject from "@engine/scene/gameobject";
 import BoidSystemComponent from "./boids/boid_system";
 import { QuadMesh } from "@engine/scene/core/mesh_component";
 import BoidMaterial from "./boids/rendering/boid_material";
-import {vec3 } from "gl-matrix";
 import BoidTexture from "../assets/guy-2.png";
 import CameraMovement from "./components/camera_movement";
 import Collider, { ColliderShape } from "@engine/scene/core/collider_component";
@@ -147,7 +146,7 @@ export default class BoidScene extends Scene {
         }
       }
       else {
-       for (let i = 0; i < 10; i++) {
+       for (let i = 0; i < 1; i++) {
          const rV3 = new Vector3(
            Math.random() * 0.2 - 0.1,
            Math.random() * 0.2 - 0.1,
@@ -162,20 +161,6 @@ export default class BoidScene extends Scene {
         if (b)
           this.boidSystem.setUnitColor(b!.boidId);
        }
-      }
-    }
-
-    for (let i = 0; i < this.boidSystem.instanceCount; i++) {
-
-      if (this.boidSystem.boidObjects[i] == null) continue;
-       
-      const mouse = this.input.mouseToWorld(0).toVec3();
-      if (this.boidSystem.boids[i] == undefined) continue;
-      const boid = this.boidSystem.boids[i].position;
-      const boidPosition = vec3.fromValues(boid[0], boid[1], boid[2]);
-      const distance = vec3.distance(mouse, boidPosition);
-      if (distance < 0) {
-        this.boidSystem.setBoidTarget(i, this.input.mouseToWorld(0).toVec3());
       }
     }
 

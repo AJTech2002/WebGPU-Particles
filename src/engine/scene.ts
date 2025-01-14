@@ -1,6 +1,4 @@
 import { mat4, vec4 } from "gl-matrix";
-import { Renderer } from "@renderer/renderer";
-import Mesh from "./scene/core/mesh_component";
 import Engine from "./engine";
 import Material from "./renderer/material";
 import GameObject from "./scene/gameobject";

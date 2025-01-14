@@ -8,10 +8,24 @@ import { shaderBuffer, shaderStruct, shaderProperty, StorageMode, ShaderTypes } 
 import Collider from "@engine/scene/core/collider_component"; 
 
 @shaderStruct("BoidData")
-export class BoidData {
+export class BoidInputData {
   @shaderProperty(ShaderTypes.vec4)
   public targetPosition: vec4 = [0,0,0,0]; // bytes: 16
 
+  @shaderProperty(ShaderTypes.vec4)
+  public externalForce: vec4 = [0,0,0,0]; // bytes: 16
+
+  @shaderProperty(ShaderTypes.bool)
+  public hasTarget: boolean = false; // bytes: 4
+
+  @shaderProperty(ShaderTypes.f32)
+  public speed: number = 0.0; // bytes: 4
+
+  // -- assume padding to align to 16 bytes for vec4 --
+}
+
+@shaderStruct("BoidGPUData")
+export class BoidGPUData {
   @shaderProperty(ShaderTypes.vec4)
   public avoidanceVector: vec4 = [0,0,0,0]; // bytes: 16
 
@@ -26,12 +40,6 @@ export class BoidData {
 
   @shaderProperty(ShaderTypes.vec4)
   public position: vec4 = [0,0,0,0]; // bytes: 16
-
-  @shaderProperty(ShaderTypes.bool)
-  public hasTarget: boolean = false; // bytes: 4
-
-  @shaderProperty(ShaderTypes.f32)
-  public speed: number = 0.0; // bytes: 4
 }
 
 @shaderStruct("BoidObjectData")
@@ -53,6 +61,11 @@ export class BoidObjectData {
 
 }
 
+@shaderStruct("BoidOutputData")
+export class BoidOutputData {
+  @shaderProperty(ShaderTypes.vec3)
+  public position: vec3 = [0,0,0];
+}
 
 export const maxInstanceCount = 2000;
 
@@ -61,8 +74,14 @@ export class BoidCompute extends Compute {
   @shaderBuffer(BoidObjectData, StorageMode.read_write, [], maxInstanceCount) 
   private objects!: BoidObjectData[];
 
-  @shaderBuffer(BoidData, StorageMode.read_write, [], maxInstanceCount)
-  private boids!: BoidData[];
+  @shaderBuffer(BoidInputData, StorageMode.read_write, [], maxInstanceCount)
+  private boid_input!: BoidInputData[];
+
+  @shaderBuffer(BoidGPUData, StorageMode.read_write, [], maxInstanceCount)
+  private boids!: BoidGPUData[];
+
+  @shaderBuffer(BoidOutputData, StorageMode.read_write, [], maxInstanceCount)
+  private boid_output!: BoidOutputData[];
 
   @shaderBuffer(Collider, StorageMode.write, [], 100)
   private colliders!: Collider[];
@@ -91,12 +110,6 @@ export class BoidCompute extends Compute {
         "movementMain",
       ]
     );
-  }
-
-  public upload() {
-    this.getBuffer("objects")?.upload();
-    this.getBuffer("boids")?.upload();
-    this.getBuffer("colliders")?.upload();
   }
 
   public set Time (time: number) {

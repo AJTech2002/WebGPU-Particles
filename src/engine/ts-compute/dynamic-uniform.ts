@@ -117,13 +117,12 @@ export class DynamicUniform<T> extends ArrayUniform<T> {
   }
 
   public setValue (value: T) {
-    // this.updateBufferAt(0, value);
-    this.setArrayData(0, value);
-    this.upload();
+    this.updateBufferAt(0, value);
   }
 
   public setElement (index: number, value: T) {
-    this.setArrayData(index, value as T);
+    // this.setArrayData(index, value as T);
+    this.updateBufferAt(index, value);
   }
 
   public upload() {
