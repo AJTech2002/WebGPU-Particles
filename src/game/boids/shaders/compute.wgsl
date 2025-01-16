@@ -13,9 +13,11 @@ fn unique_direction(index: u32, numCount: u32) -> vec3<f32> {
     return direction;
 }
 
+
 @compute @workgroup_size(64)
 fn avoidanceMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
   let index = global_id.x;
+
 
   var timeClampedToInt = u32(clamp(time, 0.0, f32(100000)));
 
@@ -79,7 +81,7 @@ fn movementMain (@builtin(global_invocation_id) global_id: vec3<u32>) {
   if (index < objectModelLength ) {
 
     var targetWeight = 1.0;
-    let avoidanceWeight = 2.0;
+    let avoidanceWeight = 2.3;
 
     // Properties
     let boidPosition = boids[index].position.xyz;
@@ -109,17 +111,17 @@ fn movementMain (@builtin(global_invocation_id) global_id: vec3<u32>) {
     }
 
     var v = (avoidance * avoidanceWeight ) + (movDir * targetWeight);
-    var dir = v * dT; // * dT;
-    dir = clamp(dir, minV3 * dT ,maxV3 * dT);
+    var dir = v ; // * dT;
+    dir = clamp(dir, minV3 ,maxV3 );
 
-    var finalPos = boidPosition + dir;
+    var finalPos = boidPosition + dir * dT;
 
     //TODO: Handle external forces
     var outputPos = vec4<f32>((finalPos + (boids[index].collisionVector.xyz) + (boids[index].externalForce.xyz * dT)), 0.0);
     var lastModelPos = get_position(objects[index].model);
 
     // var lerpSpeed = dT * mix(0.0, 10.0, clamp(distance(outputPos.xyz, lastModelPos)/0.1, 0.0, 1.0)); 
-    var lerpSpeed = dT * 20.0;
+    var lerpSpeed = dT * 15.0;
 
     if (length(boids[index].collisionVector) > 0.0) {
       lerpSpeed = dT * 25.0;
