@@ -5,6 +5,9 @@ import {BoidInterface} from "./interfaces/boid_interface";
 import Collider from "@engine/scene/core/collider_component";
 import { BoidCompute, BoidGPUData, BoidInputData, BoidObjectData, BoidOutputData, maxInstanceCount } from "./boid_compute";
 import { Grid } from "../grid/grid_go";
+import BoidInstance from "./boid_instance";
+import GameObject from "@engine/scene/gameobject";
+import { Vector3 } from "@engine/math/src";
 
 
 interface BoidInitData {
@@ -31,9 +34,9 @@ export default class BoidSystemComponent extends Component {
   public idMappedIndex = new Map<number, number>();
   public indexMappedId = new Map<number, number>();
 
-  public idMappedBoidRefs = new Map<number, BoidInterface>();
+  public idMappedBoidRefs = new Map<number, BoidInstance>();
   public hashMappedBoidRefs = new Map<number, number[]>();
-  public boidRefs: BoidInterface[] = [];
+  public boidRefs: BoidInstance[] = [];
 
   private compute: BoidCompute;
   private warned: boolean = false;
@@ -93,8 +96,16 @@ export default class BoidSystemComponent extends Component {
         this.idMappedBoidData.set(boidId, {
           data: output[i]
         });
+
+        // get the instance
+        const instance = this.getBoidInstance(boidId);
+        instance?.setGPUData(output[i]);
       }
 
+  }
+
+  public getBoidInstance (boidId: number) : BoidInstance | undefined {
+    return this.idMappedBoidRefs.get(boidId);
   }
 
   public getBoidInfo (boidId: number) : BoidInformation | undefined {
@@ -121,87 +132,13 @@ export default class BoidSystemComponent extends Component {
     return neighbourBoids;
   }
 
-  public boidIdsToBoids (boidId: number[]) : (BoidInterface | undefined)[] {
+  public boidIdsToBoids (boidId: number[]) : (BoidInstance | undefined)[] {
     return boidId.map((id) => this.idMappedBoidRefs.get(id));
   }
 
-
   private boidIdCounter: number = 0;
 
-  private colorPalette: vec3[] = [
-    [152/255, 187/255, 105/255],
-    [233/255, 252/255, 172/255],
-    [203/255, 239/255, 155/255],
-    [255/255, 188/255, 129/255],
-    [255/255, 148/255, 118/255],
-    [243/255, 94/255, 133/255]
-  ];
-
-  async setUnitColor (id: number) {
-    await this.scene.tick();
-    await this.scene.seconds(0.05);
-    
-    const boidColor = this.colorPalette[Math.floor(Math.random() * this.colorPalette.length)];
-
-    this.setBoidColor(id, boidColor);
-    // get boid 
-    const boid = this.idMappedBoidRefs.get(id);
-    if (boid)
-      boid.__origColor__ = boidColor;
-  }
-
-  async knockbackForce (id: number, force: vec3) {
-
-    const boid = this.idMappedBoidRefs.get(id);
-
-    if (!boid) return;
-
-    this.setBoidExternalForce(id, force);
-    this.setBoidColor(id, [1, 1, 1]);
-    this.setBoidScale(id, this.boidScale * 1.2);
-
-    await this.scene.seconds(Math.random() * 0.1 + 0.05);
-
-    this.setBoidColor(id, boid.__origColor__);
-    this.setBoidExternalForce(id, vec3.create());
-    this.setBoidScale(id, this.boidScale);
-
-  }
-
-  public attack (boidId: number, x: number, y: number) {
-    const neighbours = this.getBoidNeighbours(boidId);
-    const boids = this.boidIdsToBoids(neighbours) as BoidInterface[];
-
-    for (let i = 0; i < boids.length; i++) {
-      if (boids[i].boidId == boidId) continue;
-
-      // check distance 
-      const distance = vec3.distance(boids[i].position, this.idMappedBoidRefs.get(boidId)!.position);
-      if (distance < 0.4) {
-
-        // get dot product of (x,y) and (boid[i].position - boid[boidId].position)
-        const dir = vec3.fromValues(x, y, 0);
-        vec3.normalize(dir, dir);
-
-        const boidDir = vec3.create();
-        vec3.sub(boidDir, boids[i].position, this.idMappedBoidRefs.get(boidId)!.position);
-        vec3.normalize(boidDir, boidDir);
-
-        const dot = vec3.dot(dir, boidDir);
-        // check if roughly parallel and in the same direction
-        if (dot > 0.6 ) {
-          // set external force away from the boid
-          const force = vec3.create();
-          vec3.scale(force, boidDir, 0.3);
-          this.knockbackForce(boids[i].boidId, force);
-
-        }
-      }
-
-    }
-
-  }
-
+  
   public addBoid(init: BoidInitData): BoidInterface | undefined{
 
     if (this.instanceCount >= this.maxInstanceCount) {
@@ -214,14 +151,16 @@ export default class BoidSystemComponent extends Component {
 
     init.position[2] = 10; // Set the w component to 10
 
-    this.compute.setElement<BoidInputData>("boid_input", this.instanceCount, {
+    const input : BoidInputData = {
       targetPosition: [init.position[0], init.position[1], init.position[2], 0],
       hasTarget: false,
       speed: init.speed,
       externalForce: [0, 0, 0, 0],
       diffuseColor: [1.0, 1.0, 1.0, 0],
       scale: this.boidScale,
-    });
+    };
+
+    this.compute.setElement<BoidInputData>("boid_input", this.instanceCount, input);
 
     this.compute.setElement<BoidGPUData>("boids", this.instanceCount, {
       avoidanceVector: vec4.create(),
@@ -247,127 +186,56 @@ export default class BoidSystemComponent extends Component {
       padding2: 0,
     });
 
-    const boid = new BoidInterface(
-      this, boidId, init.position
-    )
 
-    this.boidRefs.push(boid);
-    this.idMappedBoidRefs.set(boidId, boid);
+
     this.idMappedIndex.set(boidId, this.instanceCount);
     this.indexMappedId.set(this.instanceCount, boidId);
 
     this.instanceCount++;
 
     this.compute.set("numBoids", this.instanceCount);
-    return boid;
-  }
 
 
-  public setBoidExternalForce(id: number, force: vec3): void {
-    const index = this.idMappedIndex.get(id) ?? -1;
+    const boidGo = new GameObject(`boid_${boidId}`, this.scene);
 
-    if (index >= this.instanceCount) {
-      console.error("Index out of bounds", index, this.instanceCount);
-      return;
-    }
+    const boid = new BoidInstance (
+      boidId, this, input, new Vector3(init.position[0], init.position[1], init.position[2])
+    );
 
-    if (index == -1) {
-      console.error("Index not found", id);
-      return;
-    }
+    boidGo.addComponent(boid);
 
-    this.compute.setPartialElement<BoidInputData>("boid_input", index, {
-      externalForce: [force[0], force[1], force[2], 0]
-    }, false);
-  }
+    this.boidRefs.push(boid);
+    this.idMappedBoidRefs.set(boidId, boid);
+    
+    const boidInterface = new BoidInterface(
+      boid,
+      this
+    );
 
-  public setBoidScale(id: number, scale: number): void {
-    const index = this.idMappedIndex.get(id) ?? -1;
-
-    if (index >= this.instanceCount) {
-      console.error("Index out of bounds", index, this.instanceCount);
-      return;
-    }
-
-    if (index == -1) {
-      console.error("Index not found", id);
-      return;
-    }
-
-    this.compute.setPartialElement<BoidInputData>("boid_input", index, {
-      scale: scale
-    }, false);
-  }
-
-  public setBoidColor (id: number, color: vec3) {
-
-    const index = this.idMappedIndex.get(id) ?? -1;
-
-    if (index == -1) {
-      console.error("Index not found", id);
-      return;
-    } 
-
-    if (index >= this.instanceCount) {
-      console.error("Index out of bounds", index, this.instanceCount);
-      return;
-    }
-
-    //TODO: Set the input data -> model color
-    this.compute.setPartialElement<BoidInputData>("boid_input", index, {
-      diffuseColor: [color[0], color[1], color[2], 0]
-    });
-  }
-
-  //TODO
-  public setBoidPosition(id: number, position: vec3): void {
-
-    const index = this.idMappedIndex.get(id) ?? -1;
-
-    if (index >= this.instanceCount) {
-      console.error("Index out of bounds", index, this.instanceCount);
-      return;
-    }
-
-    if (index == -1) {
-      console.error("Index not found", id);
-      return;
-    }
-
-    const model = mat4.create();
-    mat4.translate(model, model, position);
-    mat4.scale(model, model, [, 0.3, 0.3]);
-
-    this.compute.setPartialElement<BoidObjectData>("objects", index, {
-      model,
-    });
-
-    this.compute.setPartialElement<BoidGPUData>("boids", index, {
-      position: [position[0], position[1], position[2], 0],
-      lastModelPosition: [position[0], position[1], position[2], 0],
-    });
+    return boidInterface;
   }
 
   public get objectBuffer () : GPUBuffer {
     return this.compute.getBuffer<BoidObjectData>("objects")!.gpuBuffer as GPUBuffer;
   }
 
-  public setBoidTarget(id: number, target: vec3): void {
-
-    const index = this.idMappedIndex.get(id) ?? -1;
-
-    if (index >= this.instanceCount) {
-      console.error("Index out of bounds", index, this.instanceCount);
-      return;
-    }
-
-    this.compute.setPartialElement<BoidInputData>("boid_input", index, {
-      targetPosition: [target[0], target[1], target[2], 0],
-      hasTarget: true,
-    }, false);
+  public setBoidInputData(index: number, data: Partial<BoidInputData>) {
+    return this.compute.setPartialElement<BoidInputData>("boid_input", index, data, false);
   }
 
-  private dispatch(dT) {
+  public setBoidModelData (index: number, data: Partial<BoidObjectData>) {
+    this.compute.setPartialElement<BoidObjectData>("objects", index, data);
+  }
+
+  public setGpuData (index: number, data: Partial<BoidGPUData>) {
+    this.compute.setPartialElement<BoidGPUData>("boids", index, data);
+  }
+
+  public getBoidIndex(id: number): number | undefined {
+    return this.idMappedIndex.get(id);
+  }
+
+  private dispatch(dT : number) {
     const sDT = dT / 1000; 
 
     this.compute.set("time", this.scene.sceneTime / 1000);
@@ -397,7 +265,10 @@ export default class BoidSystemComponent extends Component {
       this.compute.getBuffer("boid_input")?.upload(this.instanceCount);
 
       this.dispatch(dT);
+
+      // Update the instances & hashing
       this.updateBoidInformation();
+      
       if (this.gameObject.mesh?.material)
         (this.gameObject.mesh?.material as BoidMaterial).instanceCount =
         this.instanceCount;

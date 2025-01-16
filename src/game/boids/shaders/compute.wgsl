@@ -24,8 +24,9 @@ fn avoidanceMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
   if (index < objectModelLength) {
 
     var avoidance = vec3(0.0, 0.0, 0.0);
-    var avoidanceDistance = 0.22;
-    var avPwr = 1.5;
+    var avoidanceDistance = 0.23;
+    var minimumCompresion = 0.1;
+    var avPwr = 1.2;
     var randomDirection = unique_direction(index, objectModelLength);
     //var angle = f32(random_u32(&local_rnd_state)*index) * 0.01;
 
@@ -41,20 +42,18 @@ fn avoidanceMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
         var d = distance(bP, bP2);
         if (d == 0) {
           randomDirection = safe_normalize(randomDirection);
-          var pushStrength = pow(1.0 - (0.00001/avoidanceDistance), -avPwr);
+          var pushStrength = avoidanceDistance;
           avoidance += randomDirection * pushStrength;
         }
+       
         else if (d < avoidanceDistance ) {
           var avVector = (bP - boids[i].position).xyz;
           // Normalize to get only the direction
           let direction = safe_normalize(avVector);
           // var pushStrength = clamp(1.0 - (d/avoidanceDistance), 0.0, 1.0);
           // var pushStrength = pow(1.0 - (d/avoidanceDistance), -avPwr);
-          var pushStrength = clamp(avoidanceDistance - d, 0.0, 1.0);
-          // if (d < 0.1) {
-          //   pushStrength = pow(1.0 - (0.00001/avoidanceDistance), -avPwr);
-          // }
-        
+          var pushStrength = avoidanceDistance - d;
+
           avVector = direction * pushStrength;
           avoidance = avoidance + avVector;
         } 
@@ -62,6 +61,9 @@ fn avoidanceMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
     }
 
     avoidance.z = 0.0;
+    // let minAv = vec3<f32>(-1.0, -1.0, 0.0);
+    // let maxAv = vec3<f32>(1.0, 1.0, 0.0);
+    // avoidance = clamp(avoidance, minAv, maxAv);
     // avoidance = safe_normalize(avoidance);
     boids[index].avoidanceVector = vec4<f32>(avoidance, 0.0);
   }
@@ -105,8 +107,8 @@ fn movementMain (@builtin(global_invocation_id) global_id: vec3<u32>) {
     }
 
     var v = (avoidance * avoidanceWeight) + (movDir*targetWeight);
-    var dir = v * dT; 
-    dir = clamp(dir, minV3  * dT,maxV3 * dT);
+    var dir = v; // * dT;
+    dir = clamp(dir, minV3 ,maxV3 )* dT;
 
     var finalPos = boidPosition + dir;
 

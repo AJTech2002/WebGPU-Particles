@@ -5,7 +5,7 @@ import GameObject from "@engine/scene/gameobject";
 import BoidSystemComponent from "./boids/boid_system";
 import { QuadMesh } from "@engine/scene/core/mesh_component";
 import BoidMaterial from "./boids/rendering/boid_material";
-import BoidTexture from "../assets/guy-2.png";
+import BoidTexture from "../assets/guy-3.png";
 import CameraMovement from "./components/camera_movement";
 import Collider, { ColliderShape } from "@engine/scene/core/collider_component";
 import { StandardDiffuseMaterial } from "@engine/renderer/material";
@@ -18,6 +18,9 @@ export default class BoidScene extends Scene {
 
   private boidSystem!: BoidSystemComponent;
   private grid!: Grid;
+
+  private boidInterfaces : BoidInterface[] = [];
+  private idMappedBoidRefs = new Map<number, BoidInterface>();
 
   createCollider() {
     const collider = new GameObject("collider", this);
@@ -37,7 +40,7 @@ export default class BoidScene extends Scene {
     ))
 
     mat.color = new Color(1,1,1);
-    squareMat.color = new Color(1, 0, 0);
+    squareMat.color = new Color(1, 1, 1);
 
     collider.transform.position.z = -9;
     squareCollider.transform.position.z = -9;
@@ -49,11 +52,11 @@ export default class BoidScene extends Scene {
       await this.tick();
       const sin = Math.cos(this.time * 0.001) * 2;
       this.findGameObject("collider")!.transform.position.x = Math.sin(this.time * 0.003) * 5;; 
-      this.findGameObject("collider")!.transform.scale = new Vector3(0.75 + sin, 0.75 + sin, 0.75 + sin);
+      // this.findGameObject("collider")!.transform.scale = new Vector3(0.75 + sin, 0.75 + sin, 0.75 + sin);
 
       const v3Pos = new Vector3(-2, sin, -9);
       this.findGameObject("squareCollider")!.transform.rotation.z += 0.03; 
-      this.findGameObject("squareCollider")!.transform.scale.x = 1.75 + Math.abs(sin);
+      // this.findGameObject("squareCollider")!.transform.scale.x = 1.75 + Math.abs(sin);
       this.findGameObject("squareCollider")!.transform.position = v3Pos;
     }
   }
@@ -103,28 +106,17 @@ export default class BoidScene extends Scene {
 
     this.activeCamera!.gameObject.transform.position.z = -10;
 
-    this.boidSystem.addBoid({
-      position: [0, 0, 0], 
-      speed: 3.0
-    });
-
-    this.boidSystem.addBoid({
-      position: [1, 0, 0], 
-      speed: 3.0
-    });
-
-
     this.spawnUnits();
 
   }
 
   public get units() : BoidInterface[] {
-    return this.boidSystem.boidRefs;
+    return this.boidInterfaces;
   }
 
   public getUnit (index: number) : BoidInterface {
-    if (this.boidSystem.idMappedBoidRefs.has(index)) {
-      return this.boidSystem.idMappedBoidRefs.get(index)!;
+    if (this.idMappedBoidRefs.has(index)) {
+      return this.idMappedBoidRefs.get(index)!;
     }
     else {
       throw new Error(`Unit ${index} not found`);
@@ -146,7 +138,7 @@ export default class BoidScene extends Scene {
             Math.random() * 0.1 - 0.05,
             0
           );
-          this.boidSystem.setBoidPosition(id, this.input.mouseToWorld(0).clone().add(rV3).toVec3());
+          this.boidSystem.getBoidInstance(id)!.position = this.input.mouseToWorld(0).clone().add(rV3);
         }
       }
       else {
@@ -162,8 +154,10 @@ export default class BoidScene extends Scene {
           speed: 1.0
         });
         
-        if (b)
-          this.boidSystem.setUnitColor(b!.boidId);
+        if (b)  {
+          this.boidInterfaces.push(b);
+          this.idMappedBoidRefs.set(b.id, b);
+        }
        }
       }
     }

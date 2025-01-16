@@ -1,74 +1,52 @@
-import { vec3 } from "gl-matrix";
 import BoidSystemComponent from "../boid_system";
+import BoidInstance from "../boid_instance";
+import { Vector3 } from "@engine/math/src";
 
+// Scene Facing
 export class BoidInterface {
 
-  public boidId: number;
+  private boidInstance: BoidInstance;
   private boidSystem: BoidSystemComponent;
+  public __origColor__: Vector3 = new Vector3(1,1,1);
 
-  private initialPosition: vec3;
-  public __origColor__: vec3 = vec3.create();
+  private _id : number = 0;
 
-  constructor(component: BoidSystemComponent, boidId: number, position: vec3) {
+  constructor(instance: BoidInstance, component: BoidSystemComponent) {
     this.boidSystem = component;
-    this.boidId = boidId;
-    this.initialPosition = position;
+    this.boidInstance = instance;
+
+    this._id = this.boidInstance.id;
   }
 
-  public get position(): vec3 {
-    return this.boidSystem.getBoidInfo(this.boidId)?.data.position ?? vec3.create(); 
+  
+  public get id () : number {
+    return this._id;
   }
 
-  public get target(): vec3 {
-    // const v4 = this.boidSystem.getBoidInfo(this.boidId)?.data.targetPosition ?? vec3.create();
-    // const v3 = vec3.fromValues(v4[0], v4[1], v4[2]);
-    // return v3;
-    //TODO
-    return [0,0,0];
+  public get position(): Vector3 {
+    return this.boidInstance.position;
   }
 
-  public get color(): vec3 {
-    // return this.boidSystem.getBoidInfo(this.boidId)?.object.diffuseColor ?? vec3.create();
-    return this.__origColor__;
-  }
-
-  public set target(target: vec3) {
-    this.boidSystem.setBoidTarget(this.boidId, target);
-  }
-
-  public attack (x: number, y: number) {
-    // get the neighbours 
-    this.boidSystem.attack(this.boidId, x, y); 
-  }
+  
 
   public move (x: number, y: number) {
     // move in this direction
-    let unitPos = vec3.create();
+    const unitPos: Vector3 = this.position;
 
-    if (this.boidSystem.getBoidInfo(this.boidId) == null) {
-      unitPos = this.initialPosition;
-    }
-    else {
-      // check if the position is NaN
-      if (isNaN(this.position[0]))
-        unitPos = this.initialPosition;
-      else
-        unitPos = this.position;
-    }
+    let dir = new Vector3(x, y, 0);
+    dir = dir.normalize();
+    dir = dir.multiplyScalar(1000);
 
-    const dir = vec3.fromValues(x, y, 0);
-    vec3.normalize(dir, dir);
-    vec3.scale(dir, dir, 1000);
-
-    const targetPos = vec3.create();
-    vec3.add(targetPos, unitPos, dir);
-
-    this.boidSystem.setBoidTarget(this.boidId, targetPos);
+    const targetPos = unitPos.clone().add(dir);
+    this.boidInstance.targetPosition = targetPos;
   }
 
-
   public moveTo (x: number, y: number) {
-    const targetPos = vec3.fromValues(x, y, 0);
-    this.boidSystem.setBoidTarget(this.boidId, targetPos);
+    const targetPos = new Vector3(x, y, 0);
+    this.boidInstance.targetPosition = targetPos;
+  }
+
+  public attack (x: number, y: number) {
+    this.boidInstance.attack(x, y);
   }
 }
