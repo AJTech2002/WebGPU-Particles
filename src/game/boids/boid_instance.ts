@@ -278,9 +278,22 @@ export default class BoidInstance extends Component {
     }
   }
 
+  public getNeighbours() : BoidInstance[] {
+    if (!this.alive) return [];
+    const neighbours = this.system.getBoidNeighbours(this.id);
+    return this.system.boidIdsToBoids(neighbours) as BoidInstance[];
+  }
+
+  private lastAttackTime: number = 0;
+
   public attack (x: number, y: number) {
 
     if (!this.alive) return;
+
+    const now = Date.now();
+    if (now - this.lastAttackTime < 400) return;
+
+    this.lastAttackTime = now;
 
     // get the neighbours 
     const neighbours = this.system.getBoidNeighbours(this.id);
@@ -304,11 +317,11 @@ export default class BoidInstance extends Component {
 
         const dot = dir.dot(boidDir);
         // check if roughly parallel and in the same direction
-        if (dot < -0.9 ) {
+        if (dot > 0.6 ) {
           // set external force away from the boid
           const force = new Vector3();
-          force.copy(boidDir).multiplyScalar(-0.5);
-          this.knockbackForce(boids[i].boidId, force);
+          force.copy(boidDir).multiplyScalar(0.2);
+          boids[i].knockbackForce(boids[i].boidId, force);
           boids[i].takeDamage( 10 );
         }
       }

@@ -1,18 +1,18 @@
-import BoidSystemComponent from "../boid_system";
 import BoidInstance from "../boid_instance";
 import { Vector3 } from "@engine/math/src";
+import BoidScene from "src/game/boid_scene";
 
 // Scene Facing
 export class BoidInterface {
 
   private boidInstance: BoidInstance;
-  private boidSystem: BoidSystemComponent;
+  private boidScene: BoidScene;
   public __origColor__: Vector3 = new Vector3(1,1,1);
 
   private _id : number = 0;
 
-  constructor(instance: BoidInstance, component: BoidSystemComponent) {
-    this.boidSystem = component;
+  constructor(instance: BoidInstance, component: BoidScene) {
+    this.boidScene = component;
     this.boidInstance = instance;
 
     this._id = this.boidInstance.id;
@@ -29,6 +29,30 @@ export class BoidInterface {
 
   public get alive () : boolean {
     return this.boidInstance.alive;
+  }
+
+  public get friendlyNeighbours () : BoidInterface[] {
+    const neighbours = this.boidInstance.getNeighbours();
+    return neighbours.filter((boid) => boid.id !== this.id && boid.alive).map((boid) => this.boidScene.getUnit(boid.id));
+  }
+
+  public get closestFriendlyNeighbour () : BoidInterface | undefined {
+   
+    const friendlyNeighbours = this.friendlyNeighbours;
+    if (friendlyNeighbours.length == 0) return undefined;
+
+    let closest = friendlyNeighbours[0];
+    let closestDist = this.position.distanceTo(closest.position);
+
+    for (let i = 1; i < friendlyNeighbours.length; i++) {
+      const dist = this.position.distanceTo(friendlyNeighbours[i].position);
+      if (dist < closestDist) {
+        closest = friendlyNeighbours[i];
+        closestDist = dist;
+      }
+    }
+
+    return closest;
   }
 
   public kill() {
@@ -57,7 +81,13 @@ export class BoidInterface {
     this.boidInstance.hasTarget = false;
   }
 
-  public attack (x: number, y: number) {
+  public attack (target: BoidInterface) {
+    const dir = target.position.clone().sub(this.position);
+    dir.normalize();
+    this.attack_dir(dir.x, dir.y);
+  }
+
+  public attack_dir (x: number, y: number) {
     this.boidInstance.attack(x, y);
   }
 }

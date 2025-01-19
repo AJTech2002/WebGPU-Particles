@@ -38,3 +38,33 @@ for (let i = 0; i < unitCounts; i++) {
   game.units[i].kill();
 }
 game.units.forEach((u, i) => console.log({u, i}));
+
+
+// while (true) {
+//   await game.tick();
+//   var closest = game.units[0].closestFriendlyNeighbour;
+//   if (closest !== undefined) {
+//     console.log(closest);
+//     const closestPos = closest.position;
+//     game.units[0].moveTo(
+//       closestPos.x, closestPos.y
+//     )
+//   / }
+
+// SIngle guy attacking all
+while (true) {
+  await game.tick();
+  for (let i = 0; i < game.units.length; i++) {
+    var closest = game.units[i].closestFriendlyNeighbour;
+
+    if (closest !== undefined) {
+      const closestPos = closest.position;
+      console.log(closestPos);
+      game.units[i].moveTo(
+        closestPos.x, closestPos.y
+      )
+
+      game.units[i].attack(closest);
+    }
+  }
+}

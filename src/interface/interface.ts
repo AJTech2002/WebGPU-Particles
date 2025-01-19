@@ -22,4 +22,12 @@ export class GameContext {
     return this.scene.getUnit(index);
   }
 
+  public async tick() : Promise<void> {
+    return await this.scene.tick();
+  }
+
+  public async seconds(seconds: number) : Promise<void> {
+    return await this.scene.seconds(seconds);
+  }
+
 }

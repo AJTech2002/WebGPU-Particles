@@ -11,6 +11,7 @@ import { Vector3 } from "@engine/math/src";
 import { QuickCompute } from "@engine/ts-compute/quick_compute";
 import  SwapShader  from "./shaders/swap.wgsl";
 import { FloatUniform, UintUniform } from "@engine/renderer/uniforms";
+import BoidScene from "../boid_scene";
 
 interface BoidInitData {
   position: vec3;
@@ -215,7 +216,7 @@ export default class BoidSystemComponent extends Component {
     
     const boidInterface = new BoidInterface(
       boid,
-      this
+      this.scene as BoidScene
     );
 
     return boidInterface;

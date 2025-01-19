@@ -108,14 +108,6 @@ export default class BoidScene extends Scene {
 
     this.spawnUnits();
 
-    this.boidInterfaces.push (
-      this.boidSystem.addBoid({
-        position: new Vector3(0,0,0).toVec3(),
-        speed: 1.0,
-        steeringSpeed: 10.0
-      })!
-    )
-
   }
 
   public get units() : BoidInterface[] {
@@ -127,6 +119,7 @@ export default class BoidScene extends Scene {
       return this.idMappedBoidRefs.get(index)!;
     }
     else {
+      console.log(this.idMappedBoidRefs);
       throw new Error(`Unit ${index} not found`);
     }
   }
@@ -166,6 +159,7 @@ export default class BoidScene extends Scene {
         if (b)  {
           this.boidInterfaces.push(b);
           this.idMappedBoidRefs.set(b.id, b);
+          console.log("Added boid");
         }
        }
       }
