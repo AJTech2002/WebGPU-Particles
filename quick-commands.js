@@ -2,3 +2,39 @@
 setInterval(() => {
   game.units.forEach((u) => u.moveTo(game.mousePosition[0], game.mousePosition[1]))
 })
+
+setInterval(() => {
+  game.units[0].moveTo(
+    game.mousePosition[0], game.mousePosition[1]
+  )
+});
+
+
+game.units.forEach((u) => u.stop());
+
+
+const radius = 3; // Adjust the radius as needed
+const interval = 100; // Time interval in milliseconds
+
+setInterval(() => {
+  const { mousePosition, units } = game;
+  const [mouseX, mouseY] = mousePosition;
+  const unitCount = units.length;
+
+  units.forEach((unit, index) => {
+    const angle = (index / unitCount) * 2 * Math.PI; // Distribute evenly in a circle
+    const targetX = mouseX + radius * Math.cos(angle);
+    const targetY = mouseY + radius * Math.sin(angle);
+
+    unit.moveTo(targetX, targetY);
+  });
+}, interval);
+
+
+const unitCounts = 1000;
+
+for (let i = 0; i < unitCounts; i++) {
+  if (game.units[i].id < unitCounts)
+  game.units[i].kill();
+}
+game.units.forEach((u, i) => console.log({u, i}));

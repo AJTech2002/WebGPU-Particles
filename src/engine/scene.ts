@@ -184,6 +184,23 @@ export default class Scene {
     this.input.dispose();
   }
 
+  runLoopForSeconds (seconds: number, callback: (dt: number) => void, endCallback?: () => void) {
+    const startTime = this.time;
+    const endTime = startTime + seconds * 1000;
+
+    const f = (dt: number) => {
+      if (this.time >= endTime) {
+        this.removeRenderCallback(f);
+        if (endCallback) {
+          endCallback();
+        }
+      }
+      callback(dt);
+    };
+
+    this.createRenderCallback(f);
+  }
+
   //#region Coroutine Support
   /**
    * Wait for the next game tick

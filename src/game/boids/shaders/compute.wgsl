@@ -1,4 +1,3 @@
-
 fn unique_direction(index: u32, numCount: u32) -> vec3<f32> {
     // Convert index and numCount to float for calculations
     let i = f32(index);
@@ -13,6 +12,17 @@ fn unique_direction(index: u32, numCount: u32) -> vec3<f32> {
     return direction;
 }
 
+fn safe_random_normalize(v: vec3<f32>, a: vec3<f32>) -> vec3<f32> {
+    let len = length(v);
+
+    return select(v / len, vec3<f32> (
+      snoise(a.xy),
+      snoise(a.yz),
+      snoise(a.zx)
+    ) , len == 0.0);
+}
+
+
 
 @compute @workgroup_size(64)
 fn avoidanceMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
@@ -24,6 +34,10 @@ fn avoidanceMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
   let objectModelLength: u32 = u32(clamp(numBoids, 0.0, f32(100000)));
 
   if (index < objectModelLength) {
+
+    if (boid_input[index].alive == 0u) {
+      return;
+    }
 
     var avoidance = vec3(0.0, 0.0, 0.0);
     var avoidanceDistance = 0.23;
@@ -39,6 +53,11 @@ fn avoidanceMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
    
     for (var i = 0u; i < objectModelLength; i = i + 1u) {
       if (i != index) {
+
+        if (boid_input[i].alive == 0u) {
+          continue;
+        }
+
         var bP2 = boids[i].position;
 
         var d = distance(bP, bP2);
@@ -53,8 +72,8 @@ fn avoidanceMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
           // Normalize to get only the direction
           let direction = safe_normalize(avVector);
           // var pushStrength = clamp(1.0 - (d/avoidanceDistance), 0.0, 1.0);
-          // var pushStrength = pow(1.0 - (d/avoidanceDistance), avPwr);
-          var pushStrength = avoidanceDistance - d;
+          var pushStrength = pow(1.0 - (d/avoidanceDistance), avPwr);
+          // var pushStrength = avoidanceDistance - d;
 
           avVector = direction * pushStrength;
           avoidance = avoidance + avVector;
@@ -79,9 +98,17 @@ fn movementMain (@builtin(global_invocation_id) global_id: vec3<u32>) {
   let objectModelLength: u32 = u32(clamp(numBoids, 0.0, f32(100000)));
 
   if (index < objectModelLength ) {
+    let input_scale = boid_input[index].scale;
+    objects[index].model = set_scale(objects[index].model, vec3<f32>(input_scale, input_scale, input_scale));
+    objects[index].diffuseColor = boid_input[index].diffuseColor;
+
+
+    if (boid_input[index].alive == 0u) {
+      return;
+    }
 
     var targetWeight = 1.0;
-    let avoidanceWeight = 2.3;
+    let avoidanceWeight = 4.0;
 
     // Properties
     let boidPosition = boids[index].position.xyz;
@@ -103,18 +130,22 @@ fn movementMain (@builtin(global_invocation_id) global_id: vec3<u32>) {
     var movDir = (targetP - boidPosition);
     movDir.z = 0.0;
     let distanceToTarget = length(movDir);
+    // movDir = safe_random_normalize(movDir, vec3<f32>(time * boidPosition.z * (f32(index) + 2), time * boidPosition.x * (f32(index) + 42), time * boidPosition.y * (f32(index) + 12)));
     movDir = safe_normalize(movDir);
+    movDir = clamp(movDir, minAv, maxAv);
 
-
-    if (boid_input[index].hasTarget == 0u) {
+    if (boid_input[index].hasTarget == 0u || distanceToTarget < 0.01) {
       targetWeight = 0.0;
     }
 
     var v = (avoidance * avoidanceWeight ) + (movDir * targetWeight);
     var dir = v ; // * dT;
-    dir = clamp(dir, minV3 ,maxV3 );
+    dir = clamp(dir, minAv ,maxAv );
 
-    var finalPos = boidPosition + dir * dT;
+    var steering = mix(boids[index].steering.xyz, safe_normalize(dir), boid_input[index].steeringSpeed * dT);
+    boids[index].steering = vec4<f32>(steering, 0.0);
+
+    var finalPos = boidPosition + safe_normalize(steering) * length(dir) * boidSpeed * dT;
 
     //TODO: Handle external forces
     var outputPos = vec4<f32>((finalPos + (boids[index].collisionVector.xyz) + (boids[index].externalForce.xyz * dT)), 0.0);
@@ -140,9 +171,7 @@ fn movementMain (@builtin(global_invocation_id) global_id: vec3<u32>) {
     // Color/Data transfer
     objects[index].model = set_position(objects[index].model,lerped);
 
-    let input_scale = boid_input[index].scale;
-    objects[index].model = set_scale(objects[index].model, vec3<f32>(input_scale, input_scale, input_scale));
-    objects[index].diffuseColor = boid_input[index].diffuseColor.xyz;
+        
   }
 
   return;

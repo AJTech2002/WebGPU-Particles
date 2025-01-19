@@ -1,7 +1,7 @@
 import { mat4, vec3, vec4, vec2 } from "gl-matrix";
 import { ArrayUniform } from "@engine/renderer/uniforms";
-import { BufferSchema } from "./compute";
-import { ShaderDataType, ShaderTypes} from "./datatypes";
+import { BufferSchema, BufferSchemaDescriptor } from "./compute";
+import { ShaderDataType, ShaderTypes, StorageMode} from "./datatypes";
 import { getPrimitiveByteSize, getPrimitiveAlignment, parsePrimitives, parseFromPrimitives } from "./parsers";
 import { device } from "@engine/engine";
 /*
@@ -85,6 +85,21 @@ export class DynamicUniform<T> extends ArrayUniform<T> {
     this._value = [];
     this.f32Array = this.toFloat32Array(this._value);
   }
+
+  public override get schemaLayoutDescriptor() : BufferSchemaDescriptor<T> {
+    let descriptor :  BufferSchemaDescriptor<T> = {
+      isArray: this.isArrayed,
+      name: this.name,
+      uniform: this.schema.uniform,
+      maxInstanceCount: this.maxInstanceCount,
+      type: this.schema.type,
+      storageMode: this.schema.uniform ? StorageMode.uniform : StorageMode.read_write,
+      defaultValue: this.schema.defaultValue,
+    };
+
+    return descriptor;
+  }
+
 
   protected setArrayData(index: number, data: T): void {
     if (!this.f32Array) {

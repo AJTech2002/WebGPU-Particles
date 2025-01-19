@@ -1,4 +1,6 @@
 import { device } from "@engine/engine";
+import { BufferSchemaDescriptor } from "@engine/ts-compute/compute";
+import { StorageMode } from "@engine/ts-compute/datatypes";
 import { Color } from "@math";
 import { vec3 } from "gl-matrix";
 
@@ -13,12 +15,19 @@ export class Uniform<T> {
   protected byteSize: number = 0;
   protected usage: GPUBufferUsageFlags = GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC;
 
+  protected hasSetup: boolean = false;
+
   constructor(name: string, defaultValue: T) {
     this.name = name;
     this._value = defaultValue;
   }
 
   setup(autoWrite: boolean = true) {
+
+    if (this.hasSetup) return;
+
+    this.hasSetup = true;
+
     this.buffer = device.createBuffer({
       size: this.byteSize, // Byte size
       usage: this.usage,
@@ -41,6 +50,23 @@ export class Uniform<T> {
 
     return this.buffer!;
   }
+
+  public get schemaLayoutDescriptor() : BufferSchemaDescriptor<T> {
+    let descriptor :  BufferSchemaDescriptor<T> = {
+      isArray: false,
+      name: this.name,
+      uniform: true, 
+      maxInstanceCount: 1, 
+      type: "f32",
+      storageMode: StorageMode.uniform, 
+      defaultValue: this._value 
+    };
+
+    return descriptor;
+  }
+
+
+
 
   protected toFloat32Array(value: T): Float32Array {
     return new Float32Array([]);
@@ -141,6 +167,17 @@ export class ArrayUniform<T> extends Uniform<T[]> {
     this.packedElementSize = this.elementSize / 4;
   }
 
+  public override get schemaLayoutDescriptor() : BufferSchemaDescriptor<T[]> { 
+
+      const descriptor = super.schemaLayoutDescriptor;
+      descriptor.isArray = true;
+      descriptor.maxInstanceCount = this.byteSize / this.elementSize;
+      descriptor.defaultValue = this._value;
+      
+      return descriptor;
+  }
+  
+
   protected toFloat32Array(value: T[]): Float32Array {
     // create array of floats (to the maximum size)
     this.f32Array = new Float32Array(this.byteSize / 4);
@@ -222,6 +259,12 @@ export class ColorUniform extends Uniform<Color> {
     this.byteSize = 16;
   }
 
+  public override get schemaLayoutDescriptor() : BufferSchemaDescriptor<Color> {
+    let descriptor = super.schemaLayoutDescriptor;
+    descriptor.type = "vec4";
+    return descriptor;
+  }
+
   protected toFloat32Array(value: Color): Float32Array {
     return new Float32Array([value.r, value.g, value.b, 1.0]);
   }
@@ -237,6 +280,13 @@ export class FloatUniform extends Uniform<number> {
     this.byteSize = 4;
   }
 
+  public override get schemaLayoutDescriptor() : BufferSchemaDescriptor<number> {
+    let descriptor = super.schemaLayoutDescriptor;
+    descriptor.type = "f32";
+    return descriptor;
+  }
+
+
   protected toFloat32Array(value: number): Float32Array {
     return new Float32Array([value]);
   }
@@ -250,10 +300,44 @@ export class FloatUniform extends Uniform<number> {
   }
 }
 
+export class UintUniform extends Uniform<number> {
+  constructor(defaultValue: number) {
+    super("uint", defaultValue);
+    this.byteSize = 4;
+  }
+
+  public override get schemaLayoutDescriptor() : BufferSchemaDescriptor<number> {
+    let descriptor = super.schemaLayoutDescriptor;
+    descriptor.type = "u32";
+    return descriptor;
+  }
+
+  protected toFloat32Array(value: number): Float32Array {
+    const uint8Array = new Uint32Array([value]);
+    return new Float32Array(uint8Array.buffer);
+  }
+
+  protected fromF32Array(f32Array: Float32Array): number {
+    const uint8Array = new Uint32Array(f32Array.buffer);
+    return uint8Array[0];
+  }
+
+  protected updateBuffer(): void {
+    super.updateBuffer();
+  }
+
+}
+
 export class Vec3Uniform extends Uniform<vec3> {
   constructor(defaultValue: vec3) {
     super("vec3", defaultValue);
     this.byteSize = 12;
+  }
+
+  public override get schemaLayoutDescriptor() : BufferSchemaDescriptor<vec3> {
+    let descriptor = super.schemaLayoutDescriptor;
+    descriptor.type = "vec3";
+    return descriptor;
   }
 
   protected toFloat32Array(value: vec3): Float32Array {

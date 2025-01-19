@@ -8,6 +8,7 @@ import { device } from "@engine/engine";
 
 import matrixShader from "../renderer/shaders/matrix.wgsl";
 import randomNumberGenerator from "../renderer/shaders/random.wgsl";
+import noiseShader from "../renderer/shaders/noise.wgsl";
 
 export interface BufferSchema<T> {
   name: string;
@@ -41,7 +42,7 @@ export default class Compute {
 
   private layout!: GPUBindGroupLayout;
   private bindGroup!: GPUBindGroup;
-  private shader!: string;
+  protected shader!: string;
 
   private entryPoints: string[] = [];
   private computePipelines: GPUComputePipeline[] = [];
@@ -54,7 +55,7 @@ export default class Compute {
   constructor(shader: string[], pipelines: string[]) {
 
     const totalShader = shader.join("\n");
-    const constructedShader = randomNumberGenerator + " \n " + matrixShader + " \n " + totalShader;
+    const constructedShader = noiseShader + "\n" + randomNumberGenerator + " \n " + matrixShader + " \n " + totalShader;
 
     this.shader = constructedShader;
     this.entryPoints = pipelines;
@@ -132,10 +133,7 @@ export default class Compute {
 
     this.addBuffers();
 
-    
-
-
-    const bindGroupLayoutEntries: GPUBindGroupLayoutEntry[] = [];
+    const bindGroupLayoutEntries: device[] = [];
     const bindGroupEntries : GPUBindGroupEntry[] = [];
 
     for (let i = 0; i < this.bufferSchemas.length; i++) {
@@ -177,20 +175,37 @@ export default class Compute {
     });
 
     for (const entry of this.entryPoints) {
-      const computePipeline = device.createComputePipeline({
-        compute: {
-          module: shaderModule,
-          entryPoint: entry,
-        },
-        layout: device.createPipelineLayout({
-          bindGroupLayouts: [this.layout],
-        }),
-      });
-
+      const computePipeline = this.addComputePipeline(shaderModule, entry);
       this.computePipelines.push(computePipeline);
     }
-
     this.ready = true;
+  }
+
+  addComputePipeline(shader: string | GPUShaderModule, entryPoint: string) : GPUComputePipeline {
+    
+    let shaderModule : GPUShaderModule;
+
+    if (shader instanceof GPUShaderModule) {
+      shaderModule = shader;
+    }
+    else {
+      shaderModule = device.createShaderModule({
+        code: shader,
+      });
+    }
+
+    const computePipeline = device.createComputePipeline({
+      compute: {
+        module: shaderModule,
+        entryPoint: entryPoint,
+      },
+      layout: device.createPipelineLayout({
+        bindGroupLayouts: [this.layout],
+      }),
+    });
+
+    return computePipeline;
+
   }
 
   getBuffer<T>(name: string): DynamicUniform<T> | null {
@@ -217,7 +232,7 @@ export default class Compute {
     }
   }
 
-  setPartialElement<T> (name: string, index: number, value: Partial<T>, autoUpload: bool = true) {
+  setPartialElement<T> (name: string, index: number, value: Partial<T>, autoUpload: boolean = true) {
     const buffer = this.getBuffer(name);
     if (buffer) {
       buffer.setElementPartial(index, value, autoUpload);
@@ -231,6 +246,18 @@ export default class Compute {
     }
 
     return Promise.resolve(null);
+  }
+
+  dispatchSingle(workgroups: GPUIndex32, pipeline : GPUComputePipeline) {
+    const commandEncoder = device.createCommandEncoder();
+    const computePass = commandEncoder.beginComputePass();
+
+    computePass.setPipeline(pipeline);
+    computePass.setBindGroup(0, this.bindGroup);
+    computePass.dispatchWorkgroups(workgroups);
+    computePass.end();
+
+    device.queue.submit([commandEncoder.finish()]);
   }
 
   dispatch(workgroups: GPUIndex32) {

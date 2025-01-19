@@ -108,10 +108,18 @@ export default class BoidScene extends Scene {
 
     this.spawnUnits();
 
+    this.boidInterfaces.push (
+      this.boidSystem.addBoid({
+        position: new Vector3(0,0,0).toVec3(),
+        speed: 1.0,
+        steeringSpeed: 10.0
+      })!
+    )
+
   }
 
   public get units() : BoidInterface[] {
-    return this.boidInterfaces;
+    return this.boidInterfaces.filter((b) => b.alive);
   }
 
   public getUnit (index: number) : BoidInterface {
@@ -151,7 +159,8 @@ export default class BoidScene extends Scene {
 
          const b = this.boidSystem.addBoid({
           position: (this.input.mouseToWorld(0).clone().add(rV3)).toVec3(),
-          speed: 1.0
+          speed: 1.0,
+          steeringSpeed: 6.0
         });
         
         if (b)  {

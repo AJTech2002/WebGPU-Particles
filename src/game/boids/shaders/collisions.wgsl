@@ -81,6 +81,11 @@ fn box_collision (unit_position: vec3<f32>, center: vec3<f32>, extents: vec3<f32
 @compute @workgroup_size(64)
 fn collisionMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
   let index = global_id.x;
+
+  if (boid_input[index].alive == 0u) {
+    return;
+  }
+
   var unitPosition = boids[index].position.xyz; 
   var collisionOffset = vec3<f32>(0.0, 0.0, 0.0);
   let objectModelLength: u32 = u32(clamp(numColliders, 0.0, f32(100000)));

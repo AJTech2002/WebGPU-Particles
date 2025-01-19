@@ -7,6 +7,7 @@ import {mat4, vec3, vec4} from "gl-matrix";
 import { shaderBuffer, shaderStruct, shaderProperty, StorageMode, ShaderTypes } from "@engine/ts-compute/datatypes";
 import Collider from "@engine/scene/core/collider_component"; 
 
+//TODO: These can be split 
 @shaderStruct("BoidData")
 export class BoidInputData {
   @shaderProperty(ShaderTypes.vec4)
@@ -25,9 +26,13 @@ export class BoidInputData {
   public speed: number = 0.0; // bytes: 4
 
   @shaderProperty(ShaderTypes.f32)
-  public scale: number = 0.0;
-  
-  // -- assume padding to align to 16 bytes for vec4 --
+  public steeringSpeed: number = 0.0; // bytes: 4
+
+  @shaderProperty(ShaderTypes.f32)
+  public scale: number = 0.0; // bytes: 4
+
+  @shaderProperty(ShaderTypes.bool)
+  public alive: boolean = true; // bytes: 4
 }
 
 @shaderStruct("BoidGPUData")
@@ -45,6 +50,9 @@ export class BoidGPUData {
   public lastModelPosition: vec4 = [0,0,0,0]; // bytes: 16
 
   @shaderProperty(ShaderTypes.vec4)
+  public steering: vec4 = [0,0,0,0]; // bytes: 16
+
+  @shaderProperty(ShaderTypes.vec4)
   public position: vec4 = [0,0,0,0]; // bytes: 16
 }
 
@@ -53,18 +61,17 @@ export class BoidObjectData {
   @shaderProperty(ShaderTypes.mat4x4)
   public model: mat4 = mat4.create();
 
-  @shaderProperty(ShaderTypes.vec3)
-  public diffuseColor: vec3 = [0,0,0];
-
-  @shaderProperty(ShaderTypes.f32)
-  public padding2: number = 0;
+  @shaderProperty(ShaderTypes.vec4)
+  public diffuseColor: vec4 = [0,0,0,0];
 
   @shaderProperty(ShaderTypes.u32)
   public hash: number = 0;
 
   @shaderProperty(ShaderTypes.u32)
-  public boidId: number = 0; // bytes: 4
+  public boidId: number = 0; // bytes: vec4
 
+  @shaderProperty(ShaderTypes.bool)
+  public visible: boolean = true; // bytes: 4
 }
 
 @shaderStruct("BoidOutputData")
@@ -116,6 +123,11 @@ export class BoidCompute extends Compute {
         "movementMain",
       ]
     );
+    
+  }
+
+  init(): void {
+    super.init();
   }
 
   public set Time (time: number) {
@@ -133,5 +145,6 @@ export class BoidCompute extends Compute {
   public set NumColliders (num: number) {
     this.set("numColliders", num);
   }
+
 
 }

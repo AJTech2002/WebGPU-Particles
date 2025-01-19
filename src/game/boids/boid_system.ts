@@ -8,11 +8,14 @@ import { Grid } from "../grid/grid_go";
 import BoidInstance from "./boid_instance";
 import GameObject from "@engine/scene/gameobject";
 import { Vector3 } from "@engine/math/src";
-
+import { QuickCompute } from "@engine/ts-compute/quick_compute";
+import  SwapShader  from "./shaders/swap.wgsl";
+import { FloatUniform, UintUniform } from "@engine/renderer/uniforms";
 
 interface BoidInitData {
   position: vec3;
   speed: number;
+  steeringSpeed: number;
 }
 
 interface BoidInformation {
@@ -23,6 +26,7 @@ interface BoidInformation {
 // Updating boid data & setting boid data should be done in the BoidRunnerComponent
 export default class BoidSystemComponent extends Component {
 
+  //MARK: Properties
   public instanceCount: number = 0;
   public maxInstanceCount: number = maxInstanceCount;
 
@@ -71,8 +75,8 @@ export default class BoidSystemComponent extends Component {
         
         const outputData = output[i];
         const boidId = this.indexMappedId.get(i) ?? -1;
-        if (boidId == -1) {
-          console.warn("Boid Id not found", i);
+        if (boidId == -1 && i < this.instanceCount) {
+          console.warn("Boid Index not found", i);
           continue;
         }
 
@@ -138,7 +142,6 @@ export default class BoidSystemComponent extends Component {
 
   private boidIdCounter: number = 0;
 
-  
   public addBoid(init: BoidInitData): BoidInterface | undefined{
 
     if (this.instanceCount >= this.maxInstanceCount) {
@@ -156,8 +159,10 @@ export default class BoidSystemComponent extends Component {
       hasTarget: false,
       speed: init.speed,
       externalForce: [0, 0, 0, 0],
-      diffuseColor: [1.0, 1.0, 1.0, 0],
+      diffuseColor: [1.0, 1.0, 1.0, 1.0],
       scale: this.boidScale,
+      steeringSpeed: init.steeringSpeed,
+      alive: true
     };
 
     this.compute.setElement<BoidInputData>("boid_input", this.instanceCount, input);
@@ -168,6 +173,7 @@ export default class BoidSystemComponent extends Component {
       externalForce: vec4.create(),
       lastModelPosition: [init.position[0], init.position[1], init.position[2], 0],
       position: [init.position[0], init.position[1], init.position[2], 0],
+      steering: vec4.create()
     });
 
     const model = mat4.identity(mat4.create());
@@ -182,8 +188,8 @@ export default class BoidSystemComponent extends Component {
       model,
       hash: this.grid.gridComponent.hashedTileIndex(tile.x, tile.y),
       boidId:boidId,
-      diffuseColor: [1.0, 1.0, 1.0],
-      padding2: 0,
+      diffuseColor: [1.0, 1.0, 1.0, 1.0],
+      visible: true,
     });
 
 
@@ -258,6 +264,12 @@ export default class BoidSystemComponent extends Component {
     // this.run();
   }
 
+  private updateBoidCount() {
+    if (this.gameObject.mesh?.material)
+      (this.gameObject.mesh?.material as BoidMaterial).instanceCount =
+      this.instanceCount;
+  }
+
   public override update(dT: number): void {
     super.update(dT);
     if (this.compute.ready) {
@@ -269,9 +281,7 @@ export default class BoidSystemComponent extends Component {
       // Update the instances & hashing
       this.updateBoidInformation();
       
-      if (this.gameObject.mesh?.material)
-        (this.gameObject.mesh?.material as BoidMaterial).instanceCount =
-        this.instanceCount;
+      this.updateBoidCount();  
     }
   }
 

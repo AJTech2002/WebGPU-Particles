@@ -27,7 +27,13 @@ export class BoidInterface {
     return this.boidInstance.position;
   }
 
-  
+  public get alive () : boolean {
+    return this.boidInstance.alive;
+  }
+
+  public kill() {
+    this.boidInstance.takeDamage(1000);
+  }
 
   public move (x: number, y: number) {
     // move in this direction
@@ -44,6 +50,11 @@ export class BoidInterface {
   public moveTo (x: number, y: number) {
     const targetPos = new Vector3(x, y, 0);
     this.boidInstance.targetPosition = targetPos;
+  }
+
+  public stop() {
+    this.boidInstance.targetPosition = this.position;
+    this.boidInstance.hasTarget = false;
   }
 
   public attack (x: number, y: number) {

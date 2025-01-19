@@ -19,7 +19,6 @@ struct Fragment {
     @location(0) Color : vec4<f32>,
     @location(1) ScreenPos: vec4<f32>,
     @location(2) UV: vec2<f32>,
-    
 };
 
 fn randomColor(id: u32) -> vec4<f32> {
@@ -28,7 +27,6 @@ fn randomColor(id: u32) -> vec4<f32> {
     var b = f32((id * 12) % 255) / 255.0;
 
     return vec4<f32>(r, g, b, 1.0);
-    //return vec4<f32>(r, g, b, 1.0);
 }
 
 @vertex
@@ -51,14 +49,12 @@ fn vs_main( @builtin(instance_index) ID: u32, @location(0) vertexPostion: vec3<f
     objModel = set_position(objModel, pos);
 
     output.Position =  uniformUBO.projection * uniformUBO.view * model * objModel * vec4<f32>(vertexPostion , 1.0);
-
     //output.Color = vec4<f32>(col.rgb, 1.0);
-    output.Color = vec4<f32>(objects[ID].diffuseColor, 1.0);
+    output.Color = objects[ID].diffuseColor; 
     // output.Color = vec4<f32>( y, 0.0, 0.0, 1.0);
     output.UV = vec2<f32>(uv.x, 1.0 - uv.y);
 
-    output.ScreenPos = output.Position;
-
+  output.ScreenPos = output.Position;
     return output;
 }
 
@@ -68,7 +64,7 @@ fn fs_main(@location(0) Color: vec4<f32> ,@location(1) ScreenPos: vec4<f32>, @lo
 
     var col = textureSample(characterTexture, characterSampler, UV.xy * uvScale + uvOffset);
     col = col * Color * diffuseColor;
-    if (col.a < 0.1) {
+    if (col.a < 0.1)  {
         discard;
     }
 
