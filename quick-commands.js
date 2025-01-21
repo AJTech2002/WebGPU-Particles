@@ -10,6 +10,14 @@ setInterval(() => {
 });
 
 
+while (true) {
+  await game.tick();
+  game.units.forEach((u) => {
+    const mP = game.mousePosition;
+    u.moveTo(mP[0], mP[1])
+  })
+}
+
 game.units.forEach((u) => u.stop());
 
 

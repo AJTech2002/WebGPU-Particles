@@ -24,7 +24,11 @@ export default class Engine {
 
     console.log("Engine created v1.0.1");
     this.canvas = canvas;
-    
+
+    this.canvas.addEventListener("contextmenu", function (event) {
+      event.preventDefault();
+    });
+
     this._renderer = new Renderer(canvas);
  
     this._scene = scene;
