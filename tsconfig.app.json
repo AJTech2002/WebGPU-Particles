@@ -33,6 +33,11 @@
       "@engine/*": ["src/engine/*"],
       "@renderer/*": ["src/engine/renderer/*"],
       "@math": ["src/engine/math/src/index.js"],
+
+      // Game specific
+      "@game/*": ["src/game/*"],
+      "@player/*": ["src/game/player/*"],
+      "@/*": ["src/*"],
     },
 
     "typeRoots": [ 
