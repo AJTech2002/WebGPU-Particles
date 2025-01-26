@@ -29,6 +29,7 @@ export default class Scene {
 
   private disposed: boolean = false;
 
+
   constructor() {
     this.cameraObject = new GameObject("MainCamera", this);
     this.cameraObject.addComponent(new CameraComponent());

@@ -29,8 +29,8 @@ export default class CameraComponent extends Component {
   }
 
   private updateCamera() {
-    var windowWidth = window.innerWidth/this.cameraScale;
-    var windowHeight = window.innerHeight/this.cameraScale;
+    var windowWidth = this.scene.renderer.width / this.cameraScale; 
+    var windowHeight = this.scene.renderer.height / this.cameraScale;
 
     this.leftRightBottomTop = [-windowWidth, windowWidth, -windowHeight, windowHeight];
     mat4.ortho(this.projection ,-windowWidth, windowWidth, -windowHeight, windowHeight, 0, 20);

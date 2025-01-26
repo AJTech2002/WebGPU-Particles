@@ -1,4 +1,4 @@
-import { Vector2, Vector3 } from "@math";
+import { Vector2, Vector3 } from "../math/src/index.js";
 import Scene from "../scene";
 declare enum MouseButtons {
     Left = 1,
@@ -19,7 +19,7 @@ export default class Input {
     getAdjustedMousePosition(): Vector2;
     getRawHorizontal(): number;
     getRawVertical(): number;
-    mouseToWorld: (z: number) => Vector3;
+    mouseToWorld: (z: number, absolute?: boolean) => Vector3;
     keyIsPressed(key: string): boolean;
 }
 export {};

@@ -133,7 +133,7 @@ export default class Compute {
 
     this.addBuffers();
 
-    const bindGroupLayoutEntries: device[] = [];
+    const bindGroupLayoutEntries: GPUBindGroupLayoutEntry[] = [];
     const bindGroupEntries : GPUBindGroupEntry[] = [];
 
     for (let i = 0; i < this.bufferSchemas.length; i++) {

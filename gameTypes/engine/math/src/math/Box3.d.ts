@@ -1,0 +1,36 @@
+export class Box3 {
+    constructor(min?: Vector3, max?: Vector3);
+    isBox3: boolean;
+    min: Vector3;
+    max: Vector3;
+    set(min: any, max: any): this;
+    setFromArray(array: any): this;
+    setFromPoints(points: any): this;
+    setFromCenterAndSize(center: any, size: any): this;
+    setFromObject(object: any, precise?: boolean): any;
+    clone(): any;
+    copy(box: any): this;
+    makeEmpty(): this;
+    isEmpty(): boolean;
+    getCenter(target?: Vector3): Vector3;
+    getSize(target?: Vector3): Vector3;
+    expandByPoint(point: any): this;
+    expandByVector(vector: any): this;
+    expandByScalar(scalar: any): this;
+    containsPoint(point: any): boolean;
+    containsBox(box: any): boolean;
+    getParameter(point: any, target: any): any;
+    intersectsBox(box: any): boolean;
+    intersectsSphere(sphere: any): boolean;
+    intersectsPlane(plane: any): boolean;
+    intersectsTriangle(triangle: any): boolean;
+    clampPoint(point: any, target: any): any;
+    distanceToPoint(point: any): number;
+    getBoundingSphere(target: any): any;
+    intersect(box: any): this;
+    union(box: any): this;
+    applyMatrix4(matrix: any): this;
+    translate(offset: any): this;
+    equals(box: any): any;
+}
+import { Vector3 } from './Vector3.js';

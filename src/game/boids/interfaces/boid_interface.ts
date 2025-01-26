@@ -1,5 +1,6 @@
 import BoidInstance from "../boid_instance";
 import { Vector3 } from "@engine/math/src";
+import { UnitType } from "@game/squad/squad";
 import BoidScene from "src/game/boid_scene";
 
 // Scene Facing
@@ -8,6 +9,7 @@ export class BoidInterface {
   private boidInstance: BoidInstance;
   private boidScene: BoidScene;
   public __origColor__: Vector3 = new Vector3(1,1,1);
+  public unitType: UnitType = "Soldier";
 
   private _id : number = 0;
 
@@ -16,6 +18,10 @@ export class BoidInterface {
     this.boidInstance = instance;
 
     this._id = this.boidInstance.id;
+  }
+
+  public setUnitType (type: UnitType) {
+    this.unitType = type;
   }
 
   

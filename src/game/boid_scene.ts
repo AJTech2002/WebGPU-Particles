@@ -122,7 +122,7 @@ export default class BoidScene extends Scene {
     }
   }
 
-  public createUnit () {
+  public createUnitAtMouse () : BoidInterface | undefined {
     const rV3 = new Vector3(
       Math.random() * 0.2 - 0.1,
       Math.random() * 0.2 - 0.1,
@@ -139,31 +139,34 @@ export default class BoidScene extends Scene {
      this.boidInterfaces.push(b);
      this.idMappedBoidRefs.set(b.id, b);
      console.log("Added boid");
+      return b;
    }
+
+   return undefined;
   }
     
   render(dT: number): void {
     super.render(dT);
 
     if (this.input.getMouseButton(0) ) {
-      // if (this.boidSystem.instanceCount >= this.boidSystem.maxInstanceCount) {
-      //   for (let i = 0; i < 2; i++) {
-      //     const randomIndex = Math.floor(Math.random() * (this.boidSystem.instanceCount - 1));
+      if (this.boidSystem.instanceCount >= this.boidSystem.maxInstanceCount) {
+        for (let i = 0; i < 2; i++) {
+          const randomIndex = Math.floor(Math.random() * (this.boidSystem.instanceCount - 1));
 
-      //     const id = this.boidSystem.indexMappedId.get(randomIndex)!;
-      //     const rV3 = new Vector3(
-      //       Math.random() * 0.1 - 0.05,
-      //       Math.random() * 0.1 - 0.05,
-      //       0
-      //     );
-      //     this.boidSystem.getBoidInstance(id)!.position = this.input.mouseToWorld(0).clone().add(rV3);
-      //   }
-      // }
-      // else {
-      //  for (let i = 0; i < 1; i++) {
-         
-      //  }
-      // }
+          const id = this.boidSystem.indexMappedId.get(randomIndex)!;
+          const rV3 = new Vector3(
+            Math.random() * 0.1 - 0.05,
+            Math.random() * 0.1 - 0.05,
+            0
+          );
+          this.boidSystem.getBoidInstance(id)!.position = this.input.mouseToWorld(0).clone().add(rV3);
+        }
+      }
+      else {
+       for (let i = 0; i < 1; i++) {
+         this.createUnitAtMouse();
+       }
+      }
     }
 
   }

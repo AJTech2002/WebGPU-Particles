@@ -1,4 +1,4 @@
-import Scene from "@engine/scene";
+import Scene from "./";
 import GameObject from "./gameobject";
 import TransformComponent from "./core/transform_component";
 export default class Component {
@@ -12,5 +12,7 @@ export default class Component {
     get transform(): TransformComponent;
     awake(): void;
     update(dT: number): void;
+    mouseEvent(type: number, button: number): void;
+    inputEvent(type: number, key: string): void;
     destroy(): void;
 }

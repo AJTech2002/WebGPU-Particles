@@ -50,11 +50,12 @@ export default class PlayerInput {
     return mappings;
   }
 
-  private context : any = {};
   
   public add_key_mapping (mapping: InputMapping) {
 
-    this.mappedKeys.set(mapping.key, fn);
+    this.mappedKeys.set(mapping.key, () => {
+      //
+    });
 
   }
 

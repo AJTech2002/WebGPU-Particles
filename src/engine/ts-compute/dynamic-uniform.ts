@@ -86,8 +86,8 @@ export class DynamicUniform<T> extends ArrayUniform<T> {
     this.f32Array = this.toFloat32Array(this._value);
   }
 
-  public override get schemaLayoutDescriptor() : BufferSchemaDescriptor<T> {
-    let descriptor :  BufferSchemaDescriptor<T> = {
+  public override get schemaLayoutDescriptor() : any {
+    const descriptor : any = {
       isArray: this.isArrayed,
       name: this.name,
       uniform: this.schema.uniform,

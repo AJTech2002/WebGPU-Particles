@@ -1,6 +1,6 @@
+import BoidScene from "@game/boid_scene";
+import { BoidInterface } from "@game/boids/interfaces/boid_interface";
 import { vec3 } from "gl-matrix";
-import BoidScene from "../game/boid_scene";
-import { BoidInterface } from "../game/boids/interfaces/boid_interface";
 
 export class GameContext {
 

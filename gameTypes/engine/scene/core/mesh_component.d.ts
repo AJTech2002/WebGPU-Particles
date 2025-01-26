@@ -1,5 +1,5 @@
-import Material from "@engine/renderer/material";
-import Component from "@engine/scene/component";
+import Material from "../../renderer/material";
+import Component from "../component";
 export default class Mesh extends Component {
     name: string;
     protected vertexBuffer: GPUBuffer;

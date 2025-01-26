@@ -34,11 +34,8 @@ const addDir = (dir, map, fileMaps ) => {
             addDir(fullPath, map, fileMaps)
         } else if (file.endsWith(".ts")) {
             let contents = fs.readFileSync(fullPath, "utf8");
-
-            // replcae export default with export to allow import with *
-            contents = contents.replace(/export default/g, "export");
-
             map.set("/" + fullPath, contents);
+            console.log(fullPath);
             fileMaps.push(fullPath);
         }
     })
@@ -97,6 +94,7 @@ const createDefaultMap2015 = () => {
     addModule("gl-matrix", "index.d.ts", "/gl-matrix.d.ts", fsMap);
     return fsMap
 }
+
 
 // Path: ./public/lib.d.ts
 const fsMap = createDefaultMap2015()

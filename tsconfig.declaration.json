@@ -1,0 +1,42 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "./gameTypes",
+    "baseUrl": "./",
+    "paths": {
+      "@engine/*": ["src/engine/*"],
+      "@renderer/*": ["src/engine/renderer/*"],
+      "@math": ["src/engine/math/src/index.js"],
+      "@game/*": ["src/game/*"],
+      "@player/*": ["src/game/player/*"],
+      "@/*": ["src/*"]
+    },
+    "typeRoots": [ 
+      "./node_modules/@webgpu/types", 
+      "./node_modules/@types"
+    ] 
+  },
+  "tsc-alias": {
+    "resolveFullPaths": true,
+    "verbose": true
+  },
+  "include": ["src"]
+}

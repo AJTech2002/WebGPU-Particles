@@ -1,4 +1,4 @@
-import Scene from "@engine/scene";
+import Scene from "./";
 import Component from "./component";
 import TransformComponent from "./core/transform_component";
 import Mesh from "./core/mesh_component";
@@ -23,7 +23,9 @@ export default class GameObject {
     on_update(dt: number): void;
     on_destroy(): void;
     destroy(): void;
+    mouseEvent(type: number, button: number): void;
+    inputEvent(type: number, key: string): void;
     addComponent(component: Component): void;
-    getComponent<T extends Component>(type: new () => T): T;
+    getComponent<T extends Component>(type: new () => T): T | null;
     removeComponent(component: Component): void;
 }
