@@ -75,7 +75,7 @@ export class SessionManager {
   }
 
   //TODO: returns some way to stop the code execution - and is threaded
-  public runCode (transpiledCode: string, customContext?: any) {
+  public runCode (transpiledCode: string, onEnd?: (err : boolean) => void, customContext?: any) {
     if (this.engine !== undefined) {
       this.codeRunner.callableFn(transpiledCode, {
         ...this.context,
@@ -84,8 +84,14 @@ export class SessionManager {
         console.log(transpiledCode);
       }, () => {
         console.log("Code Execution Complete");
+        if (onEnd) {
+          onEnd(false);
+        }
       }, (err) => {
         console.error(err);
+        if (onEnd) {
+          onEnd(true);
+        }
       })();
       
     }
@@ -108,23 +114,41 @@ export class SessionManager {
       await this.scene.tick();
 
       const squadContext = {
-        squad: squadClass
+        squad: squadClass,
+        squadDropPosition: [this.scene.inputSystem.mouseToWorld(0).x, this.scene.inputSystem.mouseToWorld(0).y, 0],
       }
 
-      if (squad.transpiledCode) {
-        this.runCode(squad.transpiledCode, squadContext);
-      }
-      else {
-        try {
-          const code = saveFile(squad.code);
-          if (code) {
-            this.runCode(code);
-          }
+      const run = (transpiledCode : string) => {
+        this.runCode(transpiledCode, (err : boolean) => {
+          squadClass.units.forEach((unit) => {
+            unit.kill();
+          });
+        }, squadContext);
+      };
+
+      try {
+
+        let runCode = squad.code;
+
+        if (squad.preCode) {
+          runCode = squad.code.substring(squad.preCode.length, squad.code.length);
         }
-        catch (e) {
-          console.error("Error running code", e);
+
+        const code = saveFile(runCode);
+        if (code) {
+          squad.transpiledCode = code;
+          run(squad.transpiledCode);
         }
+        
       }
+      catch (e) {
+        console.error("Error running code", e);
+        squadClass.units.forEach((unit) => {
+          unit.kill();
+        });
+      }
+
+
     }
   }
 

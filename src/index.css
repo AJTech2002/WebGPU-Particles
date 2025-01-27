@@ -12,6 +12,11 @@ p {
   
 }
 
+li {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 0.7em;
+}
+
 
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;

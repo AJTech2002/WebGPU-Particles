@@ -77,9 +77,13 @@ export class BoidInterface {
     this.boidInstance.targetPosition = targetPos;
   }
 
-  public moveTo (x: number, y: number) {
-    const targetPos = new Vector3(x, y, 0);
+  public async moveTo (x: number, y: number, distanceThreshold?: number) {
+    const targetPos = new Vector3(x, y, this.position.z);
     this.boidInstance.targetPosition = targetPos;
+
+    await this.boidScene.until(() => {
+      return this.position.distanceTo(targetPos) < (distanceThreshold ?? 0.15);
+    })
   }
 
   public stop() {

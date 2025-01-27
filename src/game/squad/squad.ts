@@ -13,6 +13,7 @@ export interface SquadDef {
   unitTypes: UnitTypeDef[];
   color: string;
   code: string;
+  preCode?: string;
   transpiledCode?: string;
 }
 

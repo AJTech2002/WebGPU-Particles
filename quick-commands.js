@@ -77,3 +77,15 @@ while (true) {
     }
   }
 }
+
+
+console.log(squadDropPosition)
+
+// line up around
+for (let i = 0; i < squad.units.length; i++) {
+  var gap = 0.2;
+  var posX = (squadDropPosition[0] - squad.units.length * gap) + i * gap;
+  var posY = squadDropPosition[1];
+
+  squad.units[i].moveTo(posX, posY);
+}
