@@ -17,6 +17,7 @@ export default class GameObject {
   private _children: GameObject[] = [];
 
   private instantiated: boolean = false;
+  private _active: boolean = true;
 
   constructor (name: string, scene: Scene) {
     this.name = name;
@@ -47,6 +48,10 @@ export default class GameObject {
     return this._children;
   }
 
+  public get active() {
+    return this._active;
+  }
+
   public set parent (parent: GameObject | null) {
     if (this._parent) this._parent.remove_child(this);
     if (parent) parent.add_child(this);
@@ -68,21 +73,27 @@ export default class GameObject {
 
   //#region Lifecycle Methods
   public on_awake() {
+    if (!this._active) return;
     for (let i = 0; i < this._components.length; i++) this._components[i].awake();
     this.instantiated = true;
   }
 
   public on_update(dt: number) {
+    if (!this._active) return;
     for (let i = 0; i < this._components.length; i++) this._components[i].update(dt);
   }
 
   public on_destroy() {
     for (let i = 0; i < this._components.length; i++) this._components[i].destroy();
+    this._active = false;
   }
 
   public destroy() {
     this._scene.removeGameObject(this);
+    this._active = false;
   }
+
+  
 
   //#endregion
   
@@ -103,7 +114,7 @@ export default class GameObject {
     if (this.instantiated) component.awake();
   }
 
-  public getComponent<T extends Component>(type: new() => T) {
+  public getComponent<T extends Component>(type: new (...args: any[]) => T) {
     for (let i = 0; i < this._components.length; i++) {
       if (this._components[i] instanceof type) {
         return this._components[i] as T;

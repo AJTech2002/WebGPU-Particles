@@ -1,4 +1,4 @@
-import { BoidInterface } from "../boids/interfaces/boid_interface";
+import { BoidInterface } from "../player/interface/boid_interface";
 export type UnitType = "Soldier" | "Archer" | "Giant";
 export interface UnitTypeDef {
     type: UnitType;
@@ -10,6 +10,7 @@ export interface SquadDef {
     unitTypes: UnitTypeDef[];
     color: string;
     code: string;
+    preCode?: string;
     transpiledCode?: string;
 }
 export declare const EmptySquad: SquadDef;

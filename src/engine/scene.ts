@@ -254,5 +254,13 @@ export default class Scene {
 
       this.createRenderCallback(f);
     });
+
+  protected async reportFPS() {
+    while (true) {
+      await this.seconds(10);
+      console.log("FPS: ", (this.dT * 1000/60.0));
+    }
+  }
+  
   //#endregion
 }

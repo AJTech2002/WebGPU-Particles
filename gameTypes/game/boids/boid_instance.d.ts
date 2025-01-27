@@ -21,17 +21,16 @@ export default class BoidInstance extends Component {
     private _hasTarget;
     private _speed;
     private _scale;
-    private originalColor;
-    private originalScale;
-    private originalPosition;
-    private _health;
+    originalColor: Vector4;
+    originalScale: number;
+    originalPosition: Vector3;
     constructor(boidId: number, boidSystem: BoidSystemComponent, initial: BoidInputData, initialPosition: Vector3);
     get index(): number;
     set index(value: number);
     get id(): number;
-    get health(): number;
     get alive(): boolean;
     get position(): Vector3;
+    setAlive(alive: boolean): void;
     set position(value: Vector3);
     get targetPosition(): Vector3;
     set targetPosition(value: Vector3);
@@ -50,11 +49,8 @@ export default class BoidInstance extends Component {
     getGPUInputData(): BoidInputData;
     private colorPalette;
     setUnitColor(): Promise<void>;
-    knockbackForce(id: number, force: Vector3): Promise<void>;
-    private die;
-    takeDamage(damage: number): void;
+    move(x: number, y: number): void;
+    moveTo(x: number, y: number): void;
     getNeighbours(): BoidInstance[];
-    private lastAttackTime;
-    attack(x: number, y: number): void;
     awake(): void;
 }

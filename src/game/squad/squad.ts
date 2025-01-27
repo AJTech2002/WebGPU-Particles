@@ -1,4 +1,4 @@
-import { BoidInterface } from "@game/boids/interfaces/boid_interface";
+import { BoidInterface } from "@game/player/interface/boid_interface";
 
 export type UnitType = "Soldier" | "Archer" | "Giant";
 

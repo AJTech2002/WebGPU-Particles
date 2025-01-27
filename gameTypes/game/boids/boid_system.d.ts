@@ -1,13 +1,18 @@
 import Component from "../../engine/scene/component";
 import { vec3 } from "gl-matrix";
-import { BoidInterface } from "./interfaces/boid_interface";
 import { BoidGPUData, BoidInputData, BoidObjectData, BoidOutputData } from "./boid_compute";
 import { Grid } from "../grid/grid_go";
 import BoidInstance from "./boid_instance";
+import GameObject from "../../engine/scene/gameobject";
 interface BoidInitData {
     position: vec3;
     speed: number;
     steeringSpeed: number;
+}
+interface BoidSpawnData {
+    instance: BoidInstance;
+    gameObject: GameObject;
+    id: number;
 }
 interface BoidInformation {
     data: BoidOutputData;
@@ -35,7 +40,7 @@ export default class BoidSystemComponent extends Component {
     getBoidNeighbours(boidId: number): number[];
     boidIdsToBoids(boidId: number[]): (BoidInstance | undefined)[];
     private boidIdCounter;
-    addBoid(init: BoidInitData): BoidInterface | undefined;
+    addBoid(init: BoidInitData): BoidSpawnData | undefined;
     get objectBuffer(): GPUBuffer;
     setBoidInputData(index: number, data: Partial<BoidInputData>): void;
     setBoidModelData(index: number, data: Partial<BoidObjectData>): void;

@@ -10,12 +10,14 @@ export default class GameObject {
     private _parent;
     private _children;
     private instantiated;
+    private _active;
     constructor(name: string, scene: Scene);
     get transform(): TransformComponent;
     get mesh(): Mesh | null;
     get scene(): Scene;
     get parent(): GameObject | null;
     get children(): GameObject[];
+    get active(): boolean;
     set parent(parent: GameObject | null);
     add_child(child: GameObject): void;
     remove_child(child: GameObject): void;
@@ -26,6 +28,6 @@ export default class GameObject {
     mouseEvent(type: number, button: number): void;
     inputEvent(type: number, key: string): void;
     addComponent(component: Component): void;
-    getComponent<T extends Component>(type: new () => T): T | null;
+    getComponent<T extends Component>(type: new (...args: any[]) => T): T | null;
     removeComponent(component: Component): void;
 }

@@ -64,5 +64,6 @@ export default class Scene {
      * @example `await gameManager.seconds(5);`
      */
     seconds: (s: number) => Promise<void>;
+    protected reportFPS(): Promise<void>;
 }
 export {};

@@ -1,7 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { bgColor, fgColor } from "@/style";
 import CodeMirror, {
   EditorState,
-  EditorView,
   KeyBinding,
   keymap,
   ReactCodeMirrorRef,
@@ -10,7 +10,7 @@ import CodeMirror, {
 import * as duotone from "@uiw/codemirror-theme-duotone";
 
 import { autocompletion } from "@codemirror/autocomplete";
-import { saveFile, typescriptCompletionSource } from "../../../tsUtils";
+import { typescriptCompletionSource } from "../../../tsUtils";
 import { javascript } from "@codemirror/lang-javascript";
 import { useContext, useState } from "react";
 
@@ -32,6 +32,12 @@ import { BoidInterface } from "/gameTypes/game/boids/interfaces/boid_interface.d
 import {GameContext} from "/gameTypes/game/player/interface/interface.d.ts";
 import {Squad} from "/gameTypes/game/squad/squad.d.ts";
 
+// ==== Game Helpers ====
+const tick : () => Promise<void>; // Call this to wait for one tick in the game
+const seconds : (seconds: number) => Promise<void>; // Call this to wait for seconds
+const until : (condition: () => boolean) => Promise<void>; // Call this to wait until a condition is met
+
+// ==== Game Types ====
 const game : GameContext; // The game context
 const squad : Squad; // The squad you are controlling
 const squadDropPosition : vec3; // Where you dropped the squad
@@ -72,7 +78,7 @@ const squadDropPosition : vec3; // Where you dropped the squad
   const customKeyMap: KeyBinding = {
     key: "Ctrl-Enter",
     win: "Control-Enter",
-    run: (editor: EditorView) => {
+    run: () => {
       save();
       props.onUnFocus();
       return true;
@@ -81,7 +87,7 @@ const squadDropPosition : vec3; // Where you dropped the squad
 
   return (
     <div
-      onClick={(e) => {
+      onClick={() => {
         try {
           save();
         } catch (e) {

@@ -2,23 +2,29 @@ import Engine, { createEngine } from "@engine/engine";
 import CodeRunner from "./code_runner/code_runner";
 import PlayerInput from "@game/player/player_input";
 import BoidScene from "@game/boid_scene";
-import { GameContext } from "@player/interface/interface";
+import { GameContext } from "@game/player/interface/game_interface";
 import { ReactCodeMirrorRef } from "@uiw/react-codemirror";
 import { SquadDef, Squad } from "@game/squad/squad";
 import { saveFile } from "@/tsUtils";
+import { GameDataBridge } from "./interface/bridge";
 
 export interface SessionContext {
   game: GameContext;
+
+  // Global Context
+  tick: () => Promise<void>;
+  seconds: (seconds: number) => Promise<void>;
+  until: (condition: () => boolean) => Promise<void>;
 }
 
 /*TODO: UI Hooks for Session Manager*/
 export class SessionManager {
   private codeRunner = new CodeRunner();
+  private bridge: GameDataBridge | undefined;
   private input: PlayerInput | undefined;
   private engine : Engine | undefined;
   private gameContext: GameContext | undefined;
   private codeMirror: ReactCodeMirrorRef | undefined;
-
   private sessionContext: SessionContext | undefined;
 
   constructor() {}
@@ -36,7 +42,10 @@ export class SessionManager {
 
     if (this.sessionContext === undefined) {
       this.sessionContext = {
-        game: this.gameContext as GameContext
+        game: this.gameContext as GameContext,
+        tick: this.scene.tick.bind(this.scene),
+        seconds: this.scene.seconds.bind(this.scene),
+        until: this.scene.until.bind(this.scene)
       };
     }
 
@@ -59,8 +68,10 @@ export class SessionManager {
       stats
     );
 
+    this.bridge = new GameDataBridge(this.scene);
+
     this.gameContext = new GameContext(
-      this.engine.scene as BoidScene
+      this.bridge
     );
 
     this.input = new PlayerInput(this);
@@ -75,6 +86,7 @@ export class SessionManager {
   }
 
   //TODO: returns some way to stop the code execution - and is threaded
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public runCode (transpiledCode: string, onEnd?: (err : boolean) => void, customContext?: any) {
     if (this.engine !== undefined) {
       this.codeRunner.callableFn(transpiledCode, {
@@ -98,15 +110,21 @@ export class SessionManager {
   }
 
   public async beginSquad (squad: SquadDef) {
-    if (this.engine !== undefined) {
+    if (this.engine !== undefined && this.scene !== undefined && this.bridge !== undefined) {
       const squadClass = new Squad([]);
       for (const unitType of squad.unitTypes) {
         for (let i = 0; i < unitType.count; i++) {
-          const interf = this.scene.createUnitAtMouse(); // Get BoidInterface 
+          const unit = this.scene.createUnit(
+            0, 
+            unitType.type
+          ); // Get BoidInterface 
+
+          console.log("Unit", unit);
           
-          if (interf) {
-            interf.setUnitType(unitType.type); // Set the Type
-            squadClass.addUnit(interf); // Add to the Squad
+          if (unit) {
+            squadClass.addUnit(this.bridge.getBoidInterface(
+              unit.id
+            )); // Add to the Squad
           }
         }
       }
@@ -120,6 +138,10 @@ export class SessionManager {
 
       const run = (transpiledCode : string) => {
         this.runCode(transpiledCode, (err : boolean) => {
+          if (err) {
+            console.warn("Error running code");
+          }
+
           squadClass.units.forEach((unit) => {
             unit.kill();
           });

@@ -1,17 +1,13 @@
 import Component from "@engine/scene/component";
 import { mat4, vec3, vec4 } from "gl-matrix";
 import BoidMaterial from "./rendering/boid_material";
-import {BoidInterface} from "./interfaces/boid_interface";
 import Collider from "@engine/scene/core/collider_component";
 import { BoidCompute, BoidGPUData, BoidInputData, BoidObjectData, BoidOutputData, maxInstanceCount } from "./boid_compute";
 import { Grid } from "../grid/grid_go";
 import BoidInstance from "./boid_instance";
 import GameObject from "@engine/scene/gameobject";
 import { Vector3 } from "@engine/math/src";
-import { QuickCompute } from "@engine/ts-compute/quick_compute";
-import  SwapShader  from "./shaders/swap.wgsl";
-import { FloatUniform, UintUniform } from "@engine/renderer/uniforms";
-import BoidScene from "../boid_scene";
+
 
 interface BoidInitData {
   position: vec3;
@@ -19,6 +15,11 @@ interface BoidInitData {
   steeringSpeed: number;
 }
 
+interface BoidSpawnData {
+  instance: BoidInstance,
+  gameObject: GameObject,
+  id: number
+}
 interface BoidInformation {
   data: BoidOutputData;
 }
@@ -143,7 +144,7 @@ export default class BoidSystemComponent extends Component {
 
   private boidIdCounter: number = 0;
 
-  public addBoid(init: BoidInitData): BoidInterface | undefined{
+  public addBoid(init: BoidInitData): BoidSpawnData | undefined{
 
     if (this.instanceCount >= this.maxInstanceCount) {
       if (!this.warned) {
@@ -214,12 +215,12 @@ export default class BoidSystemComponent extends Component {
     this.boidRefs.push(boid);
     this.idMappedBoidRefs.set(boidId, boid);
     
-    const boidInterface = new BoidInterface(
-      boid,
-      this.scene as BoidScene
-    );
-
-    return boidInterface;
+    return {
+      instance: boid,
+      gameObject: boidGo,
+      id: boidId
+    };
+  
   }
 
   public get objectBuffer () : GPUBuffer {

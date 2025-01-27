@@ -12,15 +12,16 @@ import { StandardDiffuseMaterial } from "@engine/renderer/material";
 import { Color, Vector3 } from "@engine/math/src";
 import SquareTexture from "../assets/square.png";
 import { Grid } from "./grid/grid_go";
-import { BoidInterface } from "./boids/interfaces/boid_interface";
+import { Unit } from "./units/unit";
+import { UnitType } from "./squad/squad";
 
 export default class BoidScene extends Scene {
 
   private boidSystem!: BoidSystemComponent;
   private grid!: Grid;
 
-  private boidInterfaces : BoidInterface[] = [];
-  private idMappedBoidRefs = new Map<number, BoidInterface>();
+  private _units : Unit[] = [];
+  private _idMappedUnits = new Map<number, Unit>();
 
   createCollider() {
     const collider = new GameObject("collider", this);
@@ -61,21 +62,6 @@ export default class BoidScene extends Scene {
     }
   }
 
-  async spawnUnits() {
-    while (true) {
-
-      await this.seconds(0.05);
-
-    }
-  }
-
-  async reportFPS() {
-    while (true) {
-      await this.seconds(5);
-      console.log("FPS: ", (this.dT * 1000/60.0));
-    }
-  }
-
   awake(engine: Engine): void {
     super.awake(engine);
     this.reportFPS();
@@ -103,48 +89,58 @@ export default class BoidScene extends Scene {
     )));
 
     this.activeCamera!.gameObject.transform.position.z = -10;
-
-    this.spawnUnits();
-
   }
 
-  public get units() : BoidInterface[] {
-    return this.boidInterfaces.filter((b) => b.alive);
+  public get units() : Unit[] {
+    return this.units.filter((b) => b.alive);
   }
 
-  public getUnit (index: number) : BoidInterface {
-    if (this.idMappedBoidRefs.has(index)) {
-      return this.idMappedBoidRefs.get(index)!;
+  public getUnit (index: number) : Unit {
+    if (this._idMappedUnits.has(index)) {
+      return this._idMappedUnits.get(index)!;
     }
     else {
-      console.log(this.idMappedBoidRefs);
+      console.log(this._idMappedUnits);
       throw new Error(`Unit ${index} not found`);
     }
   }
 
-  public createUnitAtMouse () : BoidInterface | undefined {
+  public createUnit (
+    ownerId: number = 0,
+    unitType: UnitType = "Soldier",
+    position?: Vector3
+  ) : Unit | undefined {
+
     const rV3 = new Vector3(
       Math.random() * 0.2 - 0.1,
       Math.random() * 0.2 - 0.1,
       0
     );
 
-    const b = this.boidSystem.addBoid({
-     position: (this.input.mouseToWorld(0).clone().add(rV3)).toVec3(),
+    const p = position ?? (this.input.mouseToWorld(0).clone().add(rV3)).toVec3();
+
+    const spawnData = this.boidSystem.addBoid({
+     position: p,
      speed: 1.0,
      steeringSpeed: 6.0
    });
    
-   if (b)  {
-     this.boidInterfaces.push(b);
-     this.idMappedBoidRefs.set(b.id, b);
-     console.log("Added boid");
-      return b;
+   if (spawnData?.instance)  {
+    const unit = new Unit(
+      ownerId,
+      unitType
+    );
+
+    spawnData.gameObject.addComponent(unit);
+    this._units.push(unit);
+    this._idMappedUnits.set(spawnData.id, unit);
+
+    return unit;
    }
 
    return undefined;
   }
-    
+
   render(dT: number): void {
     super.render(dT);
 
@@ -163,9 +159,9 @@ export default class BoidScene extends Scene {
         }
       }
       else {
-       for (let i = 0; i < 1; i++) {
-         this.createUnitAtMouse();
-       }
+      //  for (let i = 0; i < 1; i++) {
+      //    this.createUnitAtMouse();
+      //  }
       }
     }
 
