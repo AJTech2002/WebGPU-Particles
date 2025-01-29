@@ -20,7 +20,7 @@ export default class TransformComponent extends Component {
     this.updateTransform();
   }
 
-  updateTransform() {
+  public updateTransform() {
     this.matrix = new Matrix4();
     this.matrix.compose(
       this.position.clone(),

@@ -3,8 +3,9 @@ import { mat4 } from "gl-matrix";
 import { shaderProperty, shaderStruct, ShaderTypes } from "@engine/ts-compute/datatypes";
 import { vec3 } from "gl-matrix";
 import BoidSystemComponent from "@game/boids/boid_system";
-import { Plane, Vector2, Vector3 } from "@engine/math/src";
+import { Color, Plane, Vector2, Vector3 } from "@engine/math/src";
 import { line2DIntersectsRotatedSquare } from "@engine/utils/intersections";
+import { Debug } from "@engine/debug/debug";
 
 export enum ColliderShape {
   Square = 0,
@@ -47,7 +48,6 @@ export default class Collider extends Component {
   }
 
   override start() {
-    super.start();
     this.scene.findObjectOfType<BoidSystemComponent>(BoidSystemComponent)!.addCollider(this);
   }
 
@@ -67,6 +67,13 @@ export default class Collider extends Component {
       const origin = new Vector2(rayOrigin[0], rayOrigin[1]);
       const direction = new Vector2(rayDirection[0], rayDirection[1]);
       const end = origin.clone().add(direction.multiplyScalar(rayDistance));
+
+      // Debug.line(
+      //   new Vector3(origin.x, origin.y, 0.0),
+      //   new Vector3(end.x, end.y, 0.0),
+      //   new Color(1.0, 0.0, 0.0),
+      //   0.2
+      // )
 
       const didIntersect = line2DIntersectsRotatedSquare(
         new Vector2(this.transform.position.x, this.transform.position.y),

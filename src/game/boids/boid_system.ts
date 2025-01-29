@@ -251,6 +251,7 @@ export default class BoidSystemComponent extends Component {
       boidId, this, input, new Vector3(init.position[0], init.position[1], init.position[2])
     );
 
+    boidGo.transform.position = new Vector3(init.position[0], init.position[1], init.position[2]);
     boidGo.addComponent(boid, false); // Don't call `update` 
 
     this.boidRefs.push(boid);
@@ -297,6 +298,12 @@ export default class BoidSystemComponent extends Component {
   }
 
   public addCollider (collider: Collider) {
+
+    if (this._colliders.length >= 100) {
+      console.warn("Max colliders reached");
+      return;
+    }
+
     this._colliders.push(collider);
   }
 

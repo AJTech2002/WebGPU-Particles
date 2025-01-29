@@ -86,13 +86,28 @@ export default class GameObject {
 
   public on_start() {
     if (!this._active) return;
+    for (let i = 0; i < this._components.length; i++) {
+      if (this._components[i].started) continue;
+      this._components[i].start();
+      this._components[i].started = true;
+    }
     this._started = true;
-    for (let i = 0; i < this._components.length; i++) this._components[i].start();
+
   }
 
   public on_update(dt: number) {
-    if (!this._active) return;
-    for (let i = 0; i < this._updateComponents.length; i++) this._updateComponents[i].update(dt);
+    if (!this._active && this.started) return;
+    for (let i = 0; i < this._updateComponents.length; i++) {
+
+      if (this._updateComponents[i].started) {
+        this._updateComponents[i].update(dt);
+      }
+      else {        
+        this._updateComponents[i].started = true;
+        this._updateComponents[i].start();
+      }
+
+    }
   }
 
   public on_destroy() {

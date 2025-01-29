@@ -128,7 +128,10 @@ export default class BoidScene extends Scene {
       unitType
     );
 
+
     spawnData.gameObject.addComponent(unit);
+
+
     this._units.push(unit);
     this._idMappedUnits.set(spawnData.id, unit);
 

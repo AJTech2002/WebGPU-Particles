@@ -137,11 +137,11 @@ export class SessionManager {
         this.runCode(transpiledCode, (err : boolean) => {
           if (err) {
             console.warn("Error running code");
+            squadClass.units.forEach((unit) => {
+              unit.kill();
+            });
           }
 
-          squadClass.units.forEach((unit) => {
-            unit.kill();
-          });
         }, squadContext);
       };
 
@@ -153,10 +153,20 @@ export class SessionManager {
           runCode = squad.code.substring(squad.preCode.length, squad.code.length);
         }
 
-        const code = saveFile(runCode);
-        if (code) {
-          squad.transpiledCode = code;
-          run(squad.transpiledCode);
+        if (runCode.trim() !== "") {
+          
+          runCode = 
+          `
+          await tick();
+          ` 
+          + runCode;
+          
+          const code = saveFile(runCode);
+          
+          if (code) {
+            squad.transpiledCode = code;
+            run(squad.transpiledCode);
+          }
         }
         
       }

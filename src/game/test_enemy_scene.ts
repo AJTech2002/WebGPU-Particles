@@ -63,42 +63,61 @@ export class TestEnemyScene extends BoidScene {
     });
   }
 
+  async spawn () {
+    while (true) {
+      await this.seconds(1);
+
+      const randomAngle = Math.random() * Math.PI * 2;
+      const distance = 10;
+
+      const x = Math.cos(randomAngle) * distance;
+      const y = Math.sin(randomAngle) * distance;
+
+
+      this.spawnEnemy(new Vector3(x, y, 0), "Soldier");
+    }
+  }
+
+  start(): void {
+    this.spawn();
+  }
+
   render(dT: number): void {
     super.render(dT);
-    this.spawnEnemy(new Vector3(0, 0, 0), "Soldier");
+    
   }
 
   mouseEvent(type: number, button: number): void {
     super.mouseEvent(type, button);
     if (type === 0 && button === 0) {
-      // // perform raycast
-      // const rayOrigin = this.input.mouseToWorld(0).toVec3();
-      // const rayDirection : vec3 = [-1, 0, 0];
-      // const rayDistance = 0.2;
-      // const rayEnd = vec3.add(vec3.create(), rayOrigin, vec3.scale(vec3.create(), rayDirection, rayDistance));
+      // perform raycast
+      const rayOrigin = this.input.mouseToWorld(0).toVec3();
+      const rayDirection : vec3 = [-1, 0, 0];
+      const rayDistance = 2.0;
+      const rayEnd = vec3.add(vec3.create(), rayOrigin, vec3.scale(vec3.create(), rayDirection, rayDistance));
 
-      // Debug.line(
-      //   new Vector3(rayOrigin[0], rayOrigin[1], rayOrigin[2]),
-      //   new Vector3(rayEnd  [0], rayEnd  [1], rayEnd  [2]),
-      //   new Color(1, 0, 0),
-      //   2.0
-      // );
+      Debug.line(
+        new Vector3(rayOrigin[0], rayOrigin[1], rayOrigin[2]),
+        new Vector3(rayEnd  [0], rayEnd  [1], rayEnd  [2]),
+        new Color(1, 0, 0),
+        2.0
+      );
 
-      // const allColliders = this.findObjectsOfType(Collider);
+      const allColliders = this.findObjectsOfType(Collider);
 
-      // for (let i = 0; i < allColliders.length; i++) {
-      //   const collider = allColliders[i];
-      //   const didHit = collider.check2DRayIntersection(
-      //     rayOrigin,
-      //     rayDirection,
-      //     rayDistance,
-      //   );
-      //   if (didHit) {
-      //     if (collider.gameObject.getComponent(Damageable)) {
-      //       collider.gameObject.getComponent(Damageable)!.takeDamage(100);
-      //     }
-      //   }
-      // }
+      for (let i = 0; i < allColliders.length; i++) {
+        const collider = allColliders[i];
+        const didHit = collider.check2DRayIntersection(
+          rayOrigin,
+          rayDirection,
+          rayDistance,
+        );
+        if (didHit) {
+          if (collider.gameObject.getComponent(Damageable)) {
+            collider.gameObject.getComponent(Damageable)!.takeDamage(100);
+          }
+        }
+      }
 
     }
   }

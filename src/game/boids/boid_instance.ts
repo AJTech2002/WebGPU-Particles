@@ -50,6 +50,8 @@ export default class BoidInstance extends Component {
 
     this.originalColor = new Vector4(initial.diffuseColor[0], initial.diffuseColor[1], initial.diffuseColor[2], initial.diffuseColor[3]);
     this.originalScale = initial.scale;
+
+
   }
 
   //#region == Property Accessors ==
@@ -253,5 +255,6 @@ export default class BoidInstance extends Component {
 
   public awake(): void {
     this.position = this.originalPosition;
+    this.transform.position.set(this.originalPosition.x, this.originalPosition.y, this.originalPosition.z);
   }
 }

@@ -68,7 +68,6 @@ export class Unit extends Damageable {
         this.boidInstance.scale = scale;
       },
       () => {
-        console.log("Unit died");
         this.boidInstance.diffuseColor = new Vector4(0, 0, 0, 0);
         this.boidInstance.scale = 0;
 
@@ -148,23 +147,24 @@ export class Unit extends Damageable {
 
     const now = Date.now();
     if (now - this.lastAttackTime < 400) return;
+    this.lastAttackTime = now;
 
     //TODO: Optimize but for now check if the castle has been hit directly?
-    const rayColliders = this.scene.raycast(
-      new Vector3(this.position.x, this.position.y, this.position.z),
-      new Vector3(x, y, 0).normalize(),
-      attackDistance
-    );
+    if (this.ownerId === 1 && this.position.distanceTo2D(this.castle.transform.position) < 2.0) {
+      const rayColliders = this.scene.raycast(
+        new Vector3(this.position.x, this.position.y, this.position.z),
+        new Vector3(x, y, 0).normalize(),
+        attackDistance
+      );
 
-    if (rayColliders.length > 0) {
-      if (rayColliders[0].gameObject.name === "Castle") {
-        //
-        this.castle.takeDamage(10);
+      if (rayColliders.length > 0) {
+        if (rayColliders[0].gameObject.name === "Castle") {
+          //
+          this.castle.takeDamage(10);
+        }
+        return;
       }
-      return;
     }
-
-    this.lastAttackTime = now;
 
     // get the neighbours
     const neighbours = this.system.getBoidNeighbours(this.boidInstance.id);

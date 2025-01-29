@@ -1,5 +1,6 @@
 import { Vector2 } from "@engine/math/src";
 
+
 export function line2DIntersectsRotatedSquare(squareCenter : Vector2, sideLength : number, rotation : number, lineStart : Vector2, lineEnd : Vector2) {
   // Create rotation matrix (inverse rotation to align square)
   const cosTheta = Math.cos(-rotation);

@@ -542,11 +542,25 @@ class Vector3 {
 
 	}
 
+	distanceTo2D( v ) {
+		
+		return Math.sqrt( this.distanceToSquared2D( v ) );
+
+	}
+
 	distanceToSquared( v ) {
 
 		const dx = this.x - v.x, dy = this.y - v.y, dz = this.z - v.z;
 
 		return dx * dx + dy * dy + dz * dz;
+
+	}
+
+	distanceToSquared2D ( v ) {
+
+		const dx = this.x - v.x, dy = this.y - v.y;
+
+		return dx * dx + dy * dy;
 
 	}
 

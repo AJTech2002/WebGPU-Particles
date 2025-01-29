@@ -158,7 +158,7 @@ export class BoidInterface extends GameInterface {
     )
   }
 
-  public async moveTo (x: number, y: number, distanceThreshold?: number) {
+  public moveTo (x: number, y: number, distanceThreshold?: number) {
     const targetPos = new Vector3(x, y, 0);
     this.bridge.sendCommand(
       {
@@ -170,10 +170,6 @@ export class BoidInterface extends GameInterface {
         }
       }
     )
-
-    await this.bridge.until(() => {
-      return this.position.distanceTo(targetPos) < (distanceThreshold ?? 0.15);
-    })
   }
 
   public stop() {

@@ -4,7 +4,7 @@ import Component from "@engine/scene/component";
 export default class CameraComponent extends Component {
   public projection: mat4;
   private leftRightBottomTop: vec4;
-  private cameraScale: number = 200;
+  private cameraScale: number = 50;
 
   constructor() {
     super();

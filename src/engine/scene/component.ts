@@ -7,6 +7,8 @@ export default class Component {
   protected _scene!: Scene;
   protected _gameObject!: GameObject;
   protected _transform!: TransformComponent;
+
+  public started: boolean = false;
   
   constructor() {
   }

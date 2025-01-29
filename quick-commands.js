@@ -90,6 +90,8 @@ for (let i = 0; i < squad.units.length; i++) {
 }
 
 
+var enemyMapped = {};
+
 while (true) {
   await tick();
   await tick();
@@ -102,7 +104,21 @@ while (true) {
       unit.attack(closestEnemy);
     }
     else {
-      (unit as any).closestEnemy = unit.getClosestEnemy();
+      const closest  = unit.getClosestEnemy();
+      if (closest === null || closest === undefined) {
+        continue;
+      }
+      // check if key exists
+      if (enemyMapped[closest.id] === undefined) {
+        enemyMapped[closest.id] = 1;
+      }
+      else {
+        if (enemyMapped[closest.id] > 2) {
+          continue;
+        }
+        enemyMapped[closest.id] += 1;
+        (unit as any).closestEnemy = closest;
+      }
     }
   }
 }

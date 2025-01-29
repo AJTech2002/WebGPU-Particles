@@ -10,7 +10,7 @@ import { Quad } from "@engine/prefabs/quad.prefab";
 
 export class TreeSpawner extends Component {
 
-    private treeCount: number = 50;
+    private treeCount: number = 60;
     private grid! : GridComponent;
 
     public awake(): void {
@@ -22,8 +22,6 @@ export class TreeSpawner extends Component {
 
     private createTree() {
       const squareCollider = Quad(this.scene, new Color(1, 1, 1), TreeTexture);
-
-      
       // randomize position
       const x = Math.random() * this.grid.size.x;
       const y = Math.random() * this.grid.size.y;

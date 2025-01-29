@@ -11,6 +11,12 @@ export class BaseEnemy extends Component {
     this.unit = this.gameObject.getComponent<Unit>(Unit)!;
   }
 
+  public start(): void {
+    super.start();
+    console.log("BaseEnemy start");
+    console.log(this.transform.position);
+  }
+
   public update(dT: number): void {
     
     super.update(dT);
@@ -19,6 +25,7 @@ export class BaseEnemy extends Component {
     const center = new Vector3(0,0,0);
     const dir = center.sub(this.unit.position).normalize();
     this.unit.boid.moveTo(center.x, center.y);
+    
     this.unit.attack(dir.x, dir.y);
 
   }
