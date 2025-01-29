@@ -63,7 +63,6 @@ export default function GameScreen() {
         {
           const squad = squadState.get(Number.parseFloat(id.toString()))
           if (squad) {
-            console.log("Dropped squad : ", squad);
             Player.beginSquad(squad);
           }
         }

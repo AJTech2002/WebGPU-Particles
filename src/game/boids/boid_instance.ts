@@ -220,25 +220,7 @@ export default class BoidInstance extends Component {
 
   //#region == Game Logic == 
 
-  private colorPalette: vec3[] = [
-    // [102.0/255.0, 172.0/255.0, 204.0/255.0],
-    [150.0/255.0, 150.0/255.0, 150.0/255.0],
-    [243.0/255.0, 131.0/255.0, 85.0/255.0],
-    // [110.0/255.0, 110.0/255.0, 110.0/255.0],
-    //#2a2734
-    [42.0/255.0, 39.0/255.0, 52.0/255.0],
-    //#6c6783
-    // [108.0/255.0, 103.0/255.0, 131.0/255.0],
-    // //#242424
-    // [36.0/255.0, 36.0/255.0, 36.0/255.0],
-  ];
 
-  async setUnitColor () {
-    await this.scene.seconds(0.1);
-    const boidColor = this.colorPalette[Math.floor(Math.random() * this.colorPalette.length)];
-    this.diffuseColor = new Vector4(boidColor[0], boidColor[1], boidColor[2], 1.0);
-    this.originalColor = new Vector4(boidColor[0], boidColor[1], boidColor[2], 1.0);
-  }
 
   //#region Movement
 
@@ -272,6 +254,5 @@ export default class BoidInstance extends Component {
 
   public awake(): void {
     this.position = this.originalPosition;
-    this.setUnitColor();
   }
 }

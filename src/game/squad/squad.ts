@@ -79,4 +79,10 @@ export class Squad {
     return this.units.length;
   }
 
+  public destroy() {
+    for (const unit of this.units) {
+      unit.kill();
+    }
+  }
+
 }

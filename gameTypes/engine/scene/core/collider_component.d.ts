@@ -15,6 +15,7 @@ export default class Collider extends Component {
     constructor(size?: vec3, shape?: ColliderShape, isTrigger?: boolean, isStatic?: boolean);
     awake(): void;
     start(): void;
+    check2DRayIntersection(rayOrigin: vec3, rayDirection: vec3, rayDistance: number): boolean;
     update(deltaTime: number): void;
     render(deltaTime: number): void;
     destroy(): void;

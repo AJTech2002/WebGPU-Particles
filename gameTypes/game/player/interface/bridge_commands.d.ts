@@ -8,6 +8,14 @@ export interface BoidInterfaceData {
     neighbours: number[];
     unitType: UnitType;
 }
+export interface EnemyInterfaceData {
+    id: number;
+    ownerId: number;
+    position: Vector3;
+    alive: boolean;
+    unitType: UnitType;
+    health: number;
+}
 export type BoidInterfaceCommand = {
     id: number;
     type: "Move";
@@ -23,6 +31,9 @@ export type BoidInterfaceCommand = {
 } | {
     id: number;
     type: "Stop";
+} | {
+    id: number;
+    type: "Terminate";
 };
 export interface MoveCommandProps {
     vec: Vector3;

@@ -28,7 +28,7 @@ export declare class BoidObjectData {
 export declare class BoidOutputData {
     position: vec3;
 }
-export declare const maxInstanceCount = 2000;
+export declare const maxInstanceCount: number;
 export declare class BoidCompute extends Compute {
     private objects;
     private boid_input;

@@ -79,8 +79,6 @@ while (true) {
 }
 
 
-console.log(squadDropPosition)
-
 // line up around
 for (let i = 0; i < squad.units.length; i++) {
   var gap = 0.2;
@@ -88,4 +86,18 @@ for (let i = 0; i < squad.units.length; i++) {
   var posY = squadDropPosition[1];
 
   squad.units[i].moveTo(posX, posY);
+
+}
+
+while (true) {
+  await seconds(0.1);
+  for (var unit of squad.getUnits()) {
+    const closestEnemy = unit.getClosestEnemy();
+    console.log(closestEnemy);
+    if (closestEnemy !== undefined) {
+      unit.moveTo(closestEnemy.position.x, closestEnemy.position.y);
+      unit.attack(closestEnemy);
+      console.log("Attacking")
+    }
+  }
 }

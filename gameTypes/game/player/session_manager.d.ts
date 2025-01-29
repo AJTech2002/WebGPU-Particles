@@ -5,6 +5,9 @@ import { ReactCodeMirrorRef } from "@uiw/react-codemirror";
 import { SquadDef } from "../squad/squad";
 export interface SessionContext {
     game: GameContext;
+    tick: () => Promise<void>;
+    seconds: (seconds: number) => Promise<void>;
+    until: (condition: () => boolean) => Promise<void>;
 }
 export declare class SessionManager {
     private codeRunner;

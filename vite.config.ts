@@ -17,6 +17,7 @@ export default defineConfig({
       "@": path.resolve(__dirname, 'src/'),
       "@game": path.resolve(__dirname, 'src/game/'),
       "@player": path.resolve(__dirname, 'src/game/player/'),
+      "@assets": path.resolve(__dirname, 'src/assets/'),
   },
   }
 })

@@ -7,7 +7,9 @@ export declare enum ShaderTypes {
     u32 = "u32",
     mat4x4 = "mat4x4",
     i32 = "i32",
-    bool = "bool"
+    bool = "bool",
+    atomicI32 = "atomicI32",
+    atomicU32 = "atomicU32"
 }
 export declare function getShaderCode(type: keyof typeof ShaderTypes): string;
 export declare function createBinding(index: number, group: number, bufferSchema: BufferSchemaDescriptor<any>): string;

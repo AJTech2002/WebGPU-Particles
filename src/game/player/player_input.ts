@@ -1,3 +1,4 @@
+/* eslint-disable no-empty */
 import { InputMapping, key_mappings } from "./input_mappings";
 import { SessionManager } from "./session_manager";
 
@@ -80,8 +81,6 @@ export default class PlayerInput {
     if (this.session.codeEditorHasFocus()) {
       return;
     }
-
-    console.log("Click", event);
   }
 
   private onMouseMove (event: MouseEvent) {
@@ -89,7 +88,6 @@ export default class PlayerInput {
       return;
     }
 
-    console.log("Mouse Move", event);
   }
 
   private processKeyMap (map: string, state: KeybindType) {
@@ -150,8 +148,6 @@ export default class PlayerInput {
     if (this.session.codeEditorHasFocus()) {
       return;
     }
-
-    // console.log(this.current_mappings());
   }
 
 
@@ -160,7 +156,6 @@ export default class PlayerInput {
       return;
     }
     
-    console.log("Wheel", event);
   }
 
   

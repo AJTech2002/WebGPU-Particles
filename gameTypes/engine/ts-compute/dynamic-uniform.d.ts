@@ -1,5 +1,5 @@
 import { ArrayUniform } from "../renderer/uniforms";
-import { BufferSchema } from "./compute";
+import { BufferSchema, BufferSchemaDescriptor } from "./compute";
 export declare class DynamicUniform<T> extends ArrayUniform<T> {
     private maxInstanceCount;
     private layout;
@@ -9,6 +9,7 @@ export declare class DynamicUniform<T> extends ArrayUniform<T> {
     private isArrayed;
     private writeStagingBuffer;
     constructor(name: string, schema: BufferSchema<T>);
+    static from<T extends object>(descriptor: BufferSchemaDescriptor<T>): DynamicUniform<T>;
     get schemaLayoutDescriptor(): any;
     protected setArrayData(index: number, data: T): void;
     setValue(value: T): void;

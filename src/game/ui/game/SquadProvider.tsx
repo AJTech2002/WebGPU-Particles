@@ -32,7 +32,6 @@ export function SquadProvider (props : {
 
   useEffect(() => {
     localStorage.setItem("squads", JSON.stringify(Array.from(squadState.entries())));
-    console.log("Squad state saved:", squadState);
   }, [squadState]);
 
   const addSquad = (squad: SquadDef) => {

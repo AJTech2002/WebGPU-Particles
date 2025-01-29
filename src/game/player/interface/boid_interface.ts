@@ -2,16 +2,20 @@ import { Vector3 } from "@engine/math/src";
 import { GameDataBridge } from "@game/player/interface/bridge";
 import { BoidInterfaceData } from "@game/player/interface/bridge_commands";
 import { UnitType } from "@game/squad/squad";
+import { GameInterface } from "./game_interface";
+import { EnemyInterface } from "./enemy_interface";
 
+type Positional = {
+  position: Vector3;
+}
 // Scene Facing
-export class BoidInterface {
+export class BoidInterface extends GameInterface {
 
-  private bridge: GameDataBridge;
   private _id : number = 0;
 
   constructor(id: number, bridge: GameDataBridge) {
+    super(bridge);
     this._id = id;
-    this.bridge = bridge;
   }
 
   private get data () : BoidInterfaceData {
@@ -50,15 +54,17 @@ export class BoidInterface {
     return this.neighbours.filter((boid) => boid.id !== this.id && boid.alive && (this.bridge.getBoidData(boid.id).ownerId === this.ownerId));
   }
 
-  public get enemyNeighbours () : BoidInterface[] {
-    return this.neighbours.filter((boid) => boid.id !== this.id && boid.alive && (this.bridge.getBoidData(boid.id).ownerId === this.ownerId));
+  public get enemyNeighbours () : EnemyInterface[] {
+    return this.neighbours
+    .filter((boid) => boid.id !== this.id && boid.alive && (this.bridge.getBoidData(boid.id).ownerId !== this.ownerId))
+    .map((boid) => new EnemyInterface(boid.id, this.bridge));
   }
 
-  public getClosest (units: BoidInterface[]) : BoidInterface | null {
+  public getClosest<Positional> (units: Positional[]) : Positional | null {
     let minDist = Number.MAX_VALUE;
-    let closest: BoidInterface | null = null;
+    let closest: Positional | null = null;
     for (const unit of units) {
-      const dist = this.position.distanceTo(unit.position);
+      const dist = this.position.distanceTo((unit as any).position);
       if (dist < minDist) {
         minDist = dist;
         closest = unit;
@@ -68,15 +74,17 @@ export class BoidInterface {
     return closest;
   }
 
+  public getClosestEnemy () : EnemyInterface | null {
+    const closest = this.getClosest(this.enemyNeighbours);
+    return closest ? new EnemyInterface(closest.id, this.bridge) : null;
+  }
+
   public kill() {
     // this.boidInstance.takeDamage(1000);
     this.bridge.sendCommand(
       {
         id: this.id,
-        type: "TakeDamage",
-        props: {
-          damage: 1000
-        }
+        type: "Terminate",
       }
     )
   }
@@ -116,7 +124,7 @@ export class BoidInterface {
     
   }
 
-  public attack (target: BoidInterface) {
+  public attack (target: Positional) {
     const dir = target.position.clone().sub(this.position);
     dir.normalize();
     this.attack_dir(dir.x, dir.y);

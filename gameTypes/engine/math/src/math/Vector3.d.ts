@@ -1,4 +1,5 @@
 export class Vector3 {
+    static fromVec3(vec3: any): Vector3;
     constructor(x?: number, y?: number, z?: number);
     x: number;
     y: number;

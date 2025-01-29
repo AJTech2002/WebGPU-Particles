@@ -27,7 +27,8 @@
       "@math": ["src/engine/math/src/index.js"],
       "@game/*": ["src/game/*"],
       "@player/*": ["src/game/player/*"],
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@assets/*": ["src/assets/*"]
     },
     "typeRoots": [ 
       "./node_modules/@webgpu/types", 

@@ -14,7 +14,6 @@ export interface BufferSchema<T> {
 }
 export interface BufferSchemaDescriptor<T> {
     name: string;
-    uniform: boolean;
     isArray: boolean;
     maxInstanceCount?: number;
     type: (new () => T) | keyof typeof ShaderTypes;

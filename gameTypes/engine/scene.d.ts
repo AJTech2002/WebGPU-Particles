@@ -5,6 +5,8 @@ import GameObject from "./scene/gameobject";
 import CameraComponent from "./scene/core/camera_component";
 import Input from "./scene/inputs";
 import Component from "./scene/component";
+import { Vector3 } from "./math/src";
+import Collider from "./scene/core/collider_component";
 export interface CameraData {
     view: mat4;
     projection: mat4;
@@ -27,12 +29,17 @@ export default class Scene {
     get renderer(): import("./renderer/renderer").Renderer;
     get inputSystem(): Input;
     registerMaterial(material: Material): void;
+    raycast(start: Vector3, direction: Vector3, distance: number): Collider[];
+    private runStart;
     addGameObject(gameObject: GameObject): void;
     removeGameObject(gameObject: GameObject): void;
     findGameObject(name: string): GameObject | null;
     findObjectsOfType<T extends Component>(type: new (...args: any[]) => T): T[];
+    findObjectOfType<T extends Component>(type: new (...args: any[]) => T): T | null;
+    appendScene(scene: Scene): void;
     get gameObjects(): GameObject[];
     get sceneTime(): number;
+    get sceneTimeSeconds(): number;
     dT: number;
     frame: number;
     render(dT: number): void;

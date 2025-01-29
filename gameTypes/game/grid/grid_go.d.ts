@@ -1,6 +1,5 @@
-import Scene from "../../engine/scene";
 import Component from "../../engine/scene/component";
-import { Vector2 } from "../../engine/math/src";
+import { Vector2, Vector3 } from "../../engine/math/src";
 import { vec3 } from "gl-matrix";
 export declare class GridComponent extends Component {
     private sizeX;
@@ -14,11 +13,7 @@ export declare class GridComponent extends Component {
         x: number;
         y: number;
     }[];
-}
-export declare class Grid {
-    private gridObject;
-    private material;
-    private grid;
-    constructor(scene: Scene, sizeX: number, sizeY: number);
-    get gridComponent(): GridComponent;
+    get size(): Vector2;
+    get cell_size(): number;
+    get center(): Vector3;
 }

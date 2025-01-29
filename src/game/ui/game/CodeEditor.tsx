@@ -60,7 +60,6 @@ const squadDropPosition : vec3; // Where you dropped the squad
   const getReadOnlyRanges = (
     targetState: EditorState
   ): Array<{ from: number | undefined; to: number | undefined }> => {
-    console.log("Getting read only ranges", preCode.split("\n").length + 1);
     return [
       {
         from: undefined,

@@ -1,8 +1,12 @@
 import { Vector3 } from "../../../engine/math/src";
 import { GameDataBridge } from "./bridge";
 import { UnitType } from "../../squad/squad";
-export declare class BoidInterface {
-    private bridge;
+import { GameInterface } from "./game_interface";
+import { EnemyInterface } from "./enemy_interface";
+type Positional = {
+    position: Vector3;
+};
+export declare class BoidInterface extends GameInterface {
     private _id;
     constructor(id: number, bridge: GameDataBridge);
     private get data();
@@ -14,12 +18,14 @@ export declare class BoidInterface {
     private interfacesFromIds;
     get neighbours(): BoidInterface[];
     get friendlyNeighbours(): BoidInterface[];
-    get enemyNeighbours(): BoidInterface[];
-    getClosest(units: BoidInterface[]): BoidInterface | null;
+    get enemyNeighbours(): EnemyInterface[];
+    getClosest<Positional>(units: Positional[]): Positional | null;
+    getClosestEnemy(): EnemyInterface | null;
     kill(): void;
     move(x: number, y: number): void;
     moveTo(x: number, y: number, distanceThreshold?: number): Promise<void>;
     stop(): void;
-    attack(target: BoidInterface): void;
+    attack(target: Positional): void;
     attack_dir(x: number, y: number): void;
 }
+export {};

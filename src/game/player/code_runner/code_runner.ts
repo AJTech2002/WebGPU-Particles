@@ -40,7 +40,6 @@ export default class CodeRunner {
     const wrappedCode = `
         (async () => {
           context.begin();
-          console.log(context);
           with (context) {
             ${code}
           }

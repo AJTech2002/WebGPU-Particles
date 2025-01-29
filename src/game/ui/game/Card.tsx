@@ -16,8 +16,6 @@ export default function Card(props: CardProps) {
   const isPlaceholder = props.squad.name === "placeholder";
   const {addSquad, removeSquad} = useSquads();
 
-  console.log(props.squad.unitTypes);
-
   return (
     <Draggable id={props.squad.id.toString()}>
       <div 
@@ -37,7 +35,6 @@ export default function Card(props: CardProps) {
           // On click set the selected card for code editing
           if (!isPlaceholder) {
             cardContext.setSelectedCodeEditCard(props.squad);
-            console.log("Setting : ", props.squad)
             e.stopPropagation();
           }
           else {

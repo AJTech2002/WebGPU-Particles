@@ -1,6 +1,7 @@
 import Scene from "./scene";
 import { Renderer } from "./renderer/renderer";
 import Stats from "stats.js";
+export declare let activeScene: Scene | undefined;
 export default class Engine {
     private canvas;
     private _renderer;

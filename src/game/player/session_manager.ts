@@ -7,6 +7,7 @@ import { ReactCodeMirrorRef } from "@uiw/react-codemirror";
 import { SquadDef, Squad } from "@game/squad/squad";
 import { saveFile } from "@/tsUtils";
 import { GameDataBridge } from "./interface/bridge";
+import { TestEnemyScene } from "@game/test_enemy_scene";
 
 export interface SessionContext {
   game: GameContext;
@@ -64,7 +65,7 @@ export class SessionManager {
     
     this.engine = await createEngine(
       canvas,
-      new BoidScene(),
+      new TestEnemyScene(),
       stats
     );
 
@@ -93,9 +94,7 @@ export class SessionManager {
         ...this.context,
         ...customContext
       }, () => {
-        console.log(transpiledCode);
       }, () => {
-        console.log("Code Execution Complete");
         if (onEnd) {
           onEnd(false);
         }
@@ -119,8 +118,6 @@ export class SessionManager {
             unitType.type
           ); // Get BoidInterface 
 
-          console.log("Unit", unit);
-          
           if (unit) {
             squadClass.addUnit(this.bridge.getBoidInterface(
               unit.id

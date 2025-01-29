@@ -47,8 +47,6 @@ export default class BoidInstance extends Component {
     stop(): void;
     setGPUData(boidOutputData: BoidOutputData): void;
     getGPUInputData(): BoidInputData;
-    private colorPalette;
-    setUnitColor(): Promise<void>;
     move(x: number, y: number): void;
     moveTo(x: number, y: number): void;
     getNeighbours(): BoidInstance[];

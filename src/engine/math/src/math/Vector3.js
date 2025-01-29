@@ -707,6 +707,10 @@ class Vector3 {
     return this;
   }
 
+	static fromVec3(vec3) {
+		return new Vector3().fromVec3(vec3);
+	}
+
 	toVec3() {
 		return vec3.fromValues(this.x, this.y, this.z);
 	}

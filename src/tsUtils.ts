@@ -41,16 +41,8 @@ export const typescriptCompletionSource = async (context: any) => {
     const cursorPos = context.pos;
 
     //TODO: This needs to be automated
-    
-
     const totalCode = code;
-
-    console.log(totalCode);
-    
     env.updateFile("index.ts", totalCode);
-
-    // cursorPos += preCode.length;
-
 
     // Get completions from the TypeScript language service
     const completions = env.languageService.getCompletionsAtPosition("index.ts", cursorPos, {

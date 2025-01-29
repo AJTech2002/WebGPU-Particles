@@ -10,15 +10,18 @@ import CameraMovement from "./components/camera_movement";
 import Collider, { ColliderShape } from "@engine/scene/core/collider_component";
 import { StandardDiffuseMaterial } from "@engine/renderer/material";
 import { Color, Vector3 } from "@engine/math/src";
-import SquareTexture from "../assets/square.png";
-import { Grid } from "./grid/grid_go";
+import SquareTexture from "../assets/tree.png";
 import { Unit } from "./units/unit";
 import { UnitType } from "./squad/squad";
+import { TreeSpawner } from "./components/tree_spawner";
+import { Grid } from "../engine/prefabs/grid.prefab";
+import { GridComponent } from "./grid/grid_go";
 
 export default class BoidScene extends Scene {
 
-  private boidSystem!: BoidSystemComponent;
-  private grid!: Grid;
+  protected boidSystem!: BoidSystemComponent;
+  protected grid!: GridComponent;
+  protected gameManager!: GameObject;
 
   private _units : Unit[] = [];
   private _idMappedUnits = new Map<number, Unit>();
@@ -27,25 +30,14 @@ export default class BoidScene extends Scene {
     const collider = new GameObject("collider", this);
     collider.addComponent(new Collider([0.6, 0.6, 0.6], ColliderShape.Circle, false, false));
 
-    const squareCollider = new GameObject("squareCollider", this);
-
-    squareCollider.addComponent(new Collider([1,1,1], ColliderShape.Square, false, false));
-
     const mat = new StandardDiffuseMaterial(this, CircleTexture); 
-    const squareMat = new StandardDiffuseMaterial(this, SquareTexture);
     
-    squareCollider.addComponent(new QuadMesh(squareMat));
-
     collider.addComponent(new QuadMesh(
       mat
     ))
-
     mat.color = new Color(1,1,1);
-    squareMat.color = new Color(1, 1, 1);
 
     collider.transform.position.z = -9;
-    squareCollider.transform.position.z = -9;
-    squareCollider.transform.position.x = 0;
   }
 
   async spinSquare() {
@@ -56,9 +48,9 @@ export default class BoidScene extends Scene {
       // this.findGameObject("collider")!.transform.scale = new Vector3(0.75 + sin, 0.75 + sin, 0.75 + sin);
 
       const v3Pos = new Vector3(-2, sin, -9);
-      this.findGameObject("squareCollider")!.transform.rotation.z += 0.03; 
+      // this.findGameObject("squareCollider")!.transform.rotation.z += 0.03; 
       // this.findGameObject("squareCollider")!.transform.scale.x = 1.75 + Math.abs(sin);
-      this.findGameObject("squareCollider")!.transform.position = v3Pos;
+      // this.findGameObject("squareCollider")!.transform.position = v3Pos;
     }
   }
 
@@ -69,7 +61,12 @@ export default class BoidScene extends Scene {
     this.createCollider();
     this.spinSquare();
 
-    this.grid = new Grid(this, 50, 50); 
+    this.grid = Grid(this, 50, 50).getComponent<GridComponent>(GridComponent)!;
+    
+    this.gameManager = new GameObject("GAME_MANAGER", this);
+    this.gameManager.addComponent(
+      new TreeSpawner()
+    );
 
     // Add camera movement 
     this.activeCamera!.gameObject.addComponent(new CameraMovement());
@@ -100,7 +97,6 @@ export default class BoidScene extends Scene {
       return this._idMappedUnits.get(index)!;
     }
     else {
-      console.log(this._idMappedUnits);
       throw new Error(`Unit ${index} not found`);
     }
   }
@@ -117,7 +113,8 @@ export default class BoidScene extends Scene {
       0
     );
 
-    const p = position ?? (this.input.mouseToWorld(0).clone().add(rV3)).toVec3();
+    let p = position ?? this.input.mouseToWorld(0).clone();
+    p = p.add(rV3).toVec3();
 
     const spawnData = this.boidSystem.addBoid({
      position: p,
@@ -143,27 +140,6 @@ export default class BoidScene extends Scene {
 
   render(dT: number): void {
     super.render(dT);
-
-    if (this.input.getMouseButton(0) ) {
-      if (this.boidSystem.instanceCount >= this.boidSystem.maxInstanceCount) {
-        for (let i = 0; i < 2; i++) {
-          const randomIndex = Math.floor(Math.random() * (this.boidSystem.instanceCount - 1));
-
-          const id = this.boidSystem.indexMappedId.get(randomIndex)!;
-          const rV3 = new Vector3(
-            Math.random() * 0.1 - 0.05,
-            Math.random() * 0.1 - 0.05,
-            0
-          );
-          this.boidSystem.getBoidInstance(id)!.position = this.input.mouseToWorld(0).clone().add(rV3);
-        }
-      }
-      else {
-      //  for (let i = 0; i < 1; i++) {
-      //    this.createUnitAtMouse();
-      //  }
-      }
-    }
 
   }
 }

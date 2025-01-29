@@ -3,6 +3,7 @@ import { Renderer } from "./renderer/renderer";
 import Stats from "stats.js";
 
 let stats : Stats | undefined = undefined;
+export let activeScene : Scene | undefined;
 
 export default class Engine {
 
@@ -32,6 +33,7 @@ export default class Engine {
     this._renderer = new Renderer(canvas);
  
     this._scene = scene;
+    activeScene = scene;
     this.init();
        
   }

@@ -1,7 +1,7 @@
 import BoidScene from "@game/boid_scene";
 import BoidInstance from "@game/boids/boid_instance";
 import { Unit } from "@game/units/unit";
-import { BoidInterfaceCommand, BoidInterfaceData } from "./bridge_commands";
+import { BoidInterfaceCommand, BoidInterfaceData, EnemyInterfaceData } from "./bridge_commands";
 import { Vector3 } from "@engine/math/src";
 import { BoidInterface } from "./boid_interface";
 
@@ -40,6 +40,19 @@ export class GameDataBridge {
     }
   }
 
+  public getEnemyData (id : number) : EnemyInterfaceData {
+    const boid = this.getBoid(id);
+    const unit = this.getUnit(id);
+    return {
+      id: boid.id,
+      ownerId: unit.ownerId,
+      position: boid.position,
+      alive: boid.alive,
+      unitType: unit.unitType,
+      health: unit.health
+    }
+  }
+
   public async tick() : Promise<void> {
     return await this.scene.tick();
   }
@@ -56,6 +69,9 @@ export class GameDataBridge {
     const boid = this.getBoid(command.id);
     const unit = this.getUnit(command.id);
 
+    if (unit.ownerId !== 0) return; // Can only send commands to player units 
+
+    //TODO: Move all this to `command_handler.ts` on the scene thread and do checks there
     if (command.type === "Move") {
       if (command.props.dir) {
         boid.move(command.props.vec.x, command.props.vec.y);
@@ -69,6 +85,9 @@ export class GameDataBridge {
     }
     else if (command.type === "TakeDamage") {
       unit.takeDamage(command.props.damage);
+    }
+    else if (command.type === "Terminate") {
+      unit.die();
     }
     else if (command.type === "Stop") {
       boid.stop();

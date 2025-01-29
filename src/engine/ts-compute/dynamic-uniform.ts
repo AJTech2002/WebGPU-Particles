@@ -86,6 +86,54 @@ export class DynamicUniform<T> extends ArrayUniform<T> {
     this.f32Array = this.toFloat32Array(this._value);
   }
 
+  public static from <T extends object> (
+    descriptor: BufferSchemaDescriptor<T>,
+  ) : DynamicUniform<T> {
+
+    let constructorName = null;
+    const bufferLayout : ShaderDataType[] = [];
+
+
+    if (typeof descriptor.type === "string") {
+      const type = ShaderTypes[descriptor.type as keyof typeof ShaderTypes];
+
+      bufferLayout.push({
+        type: type
+      });
+
+      if (!type) {
+        throw new Error("Invalid shader type");
+      }
+    }
+    else {
+      const instance = new descriptor.type();
+      const props = Object.getOwnPropertyNames(instance);
+      constructorName = Reflect.getMetadata("structName", descriptor.type); 
+      
+      for (const prop of props) {
+        const type = Reflect.getMetadata("type", instance, prop);
+        if (type) {
+          bufferLayout.push(type);
+        }
+      }
+      constructorName = Reflect.getMetadata("structName", descriptor.type); 
+    }
+
+    const buffer: BufferSchema<T> = {
+      name: descriptor.name,
+      uniform: descriptor.storageMode === StorageMode.uniform,
+      constructorName: constructorName,
+      array: descriptor.isArray,
+      layout: bufferLayout,
+      type: descriptor.type,
+      defaultValue: descriptor.defaultValue,
+      maxInstanceCount: descriptor.maxInstanceCount || 1,
+      structured: typeof descriptor.type !== "string"
+    }
+
+    return new DynamicUniform(descriptor.name, buffer);
+  }
+
   public override get schemaLayoutDescriptor() : any {
     const descriptor : any = {
       isArray: this.isArrayed,

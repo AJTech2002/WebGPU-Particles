@@ -22,4 +22,5 @@ export declare class Squad {
     getUnitsOfType(type: UnitType): BoidInterface[];
     getUnits(): BoidInterface[];
     getUnitCount(): number;
+    destroy(): void;
 }
