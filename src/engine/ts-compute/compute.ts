@@ -24,7 +24,6 @@ export interface BufferSchema<T> {
 
 export interface BufferSchemaDescriptor<T> {
   name: string;
-  uniform: boolean;
   isArray: boolean;
   maxInstanceCount?: number;
   type: (new() => T) | keyof typeof ShaderTypes;
@@ -115,7 +114,7 @@ export default class Compute {
 
     const buffer: BufferSchema<T> = {
       name: descriptor.name,
-      uniform: descriptor.uniform,
+      uniform: descriptor.storageMode === StorageMode.uniform,
       constructorName: constructorName,
       array: descriptor.isArray,
       layout: bufferLayout,
@@ -133,7 +132,7 @@ export default class Compute {
 
     this.addBuffers();
 
-    const bindGroupLayoutEntries: device[] = [];
+    const bindGroupLayoutEntries: GPUBindGroupLayoutEntry[] = [];
     const bindGroupEntries : GPUBindGroupEntry[] = [];
 
     for (let i = 0; i < this.bufferSchemas.length; i++) {

@@ -12,10 +12,15 @@ export declare class Renderer {
     private depthTextureBuffer;
     private depthTextureView;
     private depthStencilAttachment;
+    private _width;
+    private _height;
     get device(): GPUDevice;
     get format(): GPUTextureFormat;
     get uniforms(): GPUBuffer;
     constructor(canvas: HTMLCanvasElement);
+    private resize;
+    get width(): number;
+    get height(): number;
     start(): Promise<void>;
     dispose(): void;
     private setupDevice;

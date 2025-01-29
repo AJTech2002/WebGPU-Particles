@@ -14,6 +14,10 @@ export default defineConfig({
       "@engine": path.resolve(__dirname, 'src/engine/'),
       "@renderer": path.resolve(__dirname, 'src/engine/renderer/'),
       "@math": path.resolve(__dirname, 'src/engine/math/src/index.js'),
+      "@": path.resolve(__dirname, 'src/'),
+      "@game": path.resolve(__dirname, 'src/game/'),
+      "@player": path.resolve(__dirname, 'src/game/player/'),
+      "@assets": path.resolve(__dirname, 'src/assets/'),
   },
   }
 })

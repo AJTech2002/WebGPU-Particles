@@ -10,6 +10,8 @@ export enum ShaderTypes {
   mat4x4 = "mat4x4",
   i32 = "i32",
   bool = "bool",
+  atomicI32 = "atomicI32",
+  atomicU32 = "atomicU32"
 }
 
 export function getShaderCode (type: keyof typeof ShaderTypes): string {
@@ -28,6 +30,10 @@ export function getShaderCode (type: keyof typeof ShaderTypes): string {
       return "i32";
     case ShaderTypes.bool:
       return "u32";
+    case ShaderTypes.atomicU32:
+      return "atomic<u32>";
+    case ShaderTypes.atomicI32:
+      return "atomic<i32>";
     default:
       console.error("Unknown shader type, using f32 as default");
       return "f32";
@@ -168,7 +174,6 @@ export function shaderBuffer<T>(
       name: propertyKey.toString(),
       isArray: Array.isArray(defaultValue), 
       type: propertyType,
-      uniform: storageMode === StorageMode.uniform,
       defaultValue: defaultValue, 
       maxInstanceCount: maxInstanceCount,
       storageMode: storageMode,

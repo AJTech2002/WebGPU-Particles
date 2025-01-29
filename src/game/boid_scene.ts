@@ -10,41 +10,34 @@ import CameraMovement from "./components/camera_movement";
 import Collider, { ColliderShape } from "@engine/scene/core/collider_component";
 import { StandardDiffuseMaterial } from "@engine/renderer/material";
 import { Color, Vector3 } from "@engine/math/src";
-import SquareTexture from "../assets/square.png";
-import { Grid } from "./grid/grid_go";
-import { BoidInterface } from "./boids/interfaces/boid_interface";
+import SquareTexture from "../assets/tree.png";
+import { Unit } from "./units/unit";
+import { UnitType } from "./squad/squad";
+import { TreeSpawner } from "./components/tree_spawner";
+import { Grid } from "../engine/prefabs/grid.prefab";
+import { GridComponent } from "./grid/grid_go";
 
 export default class BoidScene extends Scene {
 
-  private boidSystem!: BoidSystemComponent;
-  private grid!: Grid;
+  protected boidSystem!: BoidSystemComponent;
+  protected grid!: GridComponent;
+  protected gameManager!: GameObject;
 
-  private boidInterfaces : BoidInterface[] = [];
-  private idMappedBoidRefs = new Map<number, BoidInterface>();
+  private _units : Unit[] = [];
+  private _idMappedUnits = new Map<number, Unit>();
 
   createCollider() {
     const collider = new GameObject("collider", this);
     collider.addComponent(new Collider([0.6, 0.6, 0.6], ColliderShape.Circle, false, false));
 
-    const squareCollider = new GameObject("squareCollider", this);
-
-    squareCollider.addComponent(new Collider([1,1,1], ColliderShape.Square, false, false));
-
     const mat = new StandardDiffuseMaterial(this, CircleTexture); 
-    const squareMat = new StandardDiffuseMaterial(this, SquareTexture);
     
-    squareCollider.addComponent(new QuadMesh(squareMat));
-
     collider.addComponent(new QuadMesh(
       mat
     ))
-
     mat.color = new Color(1,1,1);
-    squareMat.color = new Color(1, 1, 1);
 
     collider.transform.position.z = -9;
-    squareCollider.transform.position.z = -9;
-    squareCollider.transform.position.x = 0;
   }
 
   async spinSquare() {
@@ -55,24 +48,9 @@ export default class BoidScene extends Scene {
       // this.findGameObject("collider")!.transform.scale = new Vector3(0.75 + sin, 0.75 + sin, 0.75 + sin);
 
       const v3Pos = new Vector3(-2, sin, -9);
-      this.findGameObject("squareCollider")!.transform.rotation.z += 0.03; 
+      // this.findGameObject("squareCollider")!.transform.rotation.z += 0.03; 
       // this.findGameObject("squareCollider")!.transform.scale.x = 1.75 + Math.abs(sin);
-      this.findGameObject("squareCollider")!.transform.position = v3Pos;
-    }
-  }
-
-  async spawnUnits() {
-    while (true) {
-
-      await this.seconds(0.05);
-
-    }
-  }
-
-  async reportFPS() {
-    while (true) {
-      await this.seconds(5);
-      console.log("FPS: ", (this.dT * 1000/60.0));
+      // this.findGameObject("squareCollider")!.transform.position = v3Pos;
     }
   }
 
@@ -83,9 +61,12 @@ export default class BoidScene extends Scene {
     this.createCollider();
     this.spinSquare();
 
+    this.grid = Grid(this, 50, 50).getComponent<GridComponent>(GridComponent)!;
     
-
-    this.grid = new Grid(this, 50, 50); 
+    this.gameManager = new GameObject("GAME_MANAGER", this);
+    this.gameManager.addComponent(
+      new TreeSpawner()
+    );
 
     // Add camera movement 
     this.activeCamera!.gameObject.addComponent(new CameraMovement());
@@ -105,65 +86,60 @@ export default class BoidScene extends Scene {
     )));
 
     this.activeCamera!.gameObject.transform.position.z = -10;
-
-    this.spawnUnits();
-
   }
 
-  public get units() : BoidInterface[] {
-    return this.boidInterfaces.filter((b) => b.alive);
+  public get units() : Unit[] {
+    return this.units.filter((b) => b.alive);
   }
 
-  public getUnit (index: number) : BoidInterface {
-    if (this.idMappedBoidRefs.has(index)) {
-      return this.idMappedBoidRefs.get(index)!;
+  public getUnit (index: number) : Unit {
+    if (this._idMappedUnits.has(index)) {
+      return this._idMappedUnits.get(index)!;
     }
     else {
-      console.log(this.idMappedBoidRefs);
       throw new Error(`Unit ${index} not found`);
     }
   }
 
-    
+  public createUnit (
+    ownerId: number = 0,
+    unitType: UnitType = "Soldier",
+    position?: Vector3
+  ) : Unit | undefined {
+
+    const rV3 = new Vector3(
+      Math.random() * 0.2 - 0.1,
+      Math.random() * 0.2 - 0.1,
+      0
+    );
+
+    let p = position ?? this.input.mouseToWorld(0).clone();
+    p = p.add(rV3).toVec3();
+
+    const spawnData = this.boidSystem.addBoid({
+     position: p,
+     speed: 1.0,
+     steeringSpeed: 6.0
+   });
+   
+   if (spawnData?.instance)  {
+    const unit = new Unit(
+      ownerId,
+      unitType
+    );
+
+    spawnData.gameObject.addComponent(unit);
+    this._units.push(unit);
+    this._idMappedUnits.set(spawnData.id, unit);
+
+    return unit;
+   }
+
+   return undefined;
+  }
+
   render(dT: number): void {
     super.render(dT);
-
-    if (this.input.getMouseButton(0) ) {
-      if (this.boidSystem.instanceCount >= this.boidSystem.maxInstanceCount) {
-        for (let i = 0; i < 2; i++) {
-          const randomIndex = Math.floor(Math.random() * (this.boidSystem.instanceCount - 1));
-
-          const id = this.boidSystem.indexMappedId.get(randomIndex)!;
-          const rV3 = new Vector3(
-            Math.random() * 0.1 - 0.05,
-            Math.random() * 0.1 - 0.05,
-            0
-          );
-          this.boidSystem.getBoidInstance(id)!.position = this.input.mouseToWorld(0).clone().add(rV3);
-        }
-      }
-      else {
-       for (let i = 0; i < 1; i++) {
-         const rV3 = new Vector3(
-           Math.random() * 0.2 - 0.1,
-           Math.random() * 0.2 - 0.1,
-           0
-         );
-
-         const b = this.boidSystem.addBoid({
-          position: (this.input.mouseToWorld(0).clone().add(rV3)).toVec3(),
-          speed: 1.0,
-          steeringSpeed: 6.0
-        });
-        
-        if (b)  {
-          this.boidInterfaces.push(b);
-          this.idMappedBoidRefs.set(b.id, b);
-          console.log("Added boid");
-        }
-       }
-      }
-    }
 
   }
 }

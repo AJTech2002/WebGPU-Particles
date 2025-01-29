@@ -80,7 +80,7 @@ export class BoidOutputData {
   public position: vec3 = [0,0,0];
 }
 
-export const maxInstanceCount = 2000;
+export const maxInstanceCount = 64 * 20; // = 1280
 
 export class BoidCompute extends Compute {
 

@@ -3,6 +3,8 @@ import { DynamicUniform } from "./dynamic-uniform";
 import { createBinding, createStruct } from "./datatypes";
 import { device } from "@engine/engine";
 
+import MatrixHelpers from "@engine/renderer/shaders/matrix.wgsl";
+
 export interface QuickBuffer<T> {
   
   name: string;
@@ -32,7 +34,7 @@ export class QuickCompute {
     entry: string,
     buffers: QuickBuffer<any>[]
   ) {
-    this.shader = shader;
+    this.shader = MatrixHelpers + "\n" + shader;
     this.entry = entry; 
     this.buffers = buffers;
 

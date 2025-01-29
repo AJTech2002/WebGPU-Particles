@@ -26,12 +26,11 @@ export default class BoidInstance extends Component {
   private _hasTarget : boolean = false;
   private _speed : number = 0.0;
   private _scale : number = 0.0;
-
+  
   // Game Logic
-  private originalColor: Vector4 = new Vector4(1, 1, 1);
-  private originalScale: number = 0.0;
-  private originalPosition: Vector3 = new Vector3();
-  private _health: number = 100;
+  public originalColor: Vector4 = new Vector4(1, 1, 1);
+  public originalScale: number = 0.0;
+  public originalPosition: Vector3 = new Vector3();
 
   constructor(boidId: number, boidSystem: BoidSystemComponent, initial : BoidInputData, initialPosition: Vector3) {
     super();
@@ -67,16 +66,18 @@ export default class BoidInstance extends Component {
     return this.boidId;
   }
 
-  public get health () : number {
-    return this._health;
-  }
-
   public get alive () : boolean {
-    return this._health > 0;
+    return this.gameObject?.active ?? true;
   }
 
   public get position () : Vector3 {
     return new Vector3(this.transform.position.x, this.transform.position.y, this.transform.position.z);
+  }
+
+  public setAlive (alive: boolean) {
+    this.system.setBoidInputData(this.boidIndex, {
+      alive: alive,
+    });
   }
 
   public set position (value : Vector3) {
@@ -139,7 +140,7 @@ export default class BoidInstance extends Component {
 
     this._diffuseColor = value;
     this.system.setBoidInputData(this.boidIndex, {
-      diffuseColor: [this._diffuseColor.x, this._diffuseColor.y, this._diffuseColor.z, 1.0],
+      diffuseColor: [this._diffuseColor.x, this._diffuseColor.y, this._diffuseColor.z, this._diffuseColor.w],
     });
   }
 
@@ -190,9 +191,8 @@ export default class BoidInstance extends Component {
 
     if (!this.alive) return;
 
-    this.system.setBoidInputData(this.boidIndex, {
-      speed: this._speed,
-    });
+    this.targetPosition = this.position;
+    this.hasTarget = false;
   }
 
   //#endregion
@@ -220,63 +220,29 @@ export default class BoidInstance extends Component {
 
   //#region == Game Logic == 
 
-  private colorPalette: vec3[] = [
-    // [102.0/255.0, 172.0/255.0, 204.0/255.0],
-    [150.0/255.0, 150.0/255.0, 150.0/255.0],
-    // [243.0/255.0, 131.0/255.0, 85.0/255.0],
-    [110.0/255.0, 110.0/255.0, 110.0/255.0],
-  ];
 
-  async setUnitColor () {
-    await this.scene.seconds(0.1);
-    const boidColor = this.colorPalette[Math.floor(Math.random() * this.colorPalette.length)];
-    this.diffuseColor = new Vector4(boidColor[0], boidColor[1], boidColor[2], 1.0);
-    this.originalColor = new Vector4(boidColor[0], boidColor[1], boidColor[2], 1.0);
+
+  //#region Movement
+
+  public move (x: number, y: number) {
+    // move in this direction
+    const unitPos: Vector3 = this.position;
+
+    let dir = new Vector3(x, y, 0);
+    dir = dir.normalize();
+    dir = dir.multiplyScalar(1000);
+
+    const targetPos = unitPos.clone().add(dir);
+    this.targetPosition = targetPos;
   }
 
-  async knockbackForce (id: number, force: Vector3) {
-    this.externalForce = new Vector3(force.x, force.y, force.z);
-    this.diffuseColor = new Vector4(1, 1, 1, 1);
-    this.scale = this.originalScale * 1.2;
-
-    await this.scene.seconds(Math.random() * 0.1 + 0.05);
-
-    this.diffuseColor = this.originalColor;
-    this.externalForce = new Vector3(0, 0, 0);
-    this.scale = this.originalScale;
+  public moveTo (x: number, y: number) {
+    const targetPos = new Vector3(x, y, this.position.z);
+    this.targetPosition = targetPos;
   }
 
 
-  private async die() {
-    let t = 0;
-    const deathTime = 0.1;
-    this.scene.runLoopForSeconds(deathTime, (dT) => {
-      t += dT/deathTime/1000;
-      let scale = this.originalScale * (1 - t);
-      this.system.setBoidInputData(this.boidIndex, {
-        scale: scale,
-      });
-    }, () => {
-      this.system.setBoidInputData(this.boidIndex, {
-        scale: 0,
-        diffuseColor: [0, 0, 0, 0],
-      });
-    });
-  }
-
-  public takeDamage (damage: number) {
-
-    if (!this.alive) return;
-
-    this._health -= damage;
-    if (this._health <= 0) {
-      this.system.setBoidInputData(this.boidIndex, {
-        alive: false,
-      }) 
-
-      this.die();
-    }
-  }
+  //#endregion
 
   public getNeighbours() : BoidInstance[] {
     if (!this.alive) return [];
@@ -284,56 +250,9 @@ export default class BoidInstance extends Component {
     return this.system.boidIdsToBoids(neighbours) as BoidInstance[];
   }
 
-  private lastAttackTime: number = 0;
-
-  public attack (x: number, y: number) {
-
-    if (!this.alive) return;
-
-    const now = Date.now();
-    if (now - this.lastAttackTime < 400) return;
-
-    this.lastAttackTime = now;
-
-    // get the neighbours 
-    const neighbours = this.system.getBoidNeighbours(this.id);
-    const boids = this.system.boidIdsToBoids(neighbours) as BoidInstance[];
-
-    for (let i = 0; i < boids.length; i++) {
-      if (boids[i].boidId == this.id) continue;
-
-      // check distance 
-      const distance = this.position.distanceTo(new Vector3(boids[i].position.x, boids[i].position.y, boids[i].position.z));
-      if (distance < 0.4) {
-        // get dot product of (x,y) and (boid[i].position - boid[boidId].position)
-        const dir = new Vector3(x, y, 0);
-        dir.normalize();
-
-        const boidDir = new Vector3();
-        const boidPosition = new Vector3(boids[i].position.x, boids[i].position.y, boids[i].position.z);
-        const thisPosition = new Vector3(this.position.x, this.position.y, this.position.z);
-        boidDir.subVectors(boidPosition, thisPosition);
-        boidDir.normalize();
-
-        const dot = dir.dot(boidDir);
-        // check if roughly parallel and in the same direction
-        if (dot > 0.6 ) {
-          // set external force away from the boid
-          const force = new Vector3();
-          force.copy(boidDir).multiplyScalar(0.2);
-          boids[i].knockbackForce(boids[i].boidId, force);
-          boids[i].takeDamage( 10 );
-        }
-      }
-
-    }
-
-  }
-
   //#endregion
 
   public awake(): void {
     this.position = this.originalPosition;
-    this.setUnitColor();
   }
 }

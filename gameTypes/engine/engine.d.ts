@@ -1,5 +1,7 @@
 import Scene from "./scene";
 import { Renderer } from "./renderer/renderer";
+import Stats from "stats.js";
+export declare let activeScene: Scene | undefined;
 export default class Engine {
     private canvas;
     private _renderer;
@@ -18,4 +20,4 @@ export default class Engine {
 export declare let device: GPUDevice;
 export declare let renderTargetFormat: GPUTextureFormat;
 export declare let adapter: GPUAdapter;
-export declare function createEngine(canvas: HTMLCanvasElement, scene: Scene): Promise<Engine>;
+export declare function createEngine(canvas: HTMLCanvasElement, scene: Scene, _stats: Stats | undefined): Promise<Engine>;

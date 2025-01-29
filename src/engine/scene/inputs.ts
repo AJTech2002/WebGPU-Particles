@@ -59,7 +59,7 @@ export default class Input {
       this.inputMappings[e.key.toLowerCase()] = false;
     });
 
-    canvas.addEventListener("mousemove", (e) => {
+    document.addEventListener("mousemove", (e) => {
       if (this.scene === null) {
         return;
       }

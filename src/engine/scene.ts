@@ -5,6 +5,8 @@ import GameObject from "./scene/gameobject";
 import CameraComponent from "./scene/core/camera_component";
 import Input from "./scene/inputs";
 import Component from "./scene/component";
+import { Vector3 } from "./math/src";
+import Collider from "./scene/core/collider_component";
 
 export interface CameraData {
   view: mat4;
@@ -14,6 +16,7 @@ export interface CameraData {
 }
 
 declare type RenderCallback = (dt: number) => void;
+
 
 export default class Scene {
   protected _engine!: Engine;
@@ -28,6 +31,7 @@ export default class Scene {
   protected input: Input;
 
   private disposed: boolean = false;
+
 
   constructor() {
     this.cameraObject = new GameObject("MainCamera", this);
@@ -64,12 +68,29 @@ export default class Scene {
     this._materials.push(material);
     material.start(this.engine);
   }
+  
+  public raycast (
+    start : Vector3,
+    direction : Vector3,
+    distance : number,
+  ) : Collider[] {
+    throw new Error("Method not implemented.");
+  }
+  
   //#endregion
+  
 
   //#region GameObjects
+
+  private async runStart(gameObject: GameObject) {
+    await this.tick();
+    gameObject.on_start();
+  }
+
   public addGameObject(gameObject: GameObject) {
     this._gameObjects.push(gameObject);
     gameObject.on_awake();
+    this.runStart(gameObject);
   }
 
   public removeGameObject(gameObject: GameObject) {
@@ -77,6 +98,11 @@ export default class Scene {
     const index = this._gameObjects.indexOf(gameObject);
     if (index > -1) {
       this._gameObjects.splice(index, 1);
+    }
+
+    // and all children
+    for (let i = 0; i < gameObject.children.length; i++) {
+      this.removeGameObject(gameObject.children[i]);
     }
   }
 
@@ -100,12 +126,31 @@ export default class Scene {
     return result;
   }
 
+  public findObjectOfType<T extends Component>(type: new (...args: any[]) => T): T | null {
+    for (let i = 0; i < this._gameObjects.length; i++) {
+      const component = this._gameObjects[i].getComponent(type);
+      if (component) 
+        return component;
+    }
+    return null;
+  }
+
+  public appendScene(scene: Scene) {
+    for (let i = 0; i < scene.gameObjects.length; i++) {
+      this.addGameObject(scene.gameObjects[i]);
+    }
+  }
+
   public get gameObjects() {
     return this._gameObjects;
   }
 
   public get sceneTime() {
     return this.time;
+  }
+
+  public get sceneTimeSeconds() {
+    return this.time / 1000;
   }
   //#endregion
 
@@ -253,5 +298,13 @@ export default class Scene {
 
       this.createRenderCallback(f);
     });
+
+  protected async reportFPS() {
+    while (true) {
+      await this.seconds(10);
+      console.log("FPS: ", (this.dT * 1000/60.0));
+    }
+  }
+  
   //#endregion
 }

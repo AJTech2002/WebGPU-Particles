@@ -33,6 +33,9 @@ export default class Component {
   public awake() {
   }
 
+  public start() {
+  }
+
   public update(dT: number) {
   }
 

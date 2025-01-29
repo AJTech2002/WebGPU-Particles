@@ -15,12 +15,15 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
+    "noImplicitAny": false,
+
     /* Linting */
     "strict": true,
     // "noUnusedLocals": true,
     // "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
+    
 
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
@@ -33,6 +36,11 @@
       "@engine/*": ["src/engine/*"],
       "@renderer/*": ["src/engine/renderer/*"],
       "@math": ["src/engine/math/src/index.js"],
+      "@assets/*": ["src/assets/*"],
+      // Game specific
+      "@game/*": ["src/game/*"],
+      "@player/*": ["src/game/player/*"],
+      "@/*": ["src/*"],
     },
 
     "typeRoots": [ 

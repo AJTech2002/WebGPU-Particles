@@ -3,6 +3,7 @@ import { Renderer } from "./renderer/renderer";
 import Stats from "stats.js";
 
 let stats : Stats | undefined = undefined;
+export let activeScene : Scene | undefined;
 
 export default class Engine {
 
@@ -32,6 +33,7 @@ export default class Engine {
     this._renderer = new Renderer(canvas);
  
     this._scene = scene;
+    activeScene = scene;
     this.init();
        
   }
@@ -88,7 +90,7 @@ export let device: GPUDevice;
 export let renderTargetFormat: GPUTextureFormat = "bgra8unorm";
 export let adapter: GPUAdapter;
 
-export async function createEngine(canvas: HTMLCanvasElement, scene: Scene, _stats: Stats) : Promise<Engine> {
+export async function createEngine(canvas: HTMLCanvasElement, scene: Scene, _stats: Stats | undefined) : Promise<Engine> {
   adapter = <GPUAdapter>await navigator.gpu?.requestAdapter();
   device = <GPUDevice>await adapter?.requestDevice();
   stats = _stats;

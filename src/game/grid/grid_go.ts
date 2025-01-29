@@ -59,36 +59,16 @@ export class GridComponent extends Component {
     });
   }
 
-}
-
-export class Grid {
-
-  private gridObject: GameObject;
-  private material : StandardDiffuseMaterial;
-  private grid : GridComponent;
-
-  constructor(scene: Scene, sizeX: number, sizeY: number) {
-    this.gridObject = new GameObject("grid", scene);
-
-    this.grid = new GridComponent(sizeX, sizeY, 1)
-    this.gridObject.addComponent(this.grid);
-
-    const material = new StandardDiffuseMaterial(scene, GridTexture);
-    this.material = material;
-
-    material.color = new Color(0.9,0.9,0.9);
-    material.scale = new Vector2(sizeX * 3, sizeY * 3);
-
-    this.gridObject.transform.scale.x = sizeX;
-    this.gridObject.transform.scale.y = sizeY;
-
-    this.gridObject.transform.position.z = -10;
-
-    this.gridObject.addComponent(new QuadMesh(material));
+  public get size () {
+    return new Vector2(this.sizeX, this.sizeY);
   }
 
-  public get gridComponent() : GridComponent{
-    return this.grid;
+  public get cell_size () {
+    return this.cellSize;
+  }
+
+  public get center () {
+    return this.origin;
   }
 
 }

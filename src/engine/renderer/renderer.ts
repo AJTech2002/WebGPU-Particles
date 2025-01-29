@@ -23,6 +23,8 @@ export class Renderer {
     private depthTextureView!: GPUTextureView;
     private depthStencilAttachment!: GPURenderPassDepthStencilAttachment;
 
+    private _width = 0;
+    private _height = 0;
 
     public get device() {
         return this._device;
@@ -41,17 +43,41 @@ export class Renderer {
         this.canvas.width = this.canvas.clientWidth;
         this.canvas.height = this.canvas.clientHeight;
 
-        window.addEventListener("resize", () => {
-          const displayWidth = this.canvas.clientWidth;
-          const displayHeight = this.canvas.clientHeight;
-          const needResize = this.canvas.width !== displayWidth || this.canvas.height !== displayHeight;
-          if (needResize) {
-            this.canvas.width = displayWidth;
-            this.canvas.height = displayHeight;
-            // resize the depth buffer
-            this.makeDepthBuffer();
-          }
+        this._width = this.canvas.width;
+        this._height = this.canvas.height;
+
+        canvas.addEventListener("resize", () => {
+          this.resize   ();
         });
+
+        window.addEventListener("resize", () => {
+            this.resize();
+        });
+    }
+
+    private resize() {
+        console.log("Resizing canvas");
+        const displayWidth = this.canvas.clientWidth;
+        const displayHeight = this.canvas.clientHeight;
+        const needResize = this.canvas.width !== displayWidth || this.canvas.height !== displayHeight;
+        if (needResize) {
+          this.canvas.width = displayWidth;
+          this.canvas.height = displayHeight;
+
+          this._width = this.canvas.width;
+          this._height = this.canvas.height;
+
+          // resize the depth buffer
+          this.makeDepthBuffer();
+        }
+    }
+
+    public get width() {
+      return this._width;
+    }
+
+    public get height() {
+      return this._height;
     }
 
     public async start() {
@@ -183,6 +209,14 @@ export class Renderer {
         const context: GPUCanvasContext = this.context;
         const textureView: GPUTextureView = context.getCurrentTexture().createView();
 
+        // validate that depth stencil attachment is the correct size
+        const size = { width: this.canvas.width, height: this.canvas.height, depthOrArrayLayers: 1 };
+        
+        if (this.depthTextureBuffer)
+            if (this.depthTextureBuffer.width !== size.width || this.depthTextureBuffer.height !== size.height) {
+                return;
+            }
+
         const renderpass: GPURenderPassEncoder = commandEncoder.beginRenderPass({
             colorAttachments: [{
                 view: textureView,
@@ -202,12 +236,13 @@ export class Renderer {
             if (mat.bindGroup !== undefined && mat.meshes.length > 0) {
                 renderpass.setPipeline(mat.pipeline);
                 renderpass.setBindGroup(1, mat.bindGroup); // Material Level Uniforms
-                for (let mesh of mat.meshes) {
-                    if (mesh.bindGroup !== undefined) {
-                        renderpass.setBindGroup(2, mesh.bindGroup); // Mesh Level Uniforms
-                        renderpass.setVertexBuffer(0, mesh.getVertexBuffer()); // Mesh
-                        renderpass.draw(mesh.getVertexCount(), mat.instanceCount, 0, 0); 
-                    }
+                for (const mesh of mat.meshes) {
+                    if (mesh.gameObject.active && mesh.gameObject.started)
+                        if (mesh.bindGroup !== undefined) {
+                            renderpass.setBindGroup(2, mesh.bindGroup); // Mesh Level Uniforms
+                            renderpass.setVertexBuffer(0, mesh.getVertexBuffer()); // Mesh
+                            renderpass.draw(mesh.getVertexCount(), mat.instanceCount, 0, 0); 
+                        }
                 }
             }
         }

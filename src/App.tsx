@@ -1,111 +1,31 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import './App.css'
-import Stats from "stats.js";
-import Engine, { createEngine } from '@engine/engine';
-import BoidScene from './game/boid_scene';
-import { autocompletion } from '@codemirror/autocomplete';
-import { saveFile, typescriptCompletionSource } from './tsUtils';
-import { javascript } from '@codemirror/lang-javascript';
-import CodeMirror, { EditorView, KeyBinding, keymap, ReactCodeMirrorRef } from '@uiw/react-codemirror';
-import * as duotone from "@uiw/codemirror-theme-duotone";
-import CodeRunner from './code_runner/code_runner';
-import { GameContext } from './interface/interface';
+import { createContext,  useState } from "react";
+import "./App.css";
+import { SquadProvider } from "@game/ui/game/SquadProvider";
+import GameScreen from "@game/ui/GameScreen";
+import { SquadDef } from "@game/squad/squad";
 
-const codeRunner = new CodeRunner();
-let resolvedEngine : Engine | undefined;
+interface ICardContextProps {
+  selectedCodeEditCard: SquadDef | undefined; 
+  setSelectedCodeEditCard: (card: SquadDef | undefined) => void;
+}
+
+export const CardCodingContext = createContext({} as ICardContextProps);
 
 function App() {
 
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [code, setCode] = useState<string>("");
-  const editor = useRef<ReactCodeMirrorRef>(null); 
-
-  const memoizedCanvas = useMemo(() => {
-    return <canvas id="canvas" ref={canvasRef}></canvas>
-  }, []);
-
-  const customKeyMap : KeyBinding = {
-    key: "Ctrl-Enter",
-    win: "Control-Enter",
-    run: (editor: EditorView) => {
-      if (resolvedEngine !== undefined) {
-        const context : GameContext = new GameContext(resolvedEngine.scene as BoidScene);
-        const transpiledCode = saveFile(code);
-        if (transpiledCode === null) {
-          console.error("Error transpiling code");
-          return false;
-        }
-        
-        codeRunner.run(transpiledCode, context);
-      }
-      return true;
-    }
-  }
-
-  useEffect(() => {
-    
-    if (canvasRef.current) {
-      const stats = new Stats();
-      stats.showPanel(0);
-      document.body.appendChild(stats.dom);
-      const engine : Promise<Engine> = createEngine(canvasRef.current, new BoidScene(), stats);
-      engine.then((e) => {
-        resolvedEngine = e;
-
-      });
-    }
-
-
-    return () => {
-      if (resolvedEngine)
-        resolvedEngine.dispose();
-      }
-
-  }, []);
-
+  const [selectedCard, setSelectedCard] = useState<SquadDef | undefined>(undefined);
+ 
   return (
-    <>
-      <div style={{
-        width: '100vw',
-        height: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
+    <SquadProvider>
+      <CardCodingContext.Provider value={{ 
+        // With the state updater 
+        selectedCodeEditCard: selectedCard,
+        setSelectedCodeEditCard: setSelectedCard 
       }}>
-        {memoizedCanvas}  
-      </div>
-      <CodeMirror
-        ref={editor}
-        value={code}
-        theme={duotone.duotoneDark}
-        style={{
-          position: 'absolute',
-          bottom: 0,
-        }}
-        height="100%"
-        width="100vw"
-        extensions={[
-          javascript({
-            typescript: true
-          }),
-          keymap.of([ customKeyMap]),
-        // add a keybind to submit
-      
-        autocompletion({
-          override: [typescriptCompletionSource as any],
-          activateOnTyping: true,
-          filterStrict: true,
-          aboveCursor: true,
-          maxRenderedOptions: 30,
-        })
-
-
-
-        ]}
-        onChange={setCode}
-
-      />
-    </>
-  )
+        <GameScreen />
+      </CardCodingContext.Provider>
+    </SquadProvider>
+  );
 }
 
-export default App
+export default App;

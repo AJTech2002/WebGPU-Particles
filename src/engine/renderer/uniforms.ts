@@ -52,10 +52,9 @@ export class Uniform<T> {
   }
 
   public get schemaLayoutDescriptor() : BufferSchemaDescriptor<T> {
-    let descriptor :  BufferSchemaDescriptor<T> = {
+    const descriptor :  BufferSchemaDescriptor<T> = {
       isArray: false,
       name: this.name,
-      uniform: true, 
       maxInstanceCount: 1, 
       type: "f32",
       storageMode: StorageMode.uniform, 

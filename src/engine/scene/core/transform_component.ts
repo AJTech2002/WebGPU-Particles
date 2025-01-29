@@ -1,4 +1,4 @@
-import { Euler, Matrix4, Quaternion, Vector3, Vector4 } from "@math";
+import { Euler, Matrix4, Quaternion, Vector3, Vector4 } from "@engine/math/src"
 import Component from "../component";
 import GameObject from "../gameobject";
 import { mat4, quat } from "gl-matrix";
@@ -7,11 +7,11 @@ import { mat4, quat } from "gl-matrix";
 export default class TransformComponent extends Component {
   //[prop position vec3]
   public position: Vector3 = new Vector3(0, 0, 0);
-  //[prop rotation eul3]
-  private euler: Euler = new Euler(0, 0, 0);
   //[prop scale vec3]
-  public scale: Vector3 = new Vector3(1, 1, 1);
-  public quaternion: Quaternion = new Quaternion();
+  public scale: Vector3 = new Vector3(1, 1, 1);  
+  private _quaternion: Quaternion = new Quaternion();
+  private _eulerFromQ: Euler = new Euler();
+  
   public matrix: Matrix4 | null;
 
   constructor() {
@@ -24,7 +24,7 @@ export default class TransformComponent extends Component {
     this.matrix = new Matrix4();
     this.matrix.compose(
       this.position.clone(),
-      this.quaternion.clone(),
+      this._quaternion.clone(),
       this.scale.clone()
     );
   }
@@ -33,7 +33,7 @@ export default class TransformComponent extends Component {
     let newQuat = new Quaternion()
       .setFromAxisAngle(axis.normalize(), angle)
       .normalize();
-    this.quaternion = this.quaternion.multiply(newQuat).normalize();
+    this._quaternion = this._quaternion.multiply(newQuat).normalize();
   }
 
   localRotateOnAxis(axis: Vector3, angle: number) {
@@ -44,7 +44,7 @@ export default class TransformComponent extends Component {
     const newQuat = new Quaternion().setFromAxisAngle(axis, angle).normalize();
   
     // Rotate the current quaternion
-    this.quaternion = this.quaternion.multiply(newQuat).normalize();
+    this._quaternion = this._quaternion.multiply(newQuat).normalize();
   
     // Rotate the position around the local pivot
     const pivot = this.position.clone(); // Use the object's current position as the local pivot
@@ -53,20 +53,33 @@ export default class TransformComponent extends Component {
   }
 
   getEulerRotation(): Euler {
-    return this.euler;
+    return this._eulerFromQ;
   }
 
   setRotationFromEuler(euler: Euler) {
-    this.quaternion.setFromEuler(euler.clone());
+    this._quaternion.setFromEuler(euler.clone());
   }
 
   public get rotation (): Euler {
-    return this.euler;
+    return this._eulerFromQ;
+  }
+
+  public get quaternion(): Quaternion {
+    return this._quaternion;
+  }
+
+  public set quaternion(quat: Quaternion) {
+    this._quaternion = quat;
+    this._eulerFromQ.setFromQuaternion(quat);
   }
 
   public set rotation(euler: Euler) {
-    this.euler = euler;
-    this.quaternion.setFromEuler(euler);
+    this._eulerFromQ = euler;
+    this._quaternion.setFromEuler(euler);
+  }
+
+  public lookAt(target: Vector3, axis: Vector3) {
+    this._quaternion.setFromUnitVectors(axis, target.clone().normalize());
   }
 
   getForwardVector(): Vector3 {
@@ -93,7 +106,7 @@ export default class TransformComponent extends Component {
   }
 
   public get worldRotation(): Euler {
-    if (!this.matrix) return this.euler;
+    if (!this.matrix) return this._eulerFromQ;
     const outputRotation = new Euler().setFromRotationMatrix(this.matrix);
     return outputRotation;
   }
@@ -131,12 +144,12 @@ export default class TransformComponent extends Component {
   }
 
   override awake() {
-    this.quaternion.setFromEuler(this.euler).normalize();
+    this._quaternion.setFromEuler(this._eulerFromQ).normalize();
   }
 
   override update() {
     
-    this.quaternion.setFromEuler(this.euler).normalize();
+    // this.quaternion.setFromEuler(this.euler).normalize();
     this.updateTransform();
 
 

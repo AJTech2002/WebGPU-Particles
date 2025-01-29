@@ -1,3 +1,4 @@
+
 // Follow mouse cursor
 setInterval(() => {
   game.units.forEach((u) => u.moveTo(game.mousePosition[0], game.mousePosition[1]))
@@ -73,6 +74,30 @@ while (true) {
       )
 
       game.units[i].attack(closest);
+    }
+  }
+}
+
+
+// line up around
+for (let i = 0; i < squad.units.length; i++) {
+  var gap = 0.2;
+  var posX = (squadDropPosition[0] - squad.units.length * gap) + i * gap;
+  var posY = squadDropPosition[1];
+
+  squad.units[i].moveTo(posX, posY);
+
+}
+
+while (true) {
+  await seconds(0.1);
+  for (var unit of squad.getUnits()) {
+    const closestEnemy = unit.getClosestEnemy();
+    console.log(closestEnemy);
+    if (closestEnemy !== undefined) {
+      unit.moveTo(closestEnemy.position.x, closestEnemy.position.y);
+      unit.attack(closestEnemy);
+      console.log("Attacking")
     }
   }
 }

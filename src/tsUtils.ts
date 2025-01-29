@@ -38,24 +38,11 @@ export const env = createVirtualTypeScriptEnvironment(
 
 export const typescriptCompletionSource = async (context: any) => {
     const code = context.state.doc.toString();
-    let cursorPos = context.pos;
+    const cursorPos = context.pos;
 
     //TODO: This needs to be automated
-    let preCode = `
-      import { vec3, vec4 } from "gl-matrix";
-      import {Boid} from "/gameTypes/game/boids/boid.d.ts";
-      import {GameContext} from "/gameTypes/interface/interface.d.ts";
-
-        const game : GameContext;
-
-    `;
-
-    const totalCode = preCode + code;
-    
+    const totalCode = code;
     env.updateFile("index.ts", totalCode);
-
-    cursorPos += preCode.length;
-
 
     // Get completions from the TypeScript language service
     const completions = env.languageService.getCompletionsAtPosition("index.ts", cursorPos, {

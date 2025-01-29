@@ -1,8 +1,9 @@
 import { PipelineDescriptor } from "webgpu-utils";
 import Mesh from "../scene/core/mesh_component";
 import Scene from "../scene";
-import Engine from "@engine/engine";
+import Engine from "../engine";
 import { ColorUniform } from "./uniforms";
+import { Color, Vector2 } from "../math/src/index.js";
 export default class Material {
     private device;
     bindGroup?: GPUBindGroup;
@@ -28,10 +29,15 @@ export declare class StandardMaterial extends Material {
     colorUniform: ColorUniform;
     constructor(scene: Scene, shader?: string);
     protected setupUniforms(): void;
+    set color(value: Color);
 }
 export declare class StandardDiffuseMaterial extends StandardMaterial {
     private texture;
+    private offsetUniform;
+    private scaleUniform;
     constructor(scene: Scene, url?: string, shaderOverride?: string);
     setupUniforms(): void;
     set textureUrl(url: string);
+    set offset(value: Vector2);
+    set scale(value: Vector2);
 }
