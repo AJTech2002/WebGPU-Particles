@@ -1,7 +1,7 @@
 import Component from "@engine/scene/component";
 import { BoidInputData, BoidOutputData } from "./boid_compute";
 import { Vector3, Vector4 } from "@engine/math/src";
-import BoidSystemComponent from "./boid_system";
+import BoidSystemComponent, { Neighbour } from "./boid_system";
 import { mat4, vec3 } from "gl-matrix";
 
 /**
@@ -244,10 +244,9 @@ export default class BoidInstance extends Component {
 
   //#endregion
 
-  public getNeighbours() : BoidInstance[] {
-    if (!this.alive) return [];
+  public getNeighbourIds () : Neighbour[] {
     const neighbours = this.system.getBoidNeighbours(this.id);
-    return this.system.boidIdsToBoids(neighbours) as BoidInstance[];
+    return neighbours;
   }
 
   //#endregion

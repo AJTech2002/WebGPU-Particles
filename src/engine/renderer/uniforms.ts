@@ -259,7 +259,7 @@ export class ColorUniform extends Uniform<Color> {
   }
 
   public override get schemaLayoutDescriptor() : BufferSchemaDescriptor<Color> {
-    let descriptor = super.schemaLayoutDescriptor;
+    const descriptor = super.schemaLayoutDescriptor;
     descriptor.type = "vec4";
     return descriptor;
   }

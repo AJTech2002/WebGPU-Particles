@@ -1,4 +1,5 @@
 import { Vector3 } from "@engine/math/src";
+import { Neighbour } from "@game/boids/boid_system";
 import { UnitType } from "@game/squad/squad";
 
 export interface BoidInterfaceData {
@@ -6,7 +7,7 @@ export interface BoidInterfaceData {
   ownerId: number;
   position: Vector3;
   alive: boolean;
-  neighbours: number[];
+  neighbours: Neighbour[];
   unitType: UnitType;
 }
 

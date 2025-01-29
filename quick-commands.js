@@ -89,15 +89,20 @@ for (let i = 0; i < squad.units.length; i++) {
 
 }
 
+
 while (true) {
-  await seconds(0.1);
+  await tick();
+  await tick();
   for (var unit of squad.getUnits()) {
-    const closestEnemy = unit.getClosestEnemy();
-    console.log(closestEnemy);
-    if (closestEnemy !== undefined) {
+    
+    var closestEnemy = (unit as any).closestEnemy;
+
+    if (closestEnemy !== null && closestEnemy !== undefined && closestEnemy.alive) {
       unit.moveTo(closestEnemy.position.x, closestEnemy.position.y);
       unit.attack(closestEnemy);
-      console.log("Attacking")
+    }
+    else {
+      (unit as any).closestEnemy = unit.getClosestEnemy();
     }
   }
 }

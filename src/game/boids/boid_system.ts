@@ -26,6 +26,17 @@ interface BoidInformation {
   data: BoidOutputData;
 }
 
+export enum NeighbourType {
+  Friendly = 0,
+  Enemy = 1,
+} 
+
+export interface Neighbour {
+  id: number;
+  ownerId: number;
+}
+
+
 // This will be responsible for storing boid data & running compute pipeline
 // Updating boid data & setting boid data should be done in the BoidRunnerComponent
 export default class BoidSystemComponent extends Component {
@@ -43,7 +54,10 @@ export default class BoidSystemComponent extends Component {
   public indexMappedId = new Map<number, number>();
 
   public idMappedBoidRefs = new Map<number, BoidInstance>();
-  public hashMappedBoidRefs = new Map<number, number[]>();
+
+  // Remove this later & optimize
+  public hashMappedBoidRefs = new Map<number, Neighbour[]>();
+  
   public boidRefs: BoidInstance[] = [];
 
   private compute: BoidCompute;
@@ -81,38 +95,52 @@ export default class BoidSystemComponent extends Component {
         
         const outputData = output[i];
         const boidId = this.indexMappedId.get(i) ?? -1;
+
+
         if (boidId == -1 && i < this.instanceCount) {
           // console.warn("Boid Index not found", i);
           continue;
         }
 
-        const tile = this.grid.gridTileAt(
-          outputData.position
-        );
+        const unit = (this.scene as BoidScene).getUnit(boidId);
 
-        const hash = this.grid.hashedTileIndex(
-          tile.x, tile.y
-        );
-
-       
-        if (this.hashMappedBoidRefs.has(hash)) {
-          const b = this.hashMappedBoidRefs.get(hash)!;
-          
-          if ((this.scene as BoidScene).getUnit(boidId)?.alive) {
-            b.push(boidId);
+        if (unit && unit.alive) {
+          const tile = this.grid.gridTileAt(
+            outputData.position
+          );
+  
+          const hash = this.grid.hashedTileIndex(
+            tile.x, tile.y
+          );
+  
+         
+          if (this.hashMappedBoidRefs.has(hash)) {
+            const b = this.hashMappedBoidRefs.get(hash)!;
+            
+            if (b) {
+              b.push({
+                id: boidId,
+                ownerId: unit.ownerId
+              });
+            }
           }
+          else {
+            if ((this.scene as BoidScene).getUnit(boidId)?.alive) {
+            this.hashMappedBoidRefs.set(hash, [{
+              id: boidId,
+              ownerId: unit.ownerId
+            }]); 
+            }
+          }
+  
+          this.idMappedBoidData.set(boidId, {
+            data: output[i]
+          });
+  
+          // get the instance
+          const instance = this.getBoidInstance(boidId);
+          instance?.setGPUData(output[i]);
         }
-        else {
-          this.hashMappedBoidRefs.set(hash, [boidId]); 
-        }
-
-        this.idMappedBoidData.set(boidId, {
-          data: output[i]
-        });
-
-        // get the instance
-        const instance = this.getBoidInstance(boidId);
-        instance?.setGPUData(output[i]);
       }
 
   }
@@ -125,18 +153,18 @@ export default class BoidSystemComponent extends Component {
     return this.idMappedBoidData.get(boidId);
   }
 
-  public getBoidIdsAtTile (x: number, y: number) : number[] {
+  public getBoidIdsAtTile (x: number, y: number) : Neighbour[] {
     const hash = this.grid.hashedTileIndex(x, y);
     return this.hashMappedBoidRefs.get(hash) ?? [];
   }
 
-  public getBoidNeighbours (boidId: number) : number[] {
+  public getBoidNeighbours (boidId: number) : Neighbour[] {
     const boid = this.getBoidInfo(boidId);
     if (!boid) return [];
     const tile = this.grid.gridTileAt(boid.data.position);
     const neighbours = this.grid.getNeighbours(tile.x, tile.y);
 
-    let neighbourBoids: number[] = [];
+    let neighbourBoids: Neighbour[] = [];
 
     for (const neighbour of neighbours) {
       neighbourBoids = neighbourBoids.concat(this.getBoidIdsAtTile(neighbour.x, neighbour.y));

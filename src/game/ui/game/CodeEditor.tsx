@@ -75,8 +75,8 @@ const squadDropPosition : vec3; // Where you dropped the squad
   };
 
   const customKeyMap: KeyBinding = {
-    key: "Ctrl-Enter",
-    win: "Control-Enter",
+    key: "Escape",
+    win: "Escape",
     run: () => {
       save();
       props.onUnFocus();
@@ -93,7 +93,7 @@ const squadDropPosition : vec3; // Where you dropped the squad
           console.error("Error saving code : ", e);
         }
 
-        props.onUnFocus();
+        // props.onUnFocus();
       }}
       style={{
         pointerEvents: props.editorOpen ? "visible" : "none",

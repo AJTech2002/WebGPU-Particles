@@ -35,7 +35,7 @@ export class GameDataBridge {
       ownerId: unit.ownerId,
       position: boid.position,
       alive: boid.alive,
-      neighbours: boid.getNeighbours().map((neighbour) => neighbour.id),
+      neighbours: boid.getNeighbourIds(),
       unitType: unit.unitType
     }
   }

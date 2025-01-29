@@ -4,6 +4,7 @@ import { BoidInterfaceData } from "@game/player/interface/bridge_commands";
 import { UnitType } from "@game/squad/squad";
 import { GameInterface } from "./game_interface";
 import { EnemyInterface } from "./enemy_interface";
+import { Neighbour } from "@game/boids/boid_system";
 
 type Positional = {
   position: Vector3;
@@ -12,6 +13,7 @@ type Positional = {
 export class BoidInterface extends GameInterface {
 
   private _id : number = 0;
+  private mappedInterfaces : Map<number, BoidInterface | EnemyInterface> = new Map();
 
   constructor(id: number, bridge: GameDataBridge) {
     super(bridge);
@@ -42,22 +44,76 @@ export class BoidInterface extends GameInterface {
     return this.data.alive;
   }
 
-  private interfacesFromIds (ids: number[]) : BoidInterface[] {
-    return ids.map((id) => new BoidInterface(id, this.bridge));
-  }
-
-  public get neighbours () : BoidInterface[] {
-    return this.interfacesFromIds(this.data.neighbours);
+  public get neighbours () : Neighbour[] {
+    return this.data.neighbours;
   }
 
   public get friendlyNeighbours () : BoidInterface[] {
-    return this.neighbours.filter((boid) => boid.id !== this.id && boid.alive && (this.bridge.getBoidData(boid.id).ownerId === this.ownerId));
+    // return this.neighbours.filter((boid) => boid.id !== this.id && boid.alive && (this.bridge.getBoidData(boid.id).ownerId === this.ownerId));
+    const _neighbours : BoidInterface[] = [] as BoidInterface[];
+    
+    for (const neighbour of this.neighbours) {
+
+      if (neighbour.id === this.id || neighbour.ownerId !== this.ownerId) continue;
+
+      let foundBoid : BoidInterface | undefined;
+      const id = neighbour.id;
+      
+      if (this.mappedInterfaces.has(id)) {
+        const boid = this.mappedInterfaces.get(id);
+        if (boid instanceof BoidInterface) {
+          foundBoid = boid;
+        }
+      }
+      else {
+        const boidData = this.bridge.getBoidData(id);
+        if (boidData.ownerId === this.ownerId) {
+          const boid = new BoidInterface(id, this.bridge);
+          this.mappedInterfaces.set(id, boid);
+          foundBoid = boid;
+        }
+      }
+
+      if (foundBoid && foundBoid.alive) {
+        _neighbours.push(foundBoid);
+      }
+
+    }
+
+    return _neighbours;
   }
 
   public get enemyNeighbours () : EnemyInterface[] {
-    return this.neighbours
-    .filter((boid) => boid.id !== this.id && boid.alive && (this.bridge.getBoidData(boid.id).ownerId !== this.ownerId))
-    .map((boid) => new EnemyInterface(boid.id, this.bridge));
+    // return this.neighbours.filter((boid) => boid.id !== this.id && boid.alive && (this.bridge.getBoidData(boid.id).ownerId === this.ownerId));
+    const _neighbours : EnemyInterface[] = [] as EnemyInterface[];
+    
+    for (const neighbour of this.neighbours) {
+
+      if (neighbour.id === this.id || neighbour.ownerId === this.ownerId) continue;
+
+      let foundBoid : EnemyInterface | undefined;
+      const id = neighbour.id;
+      
+      if (this.mappedInterfaces.has(id)) {
+        const boid = this.mappedInterfaces.get(id);
+        if (boid instanceof EnemyInterface) {
+          foundBoid = boid;
+        }
+      }
+      else {
+        const boidData = this.bridge.getBoidData(id);
+          const boid = new EnemyInterface(id, this.bridge);
+          this.mappedInterfaces.set(id, boid);
+          foundBoid = boid;
+      }
+
+      if (foundBoid && foundBoid.alive) {
+        _neighbours.push(foundBoid);
+      }
+
+    }
+
+    return _neighbours;
   }
 
   public getClosest<Positional> (units: Positional[]) : Positional | null {
