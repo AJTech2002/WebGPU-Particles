@@ -93,8 +93,7 @@ for (let i = 0; i < squad.units.length; i++) {
 var enemyMapped = {};
 
 while (true) {
-  await tick();
-  await tick();
+  await seconds(2.0);
   for (var unit of squad.getUnits()) {
     
     var closestEnemy = (unit as any).closestEnemy;

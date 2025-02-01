@@ -58,7 +58,7 @@ export default class BoidScene extends Scene {
     super.awake(engine);
     this.reportFPS();
 
-    this.createCollider();
+    // this.createCollider();
     this.spinSquare();
 
     this.grid = Grid(this, 50, 50).getComponent<GridComponent>(GridComponent)!;
