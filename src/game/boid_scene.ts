@@ -6,11 +6,11 @@ import BoidSystemComponent from "./boids/boid_system";
 import { QuadMesh } from "@engine/scene/core/mesh_component";
 import BoidMaterial from "./boids/rendering/boid_material";
 import BoidTexture from "../assets/guy-3.png";
+import BossTexture from "../assets/boss.png";
 import CameraMovement from "./components/camera_movement";
 import Collider, { ColliderShape } from "@engine/scene/core/collider_component";
 import { StandardDiffuseMaterial } from "@engine/renderer/material";
 import { Color, Vector3 } from "@engine/math/src";
-import SquareTexture from "../assets/tree.png";
 import { Unit } from "./units/unit";
 import { UnitType } from "./squad/squad";
 import { TreeSpawner } from "./components/tree_spawner";
@@ -26,41 +26,10 @@ export default class BoidScene extends Scene {
   private _units : Unit[] = [];
   private _idMappedUnits = new Map<number, Unit>();
 
-  createCollider() {
-    const collider = new GameObject("collider", this);
-    collider.addComponent(new Collider([0.6, 0.6, 0.6], ColliderShape.Circle, false, false));
-
-    const mat = new StandardDiffuseMaterial(this, CircleTexture); 
-    
-    collider.addComponent(new QuadMesh(
-      mat
-    ))
-    mat.color = new Color(1,1,1);
-
-    collider.transform.position.z = -9;
-  }
-
-  async spinSquare() {
-    while (true) {
-      await this.tick();
-      const sin = Math.cos(this.time * 0.001) * 2;
-      this.findGameObject("collider")!.transform.position.x = Math.sin(this.time * 0.003) * 5;; 
-      // this.findGameObject("collider")!.transform.scale = new Vector3(0.75 + sin, 0.75 + sin, 0.75 + sin);
-
-      const v3Pos = new Vector3(-2, sin, -9);
-      // this.findGameObject("squareCollider")!.transform.rotation.z += 0.03; 
-      // this.findGameObject("squareCollider")!.transform.scale.x = 1.75 + Math.abs(sin);
-      // this.findGameObject("squareCollider")!.transform.position = v3Pos;
-    }
-  }
 
   awake(engine: Engine): void {
     super.awake(engine);
     this.reportFPS();
-
-    // this.createCollider();
-    this.spinSquare();
-
     this.grid = Grid(this, 50, 50).getComponent<GridComponent>(GridComponent)!;
     
     this.gameManager = new GameObject("GAME_MANAGER", this);
@@ -79,11 +48,15 @@ export default class BoidScene extends Scene {
 
     boids.addComponent(boidSystem);
 
-    boids.addComponent(new QuadMesh(new BoidMaterial(
+    const material = new BoidMaterial(
       this,
       boidSystem.objectBuffer,
-      BoidTexture
-    )));
+    );
+
+    boids.addComponent(new QuadMesh(material));
+
+    material.textureUrl = [BoidTexture];
+
 
     this.activeCamera!.gameObject.transform.position.z = -10;
   }
@@ -104,7 +77,10 @@ export default class BoidScene extends Scene {
   public createUnit (
     ownerId: number = 0,
     unitType: UnitType = "Soldier",
-    position?: Vector3
+    position?: Vector3,
+    avoidanceForce : number = 1.0,
+    textureIndex: number = 0,
+    scale : number = 0.3
   ) : Unit | undefined {
 
     const rV3 = new Vector3(
@@ -119,7 +95,10 @@ export default class BoidScene extends Scene {
     const spawnData = this.boidSystem.addBoid({
      position: p,
      speed: 1.0,
-     steeringSpeed: 6.0
+     steeringSpeed: 6.0,
+     avoidanceForce: avoidanceForce,
+     textureIndex: textureIndex,
+     scale: scale
    });
    
    if (spawnData?.instance)  {

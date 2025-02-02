@@ -72,7 +72,7 @@ export default class Material {
     };
 
     const descriptors = makeBindGroupLayoutDescriptors(defs, pipelineDesc);
-    let layouts : GPUBindGroupLayout[] = [];
+    const layouts : GPUBindGroupLayout[] = [];
     descriptors.forEach((desc) => { 
       layouts.push(device.createBindGroupLayout(desc));  
     });
@@ -181,12 +181,27 @@ export class StandardDiffuseMaterial extends StandardMaterial {
   private offsetUniform: Vec3Uniform = new Vec3Uniform([0,0,0]);
   private scaleUniform: Vec3Uniform = new Vec3Uniform([1, 1, 1])
 
-  constructor(scene: Scene, url?: string, shaderOverride?: string) {
+  private isMultiTexture: boolean = false;
+
+  constructor(scene: Scene, url?: string[] | string, shaderOverride?: string) {
     super(scene, shaderOverride ?? BasicTextureFragShader);
-    this.texture = new Texture();
+    
+    if (Array.isArray(url)) {
+      this.isMultiTexture = true;
+    }
+
+    console.log("isMultiTexture", this.isMultiTexture, url);
+
+    this.texture = new Texture(this.isMultiTexture);
 
     if (url) {
-      (() => this.textureUrl = url)(); // Load the texture
+      if (Array.isArray(url)) {
+        (() => this.textureUrl = url)(); // Load the texture
+      }
+      else {
+        this.texture = new Texture(false);
+        (() => this.textureUrl = [url])(); // Load the texture
+      }
     }
 
     this.offsetUniform.setup();
@@ -221,11 +236,21 @@ export class StandardDiffuseMaterial extends StandardMaterial {
     });
   }
 
-  public set textureUrl(url: string) {
-    this.texture.loadTexture(url).then(() => {
-      // recreate bind group
-      this.setupBuffer();
-    });
+  public set textureUrl(url: string[]) {
+    if (url.length === 0) return;
+
+    if (!this.isMultiTexture) {
+      this.texture.loadTexture(url[0]).then(() => {
+        // recreate bind group
+        this.setupBuffer();
+      });
+    }
+    else {
+      this.texture.loadMultipleTextures(url).then(() => {
+        // recreate bind group
+        this.setupBuffer();
+      });
+    }
   }
 
   public set offset(value: Vector2) {

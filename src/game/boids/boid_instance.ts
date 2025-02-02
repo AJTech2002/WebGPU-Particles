@@ -26,6 +26,7 @@ export default class BoidInstance extends Component {
   private _hasTarget : boolean = false;
   private _speed : number = 0.0;
   private _scale : number = 0.0;
+  private _avoidanceForce : number = 1.0;
   
   // Game Logic
   public originalColor: Vector4 = new Vector4(1, 1, 1);
@@ -114,6 +115,21 @@ export default class BoidInstance extends Component {
     this.system.setBoidInputData(this.boidIndex, {
       targetPosition: [this._targetPosition .x, this._targetPosition .y, this._targetPosition .z, 0],
       hasTarget: true,
+    });
+  }
+
+  public get avoidanceForce() : number {
+    return this._avoidanceForce;
+  }
+
+  public set avoidanceForce(value : number) {
+
+    if (!this.alive) return;
+    
+    this._avoidanceForce = value;
+
+    this.system.setBoidInputData(this.boidIndex, {
+      avoidanceForce: this._avoidanceForce,
     });
   }
 
@@ -214,7 +230,8 @@ export default class BoidInstance extends Component {
     boidInputData.hasTarget = this._hasTarget;
     boidInputData.speed = this._speed;
     boidInputData.scale = this._scale;
-
+    boidInputData.avoidanceForce = this._avoidanceForce;
+    console.log(boidInputData.avoidanceForce);
     return boidInputData;
   }
 

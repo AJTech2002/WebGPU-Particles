@@ -1,5 +1,5 @@
 import { Color, Vector3 } from "@engine/math/src";
-import { StandardDiffuseMaterial } from "@engine/renderer/material";
+import Material, { StandardDiffuseMaterial } from "@engine/renderer/material";
 import Scene from "@engine/scene";
 import Collider, { ColliderShape } from "@engine/scene/core/collider_component";
 import { QuadMesh } from "@engine/scene/core/mesh_component";
@@ -20,6 +20,20 @@ export function Quad (scene: Scene, color? : Color, texture?: string, parent?: G
 
   return squareCollider;
 }
+
+export function QuadWithMaterial (scene: Scene, material: Material, parent?: GameObject) : GameObject {
+  const squareCollider = new GameObject("squareCollider", scene);
+  squareCollider.addComponent(new Collider([1,1,1], ColliderShape.Square, false, false));
+  squareCollider.addComponent(new QuadMesh(material));
+  squareCollider.transform.position.z = -9;
+
+  if (parent) {
+    squareCollider.parent = parent;
+  }
+
+  return squareCollider;
+}
+
 
 export function QuadNoCollider (scene: Scene, color? : Color, texture?: string, parent?: GameObject) : GameObject {
   const squareCollider = new GameObject("square", scene);

@@ -10,9 +10,9 @@ export default class BoidMaterial extends StandardDiffuseMaterial {
 
   private buffer: GPUBuffer;
 
-  constructor(scene: Scene, objectBuffer: GPUBuffer, url?: string) {
+  constructor(scene: Scene, objectBuffer: GPUBuffer) {
     const structCode = createStructs([BoidObjectData]);
-    super(scene, url,structCode + MatrixShasder + InstancedShader);
+    super(scene, [], structCode + MatrixShasder + InstancedShader);
     this.buffer = objectBuffer;
   }
 

@@ -10,65 +10,48 @@ import { Debug } from "@engine/debug/debug";
 import { CastlePrefab } from "./prefabs/castle.prefab";
 import { Damageable } from "./components/damageable";
 import {BaseEnemy} from "./units/enemy";
+import { Boss } from "./prefabs/boss.prefab";
 
 export class TestEnemyScene extends BoidScene {
 
   private maxEnemies = 100;
   private spawnedEnemies: Unit[] = [];
-  private castle!: Collider;
 
   public spawnEnemy(
     position: Vector3,
     unitType: UnitType,
   ) : Unit | undefined {
 
-
     if (this.spawnedEnemies.length > this.maxEnemies) {
       return undefined;
     }
 
-    const u = this.createUnit(1, unitType, position);
+    const u = this.createUnit(1, unitType, position, 1.0, 0);
     u?.gameObject.addComponent(new BaseEnemy());
-    if (u) {
-      this.spawnedEnemies.push(u);
-    }
+    if (u) this.spawnedEnemies.push(u);
 
     return u;
   }
 
-  public override raycast(start: Vector3, direction: Vector3, distance: number): Collider[] {
-    
-    // just check the castle
-    if (this.castle.check2DRayIntersection(
-      start.toVec3(),
-      direction.toVec3(),
-      distance,
-    )) {
-      return [this.castle];
-    }
+  public bigBoss (position: Vector3) {
+    const boss = Boss(this);
+    boss.transform.position = new Vector3(position.x, position.y, -7);
+  }
 
+  public override raycast(start: Vector3, direction: Vector3, distance: number): Collider[] { 
     return [];
   }
 
   awake(engine: Engine): void {
     super.awake(engine);
-
-    // create the central castle
-    const castle = CastlePrefab(this);
-    this.castle = castle.getComponent<Collider>(Collider)!
-
-    // This is cool, we can listen to the death event of the castle
-    this.castle.gameObject.getComponent(Damageable)!.on("death", () => {
-      console.log("Castle destroyed");
-    });
   }
 
   async spawn () {
     while (true) {
-      await this.seconds(1);
+      await this.seconds(0.1);
 
       const randomAngle = Math.random() * Math.PI * 2;
-      const distance = 10;
+      const distance = 3;
 
       const x = Math.cos(randomAngle) * distance;
       const y = Math.sin(randomAngle) * distance;
@@ -87,38 +70,20 @@ export class TestEnemyScene extends BoidScene {
     
   }
 
+  private boss : boolean = false;
+
   mouseEvent(type: number, button: number): void {
     super.mouseEvent(type, button);
     if (type === 0 && button === 0) {
       // perform raycast
-      const rayOrigin = this.input.mouseToWorld(0).toVec3();
-      const rayDirection : vec3 = [-1, 0, 0];
-      const rayDistance = 2.0;
-      const rayEnd = vec3.add(vec3.create(), rayOrigin, vec3.scale(vec3.create(), rayDirection, rayDistance));
-
-      Debug.line(
-        new Vector3(rayOrigin[0], rayOrigin[1], rayOrigin[2]),
-        new Vector3(rayEnd  [0], rayEnd  [1], rayEnd  [2]),
-        new Color(1, 0, 0),
-        2.0
-      );
-
-      const allColliders = this.findObjectsOfType(Collider);
-
-      for (let i = 0; i < allColliders.length; i++) {
-        const collider = allColliders[i];
-        const didHit = collider.check2DRayIntersection(
-          rayOrigin,
-          rayDirection,
-          rayDistance,
-        );
-        if (didHit) {
-          if (collider.gameObject.getComponent(Damageable)) {
-            collider.gameObject.getComponent(Damageable)!.takeDamage(100);
-          }
-        }
+      const mouse = this.input.mouseToWorld(0);
+      if (!this.boss) {
+      this.bigBoss(mouse);
+      this.boss = true;
       }
-
+      else {
+        this.spawnEnemy(mouse, "Soldier");
+      }
     }
   }
 

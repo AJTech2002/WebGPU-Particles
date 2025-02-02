@@ -12,8 +12,6 @@ import { vec3 } from "gl-matrix";
 export class Unit extends Damageable {
   private boidInstance!: BoidInstance;
   private system!: BoidSystemComponent;
-  private castle!: Castle;
-
   private _unitType: UnitType = "Soldier";
   private _ownerId: number = 0; // 0 is player / 1 is enemy
 
@@ -29,7 +27,7 @@ export class Unit extends Damageable {
     this.system = this.gameObject.scene.findObjectsOfType(
       BoidSystemComponent
     )[0] as BoidSystemComponent;
-    this.castle = this.gameObject.scene.findObjectOfType(Castle) as Castle;
+    // this.setUnitScale();
     this.setUnitColor();
   }
 
@@ -113,6 +111,30 @@ export class Unit extends Damageable {
     );
   }
 
+  private maxScale = 0.32;
+  private minScale = 0.3;
+
+  async setUnitScale () {
+    const expected = this.minScale + Math.random() * (this.maxScale - this.minScale);
+
+    this.boid.originalScale = expected;
+
+    // lerp up
+    let t = 0;
+    const lerpTime = 0.1;
+    this.scene.runLoopForSeconds(
+      lerpTime,
+      (dT) => {
+        t += dT / lerpTime / 1000;
+        const scale = expected * t;
+        this.boid.scale = scale;
+      },
+      () => {
+        this.boid.scale = expected;
+      }
+    );
+  }
+
   protected override handleDamage(amount: number): void {
     super.handleDamage(amount);
   }
@@ -141,32 +163,13 @@ export class Unit extends Damageable {
   }
 
   public attack(x: number, y: number) {
-    if (!this.alive || !this.castle) return;
+    if (!this.alive) return;
 
     const attackDistance = 0.4;
 
     const now = Date.now();
     if (now - this.lastAttackTime < 400) return;
     this.lastAttackTime = now;
-
-    //TODO: Optimize but for now check if the castle has been hit directly?
-    if (this.ownerId === 1 && this.position.distanceTo2D(this.castle.transform.position) < 2.0) {
-      const rayColliders = this.scene.raycast(
-        new Vector3(this.position.x, this.position.y, this.position.z),
-        new Vector3(x, y, 0).normalize(),
-        attackDistance
-      );
-
-      if (rayColliders.length > 0) {
-        if (rayColliders[0].gameObject.name === "Castle") {
-          //
-          this.castle.takeDamage(10);
-        }
-        return;
-      }
-    }
-
-    // get the neighbours
     const neighbours = this.system.getBoidNeighbours(this.boidInstance.id);
 
     for (let i = 0; i < neighbours.length; i++) {

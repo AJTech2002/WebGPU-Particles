@@ -24,6 +24,7 @@ fn safe_random_normalize(v: vec3<f32>, a: vec3<f32>) -> vec3<f32> {
 
 
 
+
 @compute @workgroup_size(64)
 fn avoidanceMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
   let index = global_id.x;
@@ -40,7 +41,7 @@ fn avoidanceMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
     }
 
     var avoidance = vec3(0.0, 0.0, 0.0);
-    var avoidanceDistance = 0.15;
+    var avoidanceDistance = boid_input[index].scale * 0.5;
     var minimumCompresion = 0.1;
     var avPwr = 1.8;
     var randomDirection = unique_direction(index, objectModelLength);
@@ -64,7 +65,7 @@ fn avoidanceMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
         if (d == 0) {
           randomDirection = safe_normalize(randomDirection);
           var pushStrength = avoidanceDistance;
-          avoidance += randomDirection * pushStrength;
+          avoidance += randomDirection * pushStrength ;
         }
        
         else if (d < avoidanceDistance ) {
@@ -73,7 +74,10 @@ fn avoidanceMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
           let direction = safe_normalize(avVector);
           // var pushStrength = clamp(1.0 - (d/avoidanceDistance), 0.0, 1.0);
           //var pushStrength = pow(1.0 - (d/avoidanceDistance), avPwr);
-          var pushStrength = avoidanceDistance - d;
+
+          // have the neighbour's scale affect the push strength
+          var pushStrength = (avoidanceDistance - d);
+
 
           avVector = direction * pushStrength;
           avoidance = avoidance + avVector;
@@ -90,6 +94,10 @@ fn avoidanceMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
 
   return;
 }
+
+// declare const min/max scale
+const minScale: f32 = 0.1;
+const maxScale: f32 = 0.6;
 
 @compute @workgroup_size(64)
 fn movementMain (@builtin(global_invocation_id) global_id: vec3<u32>) {

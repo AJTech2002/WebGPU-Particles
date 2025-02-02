@@ -33,6 +33,9 @@ export class BoidInputData {
 
   @shaderProperty(ShaderTypes.bool)
   public alive: boolean = true; // bytes: 4
+
+  @shaderProperty(ShaderTypes.f32)
+  public avoidanceForce: number = 1.0; // bytes: 4
 }
 
 @shaderStruct("BoidGPUData")
@@ -72,6 +75,9 @@ export class BoidObjectData {
 
   @shaderProperty(ShaderTypes.bool)
   public visible: boolean = true; // bytes: 4
+
+  @shaderProperty(ShaderTypes.u32)
+  public textureIndex: number = 0; // bytes: 4
 }
 
 @shaderStruct("BoidOutputData")

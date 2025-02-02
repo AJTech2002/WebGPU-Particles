@@ -15,6 +15,9 @@ interface BoidInitData {
   position: vec3;
   speed: number;
   steeringSpeed: number;
+  avoidanceForce: number;
+  textureIndex: number;
+  scale: number;
 }
 
 interface BoidSpawnData {
@@ -203,9 +206,10 @@ export default class BoidSystemComponent extends Component {
       speed: init.speed,
       externalForce: [0, 0, 0, 0],
       diffuseColor: [1.0, 1.0, 1.0, 1.0],
-      scale: this.boidScale,
+      scale: init.scale,
       steeringSpeed: init.steeringSpeed,
-      alive: true
+      alive: true,
+      avoidanceForce: init.avoidanceForce
     };
 
     this.compute.setElement<BoidInputData>("boid_input", slot, input);
@@ -233,9 +237,8 @@ export default class BoidSystemComponent extends Component {
       boidId:boidId,
       diffuseColor: [1.0, 1.0, 1.0, 1.0],
       visible: true,
+      textureIndex: init.textureIndex
     });
-
-
 
     this.idMappedIndex.set(boidId, slot);
     this.indexMappedId.set(slot, boidId);
