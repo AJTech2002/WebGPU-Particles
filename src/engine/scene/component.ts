@@ -1,6 +1,7 @@
 import Scene from "@engine/scene";
 import GameObject from "./gameobject";
 import TransformComponent from "./core/transform_component";
+import Collider from "./core/collider_component";
 
 export default class Component {
 
@@ -48,6 +49,10 @@ export default class Component {
   }
 
   public destroy() {
+  }
+
+  public on_collision(collider: Collider) {
+    
   }
 
 }

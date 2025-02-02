@@ -131,6 +131,12 @@ export interface ShaderDataType {
    */
   key?: string; 
   type: keyof typeof ShaderTypes;
+  array?: ShaderArrayProperty;
+}
+
+//TODO: Need to add support for arrays within structs
+export interface ShaderArrayProperty {
+  maxInstanceCount: number;
 }
 
 export function shaderProperty (shaderType: keyof typeof ShaderTypes): PropertyDecorator {

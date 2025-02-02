@@ -5,6 +5,7 @@ import Collider, { ColliderShape } from "@engine/scene/core/collider_component";
 import GameObject from "@engine/scene/gameobject";
 import BossTexture from "../../assets/guy-3.png";
 import { QuadMesh } from "@engine/scene/core/mesh_component";
+import { TestBoss } from "@game/components/enemies/test-boss";
 
 export const Boss = (scene: Scene) : GameObject => {
   const boss = new GameObject("boss", scene);
@@ -13,5 +14,6 @@ export const Boss = (scene: Scene) : GameObject => {
   bossMat.color = new Color(1.0, 0.25, 0.25);
   boss.transform.position.z = -9;
   boss.addComponent(new QuadMesh(bossMat));
+  boss.addComponent(new TestBoss());
   return boss;
 }

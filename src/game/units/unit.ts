@@ -1,11 +1,13 @@
 import { Debug } from "@engine/debug/debug";
 import { Vector3, Vector4 } from "@engine/math/src";
 import Component from "@engine/scene/component";
+import Collider from "@engine/scene/core/collider_component";
 import BoidScene from "@game/boid_scene";
 import BoidInstance from "@game/boids/boid_instance";
 import BoidSystemComponent from "@game/boids/boid_system";
 import { Castle } from "@game/components/castle";
 import { Damageable } from "@game/components/damageable";
+import { Rock } from "@game/components/enemies/rock";
 import { UnitType } from "@game/squad/squad";
 import { vec3 } from "gl-matrix";
 
@@ -139,6 +141,16 @@ export class Unit extends Damageable {
     super.handleDamage(amount);
   }
 
+  override on_collision(collider: Collider): void {
+    if (collider.gameObject.name.includes("rock")) {
+      const rockComponent = collider.gameObject.getComponent<Rock>(Rock);
+      rockComponent?.takeDamage(5);
+      const force = this.position.clone().sub(collider.gameObject.transform.position).normalize().multiplyScalar(30.0, 0.5);
+      this.knockbackForce(force);
+      this.takeDamage(50);
+    }
+  }
+
   protected handleDeath(): void {
     this.boidInstance.setAlive(false);
     this.deathAnimation();
@@ -146,14 +158,15 @@ export class Unit extends Damageable {
 
   private lastAttackTime: number = 0;
 
-  async knockbackForce(id: number, force: Vector3) {
+  async knockbackForce(force: Vector3, duration?: number) {
     if (!this.alive) return;
 
     this.boidInstance.externalForce = new Vector3(force.x, force.y, force.z);
     this.boidInstance.diffuseColor = new Vector4(1, 1, 1, 1);
     this.boidInstance.scale = this.boidInstance.originalScale * 1.2;
 
-    await this.scene.seconds(Math.random() * 0.1 + 0.05);
+    if (duration) await this.scene.seconds(duration);
+    else await this.scene.seconds(Math.random() * 0.1 + 0.05);
 
     if (!this.alive) return;
 
@@ -211,7 +224,7 @@ export class Unit extends Damageable {
             // set external force away from the boid
             const force = new Vector3();
             force.copy(boidDir).multiplyScalar(0.2);
-            unit.knockbackForce(neighbours[i].id, force);
+            unit.knockbackForce(force);
             unit.takeDamage(10);
           }
         }

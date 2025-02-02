@@ -55,7 +55,7 @@ export default class BoidScene extends Scene {
 
     boids.addComponent(new QuadMesh(material));
 
-    material.textureUrl = [BoidTexture];
+    material.textureUrl = [BoidTexture, BoidTexture];
 
 
     this.activeCamera!.gameObject.transform.position.z = -10;

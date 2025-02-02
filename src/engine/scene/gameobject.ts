@@ -2,6 +2,7 @@ import Scene from "@engine/scene";
 import Component from "./component";
 import TransformComponent from "./core/transform_component";
 import Mesh from "./core/mesh_component";
+import Collider from "./core/collider_component";
 
 export default class GameObject {
 
@@ -161,6 +162,10 @@ export default class GameObject {
     if (updateIndex > -1) {
       this._updateComponents.splice(updateIndex, 1);
     }
+  }
+
+  public on_collision(other: Collider) {
+    for (let i = 0; i < this._components.length; i++) this._components[i].on_collision(other);
   }
 
   //#endregion

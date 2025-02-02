@@ -48,3 +48,12 @@ export function QuadNoCollider (scene: Scene, color? : Color, texture?: string, 
 
   return squareCollider;
 }
+
+
+export function QuadSimple (scene: Scene, material: Material) : GameObject {
+  const squareCollider = new GameObject("squareCollider", scene);
+  squareCollider.addComponent(new QuadMesh(material));
+  squareCollider.transform.position.z = -9;
+  return squareCollider;
+}
+

@@ -100,12 +100,41 @@ fn collisionMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
     if (colliders[i].shape == 1u) {
       var avoidance = circle_collision(unitPosition, center, colliders[i].size.x * scale.x);
       avoidance.z = 0.0;
+
+      // check avoidance mag
+      if (length(avoidance) > 1e-5) {
+        var collisionHitInfo: CollisionHitData;
+        let cur_index = atomicAdd(&collisionHitCount, 1u);
+
+        collisionHitInfo.colliderId = i;
+        collisionHitInfo.boidId = index;
+        collisionHits[cur_index] = collisionHitInfo; 
+      }
+
+      if (colliders[i].isTrigger == 1u) {
+        continue;
+      }
+
       unitPosition = unitPosition + avoidance;
       collisionOffset = collisionOffset + avoidance;
     }
     else if (colliders[i].shape == 0u) {
       var avoidance = box_collision(unitPosition, center, colliders[i].size, colliders[i].model, colliders[i].inverted);
       avoidance.z = 0.0;
+
+      // check avoidance mag
+      if (length(avoidance) > 1e-5) {
+        let cur_index = atomicAdd(&collisionHitCount, 1u);
+        var collisionHitInfo: CollisionHitData;
+        collisionHitInfo.colliderId = i;
+        collisionHitInfo.boidId = index;
+        collisionHits[cur_index] = collisionHitInfo; 
+      }
+
+      if (colliders[i].isTrigger == 1u) {
+        continue;
+      }
+
       unitPosition = unitPosition + avoidance;
       collisionOffset = collisionOffset + avoidance;
     }

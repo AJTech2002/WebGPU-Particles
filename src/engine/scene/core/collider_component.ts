@@ -15,7 +15,7 @@ export enum ColliderShape {
 @shaderStruct("Collider")
 export default class Collider extends Component {
 
-  public isTrigger: boolean = false;
+  
   public isStatic: boolean = false;
 
   @shaderProperty(ShaderTypes.mat4x4)
@@ -29,6 +29,10 @@ export default class Collider extends Component {
 
   @shaderProperty(ShaderTypes.u32)
   public shape: ColliderShape = ColliderShape.Square;
+
+  @shaderProperty(ShaderTypes.bool)
+  public isTrigger: boolean = false;
+  
   
   constructor(
     size: vec3 = [1,1,1],
@@ -45,13 +49,14 @@ export default class Collider extends Component {
 
   awake() {
     super.awake();
+
   }
 
-  override start() {
-    this.scene.findObjectOfType<BoidSystemComponent>(BoidSystemComponent)!.addCollider(this);
+  public start(): void {
+    this.model = this.transform.worldModelMatrix;
+    this.inverted = mat4.invert(mat4.create(), this.model);
   }
 
-  
 
   check2DRayIntersection(
     rayOrigin: vec3,
@@ -94,8 +99,15 @@ export default class Collider extends Component {
   }
 
   update(deltaTime: number) {
-    this.model = this.transform.worldModelMatrix;
-    this.inverted = mat4.invert(mat4.create(), this.model);
+    if (this.transform.worldModelMatrix) {
+      // this.model = this.transform.worldModelMatrix;
+
+      for (let i = 0; i < 16; i++) {
+        this.model[i] = this.transform.worldModelMatrix[i];
+      }
+
+      this.inverted = mat4.invert(mat4.create(), this.model);
+    }
   }
 
   render(deltaTime: number) {

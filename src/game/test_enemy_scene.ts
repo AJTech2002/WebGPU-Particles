@@ -62,7 +62,8 @@ export class TestEnemyScene extends BoidScene {
   }
 
   start(): void {
-    this.spawn();
+    // this.spawn();
+    this.bigBoss(new Vector3(0, 0, 0));
   }
 
   render(dT: number): void {
@@ -70,21 +71,5 @@ export class TestEnemyScene extends BoidScene {
     
   }
 
-  private boss : boolean = false;
-
-  mouseEvent(type: number, button: number): void {
-    super.mouseEvent(type, button);
-    if (type === 0 && button === 0) {
-      // perform raycast
-      const mouse = this.input.mouseToWorld(0);
-      if (!this.boss) {
-      this.bigBoss(mouse);
-      this.boss = true;
-      }
-      else {
-        this.spawnEnemy(mouse, "Soldier");
-      }
-    }
-  }
 
 }

@@ -7,12 +7,15 @@ import GameObject from "@engine/scene/gameobject";
 import TreeTexture from "../../assets/tree.png";
 import { GridComponent } from "@game/grid/grid_go";
 import { Quad, QuadWithMaterial } from "@engine/prefabs/quad.prefab";
+import BoidSystemComponent from "@game/boids/boid_system";
 
 export class TreeSpawner extends Component {
 
     private treeCount: number = 60;
     private grid! : GridComponent;
     private treeMaterial!: StandardDiffuseMaterial;
+  
+    private trees: GameObject[] = [];
 
     constructor() {
       super();
@@ -26,8 +29,17 @@ export class TreeSpawner extends Component {
       }
     }
 
+    public start(): void {
+      // Add trees to the boid system
+      const boidSystem = this.scene.findObjectOfType<BoidSystemComponent>(BoidSystemComponent)!;
+      this.trees.forEach(tree => {
+        boidSystem.addCollider(tree.getComponent<Collider>(Collider)!);
+      });
+    }
+
     private createTree() {
       const squareCollider = QuadWithMaterial(this.scene, this.treeMaterial);
+      this.trees.push(squareCollider);
       // randomize position
       const x = Math.random() * this.grid.size.x;
       const y = Math.random() * this.grid.size.y;

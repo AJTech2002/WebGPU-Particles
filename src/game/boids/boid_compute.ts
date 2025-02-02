@@ -86,9 +86,26 @@ export class BoidOutputData {
   public position: vec3 = [0,0,0];
 }
 
+@shaderStruct("CollisionHitData") 
+export class CollisionHitData {
+  @shaderProperty(ShaderTypes.u32)
+  public boidId: number = 0;
+  
+  @shaderProperty(ShaderTypes.u32)
+  public colliderId: number = 0;
+} 
+
+
 export const maxInstanceCount = 64 * 20; // = 1280
 
 export class BoidCompute extends Compute {
+
+
+  @shaderBuffer("atomicU32", StorageMode.read_write, 0)
+  private collisionHitCount!: number;
+
+  @shaderBuffer(CollisionHitData, StorageMode.read_write, [], maxInstanceCount)
+  private collisionHits!: CollisionHitData[];
 
   @shaderBuffer(BoidObjectData, StorageMode.read_write, [], maxInstanceCount) 
   private objects!: BoidObjectData[];
@@ -120,6 +137,7 @@ export class BoidCompute extends Compute {
   @shaderBuffer("f32", StorageMode.uniform, 0)
   private numColliders!: number;
 
+
   constructor() {
     super(
       [MainBoidComputeShader, BoidCollisionShader],
@@ -134,6 +152,7 @@ export class BoidCompute extends Compute {
 
   init(): void {
     super.init();
+    this.set("collisionHitCount", 0);
   }
 
   public set Time (time: number) {

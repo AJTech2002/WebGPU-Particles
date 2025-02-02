@@ -2,7 +2,7 @@ import Component from "@engine/scene/component";
 import { mat4, vec3, vec4 } from "gl-matrix";
 import BoidMaterial from "./rendering/boid_material";
 import Collider from "@engine/scene/core/collider_component";
-import { BoidCompute, BoidGPUData, BoidInputData, BoidObjectData, BoidOutputData, maxInstanceCount } from "./boid_compute";
+import { BoidCompute, BoidGPUData, BoidInputData, BoidObjectData, BoidOutputData, CollisionHitData, maxInstanceCount } from "./boid_compute";
 import BoidInstance from "./boid_instance";
 import GameObject from "@engine/scene/gameobject";
 import { Vector3 } from "@engine/math/src";
@@ -39,11 +39,11 @@ export interface Neighbour {
   ownerId: number;
 }
 
-
 // This will be responsible for storing boid data & running compute pipeline
 // Updating boid data & setting boid data should be done in the BoidRunnerComponent
 export default class BoidSystemComponent extends Component {
 
+  
   //MARK: Properties
   public instanceCount: number = maxInstanceCount;
   public maxInstanceCount: number = maxInstanceCount;
@@ -57,6 +57,8 @@ export default class BoidSystemComponent extends Component {
   public indexMappedId = new Map<number, number>();
 
   public idMappedBoidRefs = new Map<number, BoidInstance>();
+
+  private colliderIndexMappedToType = new Map<number, NeighbourType>();
 
   // Remove this later & optimize
   public hashMappedBoidRefs = new Map<number, Neighbour[]>();
@@ -82,13 +84,43 @@ export default class BoidSystemComponent extends Component {
   public async updateBoidInformation () : Promise<void> {
 
     const boidOutput = this.compute.getBuffer<BoidOutputData>("boid_output");
+    const collisionCountBuffer = this.compute.getBuffer<number>("collisionHitCount");
+    const collisionData = this.compute.getBuffer<CollisionHitData>("collisionHits");
 
     if (!boidOutput) {
       console.error("Boid data not initialized");
       return;
     }
 
+    if (!collisionCountBuffer) {
+      console.error("Collision data not initialized");
+      return;
+    }
+
+    if (!collisionData) {
+      console.error("Collision data not initialized");
+      return;
+    }
+
     const output = await boidOutput.readTo(this.instanceCount);
+    const collisionCount = await collisionCountBuffer.read();
+
+
+    if (collisionCount !== null && collisionCount[0] > 0) {
+
+      const collisionHits = await collisionData.readTo(collisionCount[0]);
+      
+      if (collisionHits)
+      for (let i = 0; i < collisionHits.length; i++) {
+        const hit = collisionHits[i];
+        const boidId = hit.boidId;
+        const boid = this.getBoidInstance(boidId);
+        if (boid) {
+          boid.gameObject.on_collision(this._colliders[hit.colliderId]);
+        }
+      }
+
+    }
 
     this.hashMappedBoidRefs.clear();
 
@@ -310,19 +342,30 @@ export default class BoidSystemComponent extends Component {
     this._colliders.push(collider);
   }
 
+  public removeCollider (collider: Collider) {
+    this._colliders = this._colliders.filter((c) => c !== collider);
+  }
+
   private dispatch(dT : number) {
-    const sDT = dT / 1000; 
 
     this.compute.set("time", this.scene.sceneTime / 1000);
-    this.compute.set("dT", sDT );
+    this.compute.set("dT", dT );
     this.compute.set("numBoids", this.instanceCount);
+    this.compute.set("collisionHitCount", 0);
 
-    this.compute.set("numColliders", this._colliders.length);
-
+    let colCount = 0;
     for (let i = 0; i < this._colliders.length; i++) {
-      this.compute.setElement<Collider>("colliders", i, this._colliders[i]);
+      if (this._colliders[i] && this._colliders[i].inverted !== null)
+        try {
+          this.compute.setElement<Collider>("colliders", colCount, this._colliders[i]);
+          colCount++;
+        }
+        catch (e) {
+          console.error(e, this._colliders[i]);
+        }
     }
 
+    this.compute.set("numColliders", colCount);
     this.compute.dispatch(Math.ceil(this.instanceCount / 64));
 
   }

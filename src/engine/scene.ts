@@ -172,7 +172,7 @@ export default class Scene {
     }
 
     for (let i = 0; i < this._gameObjects.length; i++) {
-      this._gameObjects[i].on_update(dT);
+      this._gameObjects[i].on_update(dT/1000.0);
     }
   }
 

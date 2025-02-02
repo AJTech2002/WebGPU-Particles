@@ -66,6 +66,20 @@ export function parseFromPrimitives(data: Float32Array, type: ShaderDataType): u
       const i32Array = new Int32Array(data.buffer);
       return i32Array[0];
     }
+    case ShaderTypes.atomicU32: {
+      if (data.length !== 1) {
+        throw new Error(`Invalid data length for u32. Expected 1, got ${data.length}`);
+      }
+      const u32Array = new Uint32Array(data.buffer);
+      return u32Array[0];
+    }
+    case ShaderTypes.atomicI32: {
+      if (data.length !== 1) {
+        throw new Error(`Invalid data length for i32. Expected 1, got ${data.length}`);
+      }
+      const i32Array = new Int32Array(data.buffer);
+      return i32Array[0];
+    }
     default: {
       if (data.length !== 1) {
         throw new Error(`Invalid data length for scalar. Expected 1, got ${data.length}`);
@@ -111,6 +125,22 @@ export function parsePrimitives (data: unknown, type: ShaderDataType) : Float32A
       return f32Array;
     }
     case ShaderTypes.i32:
+    {
+      const i32 = data as number;
+      const i32Array = new Int32Array(1);
+      const f32Array = new Float32Array(i32Array.buffer);
+      i32Array[0] = i32;
+      return f32Array;
+    }
+    case ShaderTypes.atomicU32:
+    {
+      const u32 = data as number;
+      const u32Array = new Uint32Array(1);
+      const f32Array = new Float32Array(u32Array.buffer);
+      u32Array[0] = u32;
+      return f32Array;
+    }
+    case ShaderTypes.atomicI32:
     {
       const i32 = data as number;
       const i32Array = new Int32Array(1);

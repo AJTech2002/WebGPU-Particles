@@ -3,6 +3,7 @@ import { BoidInputData, BoidOutputData } from "./boid_compute";
 import { Vector3, Vector4 } from "@engine/math/src";
 import BoidSystemComponent, { Neighbour } from "./boid_system";
 import { mat4, vec3 } from "gl-matrix";
+import Collider from "@engine/scene/core/collider_component";
 
 /**
  * BoidInstance
@@ -274,4 +275,5 @@ export default class BoidInstance extends Component {
     this.position = this.originalPosition;
     this.transform.position.set(this.originalPosition.x, this.originalPosition.y, this.originalPosition.z);
   }
+
 }
