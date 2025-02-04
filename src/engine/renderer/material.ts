@@ -4,7 +4,7 @@ import BasicFragShader from "@renderer/shaders/simple_shader.wgsl";
 import BasicTextureFragShader from "@renderer/shaders/simple_textured_shader.wgsl";
 import Scene from "../scene";
 import Engine, { renderTargetFormat, device } from "@engine/engine";
-import Texture from "@engine/texture";
+import Texture from "@engine/renderer/texture";
 import { ColorUniform, Vec3Uniform } from "./uniforms";
 import { Color, Vector2 } from "@math";
 

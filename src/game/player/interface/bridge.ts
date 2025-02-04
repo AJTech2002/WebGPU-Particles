@@ -95,7 +95,7 @@ export class GameDataBridge {
   }
 
   public get mousePosition () : Vector3 {
-    return this.scene.inputSystem.mouseToWorld(0);
+    return this.scene.inputSystem.mouseToWorld(0, true);
   }
 
   public get boidInterfaces () : BoidInterface[] {

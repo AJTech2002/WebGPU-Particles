@@ -7,6 +7,7 @@ import Input from "./scene/inputs";
 import Component from "./scene/component";
 import { Vector3 } from "./math/src";
 import Collider from "./scene/core/collider_component";
+import { Physics } from "./physics/physics";
 
 export interface CameraData {
   view: mat4;
@@ -32,11 +33,14 @@ export default class Scene {
 
   private disposed: boolean = false;
 
+  public physics: Physics;
+
 
   constructor() {
     this.cameraObject = new GameObject("MainCamera", this);
     this.cameraObject.addComponent(new CameraComponent());
     this.input = new Input(this);
+    this.physics = new Physics(this);
   }
 
   //#region Scene Graph Elements

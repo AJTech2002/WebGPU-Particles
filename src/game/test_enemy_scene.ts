@@ -14,7 +14,7 @@ import { Boss } from "./prefabs/boss.prefab";
 
 export class TestEnemyScene extends BoidScene {
 
-  private maxEnemies = 100;
+  private maxEnemies = 1000;
   private spawnedEnemies: Unit[] = [];
 
   public spawnEnemy(
@@ -36,6 +36,7 @@ export class TestEnemyScene extends BoidScene {
   public bigBoss (position: Vector3) {
     const boss = Boss(this);
     boss.transform.position = new Vector3(position.x, position.y, -7);
+    this.boidSystem.addCollider(boss.getComponent(Collider));
   }
 
   public override raycast(start: Vector3, direction: Vector3, distance: number): Collider[] { 

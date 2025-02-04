@@ -141,13 +141,23 @@ export class Unit extends Damageable {
     super.handleDamage(amount);
   }
 
+  private alreadyColliding: boolean = false;
   override on_collision(collider: Collider): void {
-    if (collider.gameObject.name.includes("rock")) {
+
+    if (this.ownerId === 0)
+    if (collider.gameObject.name.includes("rock") && !this.alreadyColliding) {
       const rockComponent = collider.gameObject.getComponent<Rock>(Rock);
       rockComponent?.takeDamage(5);
-      const force = this.position.clone().sub(collider.gameObject.transform.position).normalize().multiplyScalar(30.0, 0.5);
-      this.knockbackForce(force);
+      const force = this.position.clone().sub(collider.gameObject.transform.position).normalize().multiplyScalar(30.0);
+      force.z = 0;
+      this.knockbackForce(force, 0.05);
       this.takeDamage(50);
+      this.alreadyColliding = true;
+      const reset = async () => {
+        await this.scene.seconds(0.5);
+        this.alreadyColliding = false;
+      }
+      reset();
     }
   }
 
