@@ -7,7 +7,7 @@ import BoidInstance from "./boid_instance";
 import GameObject from "@engine/scene/gameobject";
 import { Vector3 } from "@engine/math/src";
 import BoidScene from "@game/boid_scene";
-import { GridComponent } from "@game/grid/grid_go";
+import { GridComponent } from "@game/grid/grid";
 import { DynamicUniform } from "@engine/ts-compute/dynamic-uniform";
 
 
@@ -113,7 +113,14 @@ export default class BoidSystemComponent extends Component {
       if (collisionHits)
       for (let i = 0; i < collisionHits.length; i++) {
         const hit = collisionHits[i];
-        const boidId = hit.boidId;
+        const boidIndex = hit.boidId;
+        const boidId = this.indexMappedId.get(boidIndex) ?? -1;
+        
+        if (boidId == -1) {
+          console.warn("Boid Index not found", boidIndex);
+          continue;
+        }
+
         const boid = this.getBoidInstance(boidId);
         if (boid) {
           boid.gameObject.on_collision(this._colliders[hit.colliderId]);

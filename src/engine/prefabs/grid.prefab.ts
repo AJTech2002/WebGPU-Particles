@@ -1,10 +1,11 @@
 import { StandardDiffuseMaterial } from "@engine/renderer/material";
 import Scene from "@engine/scene";
 import GameObject from "@engine/scene/gameobject";
-import { GridComponent } from "@game/grid/grid_go";
+import { GridComponent } from "@game/grid/grid";
 import GridTexture from "../../assets/grid.png";
-import { Color, Vector2 } from "@engine/math/src";
+import { Color, Vector2, Vector3 } from "@engine/math/src";
 import { QuadMesh } from "@engine/scene/core/mesh_component";
+import { Debug } from "@engine/debug/debug";
 
 export function Grid (
   scene: Scene,
@@ -25,6 +26,38 @@ export function Grid (
     gridObject.transform.position.z = -10;
 
     gridObject.addComponent(new QuadMesh(material));
+
+    const halfX = sizeX / 2;
+    const halfY = sizeY / 2;
+    
+    // draw a line around the grid
+    // Debug.line (
+    //   new Vector3(-halfX, -halfY, -1),
+    //   new Vector3(halfX, -halfY, -1),
+    //   new Color(0, 0, 0),
+    //   1000
+    // )
+
+    // Debug.line (
+    //   new Vector3(-halfX, halfY, -1),
+    //   new Vector3(halfX, halfY, -1),
+    //   new Color(0, 0, 0),
+    //   1000
+    // )
+
+    // Debug.line (
+    //   new Vector3(-halfX, -halfY, -1),
+    //   new Vector3(-halfX, halfY, -1),
+    //   new Color(0, 0, 0),
+    //   1000
+    // )
+
+    // Debug.line (
+    //   new Vector3(halfX, -halfY, -1),
+    //   new Vector3(halfX, halfY, -1),
+    //   new Color(0, 0, 0),
+    //   1000
+    // )
 
     return gridObject;
 }

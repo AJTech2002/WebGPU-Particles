@@ -18,7 +18,7 @@ export class Unit extends Damageable {
   private _ownerId: number = 0; // 0 is player / 1 is enemy
 
   constructor(ownerId: number, unitType: UnitType) {
-    super(100);
+    super(100, 0);
     this._ownerId = ownerId;
     this._unitType = unitType;
   }
@@ -151,7 +151,7 @@ export class Unit extends Damageable {
       const force = this.position.clone().sub(collider.gameObject.transform.position).normalize().multiplyScalar(30.0);
       force.z = 0;
       this.knockbackForce(force, 0.05);
-      this.takeDamage(50);
+      this.takeDamage(500, true);
       this.alreadyColliding = true;
       const reset = async () => {
         await this.scene.seconds(0.5);
@@ -234,8 +234,11 @@ export class Unit extends Damageable {
             // set external force away from the boid
             const force = new Vector3();
             force.copy(boidDir).multiplyScalar(0.2);
-            unit.knockbackForce(force);
-            unit.takeDamage(10);
+            
+            if (unit.canTakeDamage())  {
+              unit.knockbackForce(force);
+              unit.takeDamage(10);
+            }
           }
         }
       }

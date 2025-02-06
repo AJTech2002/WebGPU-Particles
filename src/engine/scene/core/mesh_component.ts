@@ -15,6 +15,8 @@ export default class Mesh extends Component {
 
   public bindGroup?: GPUBindGroup;
 
+  public manualUpdate: boolean = false;
+
   constructor(material? : Material) {
     super();
     this.modelBuffer = device.createBuffer({
@@ -45,6 +47,26 @@ export default class Mesh extends Component {
       ],
     })
 
+  }
+
+  private _needsUpdate: boolean = false;
+
+  public set needsUpdate(value: boolean) {
+    this._needsUpdate = value;
+  }
+
+  public get needsUpdate(): boolean {
+    return !this.manualUpdate || this._needsUpdate;
+  }
+
+  public onPreDraw() {
+    //
+  }
+
+  public onPostDraw() {
+    if (this.manualUpdate) {
+      this._needsUpdate = false;
+    }
   }
 
   public get material(): Material {

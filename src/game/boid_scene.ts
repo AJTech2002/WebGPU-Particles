@@ -1,26 +1,19 @@
 import Engine from "@engine/engine";
-import CircleTexture from "../assets/circle.png";
 import Scene from "@engine/scene";
 import GameObject from "@engine/scene/gameobject";
 import BoidSystemComponent from "./boids/boid_system";
 import { QuadMesh } from "@engine/scene/core/mesh_component";
 import BoidMaterial from "./boids/rendering/boid_material";
 import BoidTexture from "../assets/guy-3.png";
-import BossTexture from "../assets/boss.png";
 import CameraMovement from "./components/camera_movement";
-import Collider, { ColliderShape } from "@engine/scene/core/collider_component";
-import { StandardDiffuseMaterial } from "@engine/renderer/material";
-import { Color, Vector3 } from "@engine/math/src";
+import {  Vector3 } from "@engine/math/src";
 import { Unit } from "./units/unit";
 import { UnitType } from "./squad/squad";
 import { TreeSpawner } from "./components/tree_spawner";
-import { Grid } from "../engine/prefabs/grid.prefab";
-import { GridComponent } from "./grid/grid_go";
 
 export default class BoidScene extends Scene {
 
   protected boidSystem!: BoidSystemComponent;
-  protected grid!: GridComponent;
   protected gameManager!: GameObject;
 
   private _units : Unit[] = [];
@@ -30,7 +23,6 @@ export default class BoidScene extends Scene {
   awake(engine: Engine): void {
     super.awake(engine);
     this.reportFPS();
-    this.grid = Grid(this, 50, 50).getComponent<GridComponent>(GridComponent)!;
     
     this.gameManager = new GameObject("GAME_MANAGER", this);
     this.gameManager.addComponent(

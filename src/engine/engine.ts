@@ -91,7 +91,9 @@ export let renderTargetFormat: GPUTextureFormat = "bgra8unorm";
 export let adapter: GPUAdapter;
 
 export async function createEngine(canvas: HTMLCanvasElement, scene: Scene, _stats: Stats | undefined) : Promise<Engine> {
-  adapter = <GPUAdapter>await navigator.gpu?.requestAdapter();
+  adapter = <GPUAdapter>await navigator.gpu?.requestAdapter({
+    powerPreference: "high-performance",
+  });
   device = <GPUDevice>await adapter?.requestDevice();
   stats = _stats;
   return new Engine(canvas, scene);

@@ -28,13 +28,26 @@ export class Damageable extends EventfulComponent<DamageEvents> {
   }
 
   private _lastDamageTime: number = 0;
-  public takeDamage(amount: number) {
+
+  public canTakeDamage(): boolean {
+    return this.scene.sceneTimeSeconds - this._lastDamageTime > this._damageTimeout
+  }
+
+  public setCanTakeDamage(value: boolean) {
+    if (value) {
+      this._lastDamageTime = 0;
+    } else {
+      this._lastDamageTime = this.scene.sceneTimeSeconds;
+    }
+  }
+
+  public takeDamage(amount: number, force: boolean = false) {
     if (this._health <= 0) {
       return;
     
     }
 
-    if (this.scene.sceneTimeSeconds - this._lastDamageTime > this._damageTimeout) {
+    if (this.scene.sceneTimeSeconds - this._lastDamageTime > this._damageTimeout || force) {
 
       this._health -= amount;
       this._lastDamageTime = this.scene.sceneTimeSeconds; 

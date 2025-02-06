@@ -237,11 +237,15 @@ export class Renderer {
                 renderpass.setPipeline(mat.pipeline);
                 renderpass.setBindGroup(1, mat.bindGroup); // Material Level Uniforms
                 for (const mesh of mat.meshes) {
-                    if (mesh.gameObject.active && mesh.gameObject.started)
+                    if (mesh.gameObject.active && mesh.gameObject.started && mesh.needsUpdate)
                         if (mesh.bindGroup !== undefined) {
+                            mesh.onPreDraw();
+
                             renderpass.setBindGroup(2, mesh.bindGroup); // Mesh Level Uniforms
                             renderpass.setVertexBuffer(0, mesh.getVertexBuffer()); // Mesh
                             renderpass.draw(mesh.getVertexCount(), mat.instanceCount, 0, 0); 
+                            
+                            mesh.onPostDraw();
                         }
                 }
             }

@@ -10,7 +10,15 @@ import { Debug } from "@engine/debug/debug";
 import { CastlePrefab } from "./prefabs/castle.prefab";
 import { Damageable } from "./components/damageable";
 import {BaseEnemy} from "./units/enemy";
-import { Boss } from "./prefabs/boss.prefab";
+ import { Boss } from "./prefabs/boss.prefab";
+import { Rigidbody } from "@engine/physics/rigidbody";
+import GameObject from "@engine/scene/gameobject";
+import { TestBoss } from "./components/enemies/test-boss";
+
+export enum TestEnemySceneLayers {
+  BOSS = 1,
+  TREE = 2,
+}
 
 export class TestEnemyScene extends BoidScene {
 
@@ -33,10 +41,16 @@ export class TestEnemyScene extends BoidScene {
     return u;
   }
 
+  private boss!: TestBoss;
+
   public bigBoss (position: Vector3) {
-    const boss = Boss(this);
-    boss.transform.position = new Vector3(position.x, position.y, -7);
-    this.boidSystem.addCollider(boss.getComponent(Collider));
+    const bosGO= Boss(this);
+    this.boss = bosGO.getComponent(TestBoss)!;
+    this.boss.transform.position = new Vector3(position.x, position.y, -7);
+    bosGO.getComponent(Rigidbody)?.setLayer(TestEnemySceneLayers.BOSS);
+    this.physics.addCollisionMask(TestEnemySceneLayers.BOSS, TestEnemySceneLayers.BOSS, false);
+    this.boidSystem.addCollider(bosGO.getComponent(Collider));
+    
   }
 
   public override raycast(start: Vector3, direction: Vector3, distance: number): Collider[] { 
@@ -49,27 +63,32 @@ export class TestEnemyScene extends BoidScene {
 
   async spawn () {
     while (true) {
-      await this.seconds(0.1);
+      await this.seconds(0.3);
 
       const randomAngle = Math.random() * Math.PI * 2;
-      const distance = 3;
+      const distance = 0.3;
 
       const x = Math.cos(randomAngle) * distance;
       const y = Math.sin(randomAngle) * distance;
 
 
-      this.spawnEnemy(new Vector3(x, y, 0), "Soldier");
+      this.spawnEnemy(this.boss.transform.position.clone(), "Soldier");
     }
   }
 
   start(): void {
-    // this.spawn();
+    this.spawn();
     this.bigBoss(new Vector3(0, 0, 0));
   }
 
   render(dT: number): void {
     super.render(dT);
-    
+    // follow boss to mouse
+
+    if (this.boss) {
+      const mouse = this.input.mouseToWorld(0);
+      this.boss.moveTo(new Vector3(mouse.x, mouse.y, 0));
+    }
   }
 
 

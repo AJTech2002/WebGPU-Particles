@@ -8,6 +8,8 @@ import Component from "./scene/component";
 import { Vector3 } from "./math/src";
 import Collider from "./scene/core/collider_component";
 import { Physics } from "./physics/physics";
+import { GridComponent } from "@game/grid/grid";
+import { Grid } from "./prefabs/grid.prefab";
 
 export interface CameraData {
   view: mat4;
@@ -33,14 +35,16 @@ export default class Scene {
 
   private disposed: boolean = false;
 
-  public physics: Physics;
+  public grid!: GridComponent;
+  public physics!: Physics;
+
 
 
   constructor() {
     this.cameraObject = new GameObject("MainCamera", this);
     this.cameraObject.addComponent(new CameraComponent());
     this.input = new Input(this);
-    this.physics = new Physics(this);
+
   }
 
   //#region Scene Graph Elements
@@ -171,31 +175,32 @@ export default class Scene {
     this.time += dT;
     this.frame++;
 
-    for (let i = 0; i < this.callbacks.length; i++) {
-      this.callbacks[i](dT);
+    for (const callback of this.callbacks) {
+      callback(dT);
     }
 
     for (let i = 0; i < this._gameObjects.length; i++) {
       this._gameObjects[i].on_update(dT/1000.0);
     }
+
+    if (this.physics) this.physics.update(dT);
   }
 
   // render callback (dt) type
-  private callbacks: Array<RenderCallback> = [];
+  private callbacks: Set<RenderCallback> = new Set();
   createRenderCallback(callback : RenderCallback) {
-    this.callbacks.push(callback);
+    this.callbacks.add(callback);
   }
 
   removeRenderCallback(callback : RenderCallback) {
-    const index = this.callbacks.indexOf(callback);
-    if (index > -1) {
-      this.callbacks.splice(index, 1);
-    }
+      this.callbacks.delete(callback);
   }
 
   awake(engine: Engine) {
     this._engine = engine;
     this.input.setup();
+    this.grid = Grid(this, 20, 20).getComponent<GridComponent>(GridComponent)!;
+    this.physics = new Physics(this, this.grid);
   }
 
   start() {
@@ -293,20 +298,16 @@ export default class Scene {
     new Promise<void>((resolve) => {
       const startTime = this.time;
 
-      const f = (dt: number) => {
-        if (this.time - startTime >= s * 1000) {
-          resolve();
-          this.removeRenderCallback(f);
-        }
-      };
-
-      this.createRenderCallback(f);
+      setTimeout(async () => {
+        await this.tick();
+        resolve();
+      }, s * 1000);
     });
 
   protected async reportFPS() {
     while (true) {
-      await this.seconds(10);
-      console.log("FPS: ", (this.dT * 1000/60.0));
+      await this.seconds(2);
+      console.log("FPS: ", 1.0/(this.dT/1000));
     }
   }
   

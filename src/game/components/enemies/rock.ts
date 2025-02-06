@@ -22,10 +22,13 @@ export class Rock extends Damageable {
     this.scaleTo(1.0, 0.2);
   }
 
+  private scaling = false;
+
   protected handleDeath(): void {
     // Remove collider from boid system
     this.scene.findObjectOfType(BoidSystemComponent)?.removeCollider(this.gameObject.getComponent(Collider)!);
-    this.scaleTo(0.0, 0.1).then(() => {
+    this.scaling = true;
+    this.scaleTo(0.0, 0.3).then(() => {
       this.gameObject.destroy();
     });
   }
@@ -46,6 +49,9 @@ export class Rock extends Damageable {
   public update(dT: number): void {
     super.update(dT);
 
+    if (!this.alive || this.scaling) {
+      return;
+    }
     // // move in direction
     if (this.direction.length() > 0) {
       this.transform.position = this.transform.position.add(this.direction.clone().multiplyScalar(this.speed * dT));
@@ -59,6 +65,10 @@ export class Rock extends Damageable {
       this.handleDeath();
     }
 
+  }
+
+  public on_collision(collider: Collider): void {
+      this.takeDamage(100);
   }
 
 }

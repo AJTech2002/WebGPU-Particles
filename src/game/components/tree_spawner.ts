@@ -2,16 +2,17 @@ import { Color, Vector3 } from "@engine/math/src";
 import { StandardDiffuseMaterial } from "@engine/renderer/material";
 import Component from "@engine/scene/component";
 import Collider, { ColliderShape } from "@engine/scene/core/collider_component";
-import { QuadMesh } from "@engine/scene/core/mesh_component";
+import Mesh, { QuadMesh } from "@engine/scene/core/mesh_component";
 import GameObject from "@engine/scene/gameobject";
 import TreeTexture from "../../assets/tree.png";
-import { GridComponent } from "@game/grid/grid_go";
+import { GridComponent } from "@game/grid/grid";
 import { Quad, QuadWithMaterial } from "@engine/prefabs/quad.prefab";
 import BoidSystemComponent from "@game/boids/boid_system";
+import { Rigidbody } from "@engine/physics/rigidbody";
 
 export class TreeSpawner extends Component {
 
-    private treeCount: number = 60;
+    private treeCount: number = 20;
     private grid! : GridComponent;
     private treeMaterial!: StandardDiffuseMaterial;
   
@@ -46,5 +47,7 @@ export class TreeSpawner extends Component {
       const position = new Vector3(x - this.grid.size.x / 2, y - this.grid.size.y / 2, -9);
       squareCollider.transform.position = position;
       squareCollider.transform.scale = new Vector3(0.6, 1.0, 1.0).multiplyScalar(0.8);
+      squareCollider.getComponent(Collider)!.isStatic = true;
+      squareCollider.addComponent(new Rigidbody());
     }
 }

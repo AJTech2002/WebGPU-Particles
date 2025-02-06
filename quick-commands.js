@@ -26,8 +26,10 @@ const radius = 3; // Adjust the radius as needed
 const interval = 100; // Time interval in milliseconds
 
 setInterval(() => {
-  const { mousePosition, units } = game;
-  const [mouseX, mouseY] = mousePosition;
+  const mousePosition = game.mousePosition;
+  const units = squad.units;
+  const mouseX = mousePosition.x;
+  const mouseY = mousePosition.y;
   const unitCount = units.length;
 
   units.forEach((unit, index) => {
