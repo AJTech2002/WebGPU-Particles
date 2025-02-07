@@ -19,7 +19,7 @@ export class Rock extends Damageable {
   }
 
   public start(): void {
-    this.scaleTo(1.0, 0.2);
+    this.scaleTo(0.7, 0.2);
   }
 
   private scaling = false;
@@ -28,7 +28,7 @@ export class Rock extends Damageable {
     // Remove collider from boid system
     this.scene.findObjectOfType(BoidSystemComponent)?.removeCollider(this.gameObject.getComponent(Collider)!);
     this.scaling = true;
-    this.scaleTo(0.0, 0.3).then(() => {
+    this.scaleTo(0.0, 0.2).then(() => {
       this.gameObject.destroy();
     });
   }
@@ -37,7 +37,7 @@ export class Rock extends Damageable {
     let t = 0;
     const startScale = this.transform.scale.clone();
     while (t < duration) {
-      t += this.scene.dT / 1000;
+      t += this.scene.dT;
       this.transform.scale = startScale.clone().lerp(new Vector3(toScale, toScale, toScale), t / duration);
       await this.scene.tick();
     }

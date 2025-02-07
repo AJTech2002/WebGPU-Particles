@@ -1,4 +1,8 @@
+import { Vector3 } from "@engine/math/src";
+import BoidScene from "@game/boid_scene";
 import { BoidInterface } from "@game/player/interface/boid_interface";
+import { BaseEnemy } from "@game/units/enemy";
+import { Unit } from "@game/units/unit";
 
 export type UnitType = "Soldier" | "Archer" | "Giant";
 
@@ -59,6 +63,10 @@ export class Squad {
     }
   }
 
+  protected start() {
+
+  }
+
   public addUnit (unit: BoidInterface) {
     this.units.push(unit);
     this.unitsMappedToType.set(unit.unitType, [
@@ -83,6 +91,40 @@ export class Squad {
     for (const unit of this.units) {
       unit.kill();
     }
+  }
+
+}
+
+export class EnemySquad {
+
+  protected scene: BoidScene;
+  private _units: Unit[] = [];
+
+  constructor (scene: BoidScene) {
+    this.scene = scene;
+  }
+
+  public spawnEnemy(
+    position: Vector3,
+    unitType: UnitType,
+    count: number
+  ) : Unit[] {
+    
+    const u : Unit[] = [];
+    for (let i = 0; i < count; i++) {
+      const newUnit = this.scene.createUnit(1, unitType, position, 1.0, 0);
+      newUnit?.gameObject.addComponent(new BaseEnemy());
+      if (newUnit) {
+        this._units.push(newUnit);
+        u.push(newUnit); 
+      }
+    }
+
+    return u;
+  }
+
+  public get units () {
+    return this._units;
   }
 
 }

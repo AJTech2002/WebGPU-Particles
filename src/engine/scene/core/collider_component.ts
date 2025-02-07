@@ -56,6 +56,15 @@ export default class Collider extends Component {
     this.model = this.transform.worldModelMatrix;
     this.inverted = mat4.invert(mat4.create(), this.model);
   }
+  
+
+  public get worldExtents() : Vector3 {
+    return new Vector3(
+      this.size[0] * this.transform.scale.x,
+      this.size[1] * this.transform.scale.y,
+      this.size[2] * this.transform.scale.z,
+    );
+  }
 
 
   check2DRayIntersection(

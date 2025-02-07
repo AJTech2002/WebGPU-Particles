@@ -13,7 +13,7 @@ import { TreeSpawner } from "./components/tree_spawner";
 
 export default class BoidScene extends Scene {
 
-  protected boidSystem!: BoidSystemComponent;
+  public boidSystem!: BoidSystemComponent;
   protected gameManager!: GameObject;
 
   private _units : Unit[] = [];

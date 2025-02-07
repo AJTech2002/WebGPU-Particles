@@ -57,6 +57,10 @@ export class Unit extends Damageable {
     return this._unitType;
   }
 
+  public moveTo (x: number, y: number) {
+    this.boidInstance.moveTo(x, y);
+  }
+
   private async deathAnimation() {
     let t = 0;
     const deathTime = 0.1;
@@ -144,21 +148,18 @@ export class Unit extends Damageable {
   private alreadyColliding: boolean = false;
   override on_collision(collider: Collider): void {
 
-    if (this.ownerId === 0)
-    if (collider.gameObject.name.includes("rock") && !this.alreadyColliding) {
-      const rockComponent = collider.gameObject.getComponent<Rock>(Rock);
-      rockComponent?.takeDamage(5);
-      const force = this.position.clone().sub(collider.gameObject.transform.position).normalize().multiplyScalar(30.0);
-      force.z = 0;
-      this.knockbackForce(force, 0.05);
-      this.takeDamage(500, true);
-      this.alreadyColliding = true;
-      const reset = async () => {
-        await this.scene.seconds(0.5);
-        this.alreadyColliding = false;
+    if (this.ownerId === 0) {
+      if (collider.gameObject.name.includes("rock") && !this.alreadyColliding) {
+        const rockComponent = collider.gameObject.getComponent<Rock>(Rock);
+        rockComponent?.takeDamage(5);
+        const force = this.position.clone().sub(collider.gameObject.transform.position).normalize().multiplyScalar(30.0);
+        force.z = 0;
+        this.knockbackForce(force, 0.05);
+        this.takeDamage(500, true);
+        
       }
-      reset();
     }
+
   }
 
   protected handleDeath(): void {
@@ -168,9 +169,19 @@ export class Unit extends Damageable {
 
   private lastAttackTime: number = 0;
 
-  async knockbackForce(force: Vector3, duration?: number) {
-    if (!this.alive) return;
+  private knockingBack: boolean = false;
 
+  public get friendlyNeighbours() {
+    return this.system.getFriendlyNeighbours(this.boidInstance.id);
+  }
+
+  public get enemyNeighbours() {
+    return this.system.getEnemyNeighbours(this.boidInstance.id);
+  }
+
+  async knockbackForce(force: Vector3, duration?: number) {
+    if (!this.alive || this.knockingBack) return;
+    this.knockingBack = true;
     this.boidInstance.externalForce = new Vector3(force.x, force.y, force.z);
     this.boidInstance.diffuseColor = new Vector4(1, 1, 1, 1);
     this.boidInstance.scale = this.boidInstance.originalScale * 1.2;
@@ -178,11 +189,23 @@ export class Unit extends Damageable {
     if (duration) await this.scene.seconds(duration);
     else await this.scene.seconds(Math.random() * 0.1 + 0.05);
 
-    if (!this.alive) return;
+    if (!this.alive) {
+      this.knockingBack = false;
+      return;
+    }
 
     this.boidInstance.diffuseColor = this.boidInstance.originalColor;
     this.boidInstance.externalForce = new Vector3(0, 0, 0);
     this.boidInstance.scale = this.boidInstance.originalScale;
+    await this.scene.seconds(0.5);
+    this.knockingBack = false;
+  }
+
+  public attackPosition(x: number, y: number) {
+    // get dir
+    const dir = new Vector3(x, y, 0).sub( this.position.clone() ); 
+    dir.normalize();
+    this.attack(dir.x, dir.y);
   }
 
   public attack(x: number, y: number) {

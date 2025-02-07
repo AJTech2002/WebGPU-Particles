@@ -171,19 +171,22 @@ export default class Scene {
       return;
     }
 
-    this.dT = dT;
+    this.dT = dT/1000;
     this.time += dT;
     this.frame++;
 
+    
     for (const callback of this.callbacks) {
+      
       callback(dT);
+
     }
 
     for (let i = 0; i < this._gameObjects.length; i++) {
-      this._gameObjects[i].on_update(dT/1000.0);
+      this._gameObjects[i].on_update(this.dT);
     }
 
-    if (this.physics) this.physics.update(dT);
+    if (this.physics) this.physics.update(this.dT);
   }
 
   // render callback (dt) type
@@ -307,7 +310,7 @@ export default class Scene {
   protected async reportFPS() {
     while (true) {
       await this.seconds(2);
-      console.log("FPS: ", 1.0/(this.dT/1000));
+      console.log("FPS: ", 1.0/(this.dT));
     }
   }
   

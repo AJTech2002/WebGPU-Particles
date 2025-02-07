@@ -77,7 +77,7 @@ export class TestEnemyScene extends BoidScene {
   }
 
   start(): void {
-    this.spawn();
+    // this.spawn();
     this.bigBoss(new Vector3(0, 0, 0));
   }
 
@@ -85,10 +85,10 @@ export class TestEnemyScene extends BoidScene {
     super.render(dT);
     // follow boss to mouse
 
-    if (this.boss) {
-      const mouse = this.input.mouseToWorld(0);
-      this.boss.moveTo(new Vector3(mouse.x, mouse.y, 0));
-    }
+    // if (this.boss) {
+    //   const mouse = this.input.mouseToWorld(0);
+    //   this.boss.moveTo(new Vector3(mouse.x, mouse.y, 0));
+    // }
   }
 
 

@@ -39,6 +39,11 @@ export interface Neighbour {
   ownerId: number;
 }
 
+export interface BoidSearchFilter {
+  ownerId?: number;
+  range?: number;
+}
+
 // This will be responsible for storing boid data & running compute pipeline
 // Updating boid data & setting boid data should be done in the BoidRunnerComponent
 export default class BoidSystemComponent extends Component {
@@ -215,6 +220,41 @@ export default class BoidSystemComponent extends Component {
     return neighbourBoids;
   }
 
+  public getBoidsInTile (x: number, y: number, filter?: BoidSearchFilter) : BoidInstance[] {
+    const hash = this.grid.hashedTileIndex(x, y);
+    const boidIds = this.hashMappedBoidRefs.get(hash);
+    if (!boidIds) return [];
+    const boidInstances : BoidInstance[] = [];
+    for (const id of boidIds) {
+      const boid = this.getBoidInstance(id.id);
+
+      if (filter) {
+        if (filter.ownerId !== undefined) {
+          const unit = (this.scene as BoidScene).getUnit(id.id);
+          if (unit.ownerId !== filter.ownerId) continue;
+        }
+        if (filter.range !== undefined) {
+          const boidInfo = this.getBoidInfo(id.id);
+          if (boidInfo) {
+            const distance = vec3.distance(boidInfo.data.position, this.getBoidInfo(id.id)!.data.position);
+            if (distance > filter.range) continue;
+          }
+        }
+      }
+
+      if (boid) boidInstances.push(boid);
+    }
+    return boidInstances;
+  }
+
+  public getBoidsInTiles (tiles: {x: number, y: number}[], filter?: BoidSearchFilter) : BoidInstance[] {
+    const boids: BoidInstance[] = [];
+    for (const tile of tiles) {
+      boids.push(...this.getBoidsInTile(tile.x, tile.y, filter));
+    }
+    return boids;
+  }
+
   public boidIdsToBoids (boidId: number[]) : (BoidInstance | undefined)[] {
     return boidId.map((id) => this.idMappedBoidRefs.get(id));
   }
@@ -359,6 +399,7 @@ export default class BoidSystemComponent extends Component {
     this.compute.set("dT", dT );
     this.compute.set("numBoids", this.instanceCount);
     this.compute.set("collisionHitCount", 0);
+    this.compute.set("gridWidth", this.grid.size.x * this.grid.cell_size);
 
     let colCount = 0;
     for (let i = 0; i < this._colliders.length; i++) {

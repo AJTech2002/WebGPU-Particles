@@ -59,6 +59,23 @@ export class GridComponent extends Component {
     });
   }
 
+  public getNeighboursMulti (x: number, y: number, radius: number) {
+    const neighbours: {
+      x: number,
+      y: number
+    } [] = [];
+
+    for (let i = -radius; i <= radius; i++) {
+      for (let j = -radius; j <= radius; j++) {
+        if (x + i >= 0 && x + i < this.sizeX && y + j >= 0 && y + j < this.sizeY) {
+          neighbours.push({x: x + i, y: y + j});
+        }
+      }
+    }
+
+    return neighbours;
+  }
+
   public get size () {
     return new Vector2(this.sizeX, this.sizeY);
   }

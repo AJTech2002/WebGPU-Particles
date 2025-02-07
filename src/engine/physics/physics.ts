@@ -56,8 +56,8 @@ export class Physics {
       return;
     }
 
-    const circleRadius = rigidbody.collider.size[1] / 2;
-    const otherCircleRadius = other.collider.size[0] / 2;
+    const circleRadius = rigidbody.collider.worldExtents.x / 2;
+    const otherCircleRadius = other.collider.worldExtents.x / 2;
 
     const aPos = rigidbody.transform.position;
     const bPos = other.transform.position;

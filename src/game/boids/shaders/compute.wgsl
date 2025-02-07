@@ -163,8 +163,11 @@ fn movementMain (@builtin(global_invocation_id) global_id: vec3<u32>) {
 
     var finalPos = boidPosition + safe_normalize(steering) * length(dir) * boidSpeed * dT;
 
-    //TODO: Handle external forces
     var outputPos = vec4<f32>((finalPos + (boids[index].collisionVector.xyz) + (boids[index].externalForce.xyz * dT)), 0.0);
+    // check if it is outside the boundary
+    outputPos.x = clamp(outputPos.x, -gridWidth/2, gridWidth/2);
+    outputPos.y = clamp(outputPos.y, -gridWidth/2, gridWidth/2);
+
     var lastModelPos = get_position(objects[index].model);
 
     // var lerpSpeed = dT * mix(0.0, 10.0, clamp(distance(outputPos.xyz, lastModelPos)/0.1, 0.0, 1.0)); 
