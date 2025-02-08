@@ -15,6 +15,8 @@ import { Debug } from "@engine/debug/debug";
 import { EnemySquad, Squad } from "@game/squad/squad";
 import BoidScene from "@game/boid_scene";
 import { Unit } from "@game/units/unit";
+import { Damageable } from "../damageable";
+import Mesh from "@engine/scene/core/mesh_component";
 
 
 type BossCommands = "THROW_ROCK" | "SPAWN_DEFENSIVE";
@@ -24,19 +26,21 @@ class CircularDefenseSquad extends EnemySquad {
   private radius = 5;
   private center: Vector3 = new Vector3(0, 0, 0);
   private onDeath: () => void;
+  private size: number;
 
   constructor(scene: BoidScene, center: Vector3, radius: number, size: number, onDeath: () => void) {
     super(scene);
     this.center = center;
     this.radius = radius;
     this.onDeath = onDeath ?? (() => {});
+    this.size = size;
+    this.spawn();
+  }
 
-    for (let i = 0; i < size; i++) {
-      const angle = i * 2 * Math.PI / size;
-      const x = center.x + radius * Math.cos(angle);
-      const y = center.y + radius * Math.sin(angle);
-      const pos = new Vector3(x, y, 0);
-      this.spawnEnemy(pos, "Soldier", 1);
+  private async spawn() {
+    for (let i = 0; i < this.size; i++) {
+      this.spawnEnemy(this.center.clone(), "Soldier", 1);
+      await this.scene.seconds(0.2);
     }
   }
 
@@ -106,7 +110,7 @@ class CircularDefenseSquad extends EnemySquad {
   
 }
 
-export class TestBoss extends Component {
+export class TestBoss extends Damageable {
 
   private rocks: GameObject[] = [];
   private rockMaterial = new StandardDiffuseMaterial(this.scene, RockTexture);
@@ -114,7 +118,11 @@ export class TestBoss extends Component {
   private movementSpeed = 0.5;
   private originalScale = new Vector3(1.0, 1.0, 1.0);
   private grid: GridComponent;
-
+  private material! : StandardDiffuseMaterial;
+  private ogColor = new Color(0.45, 0.4, 0.4);
+  constructor() {
+    super(1000, 0.2);
+  }
   
 
   public override awake(): void {
@@ -127,7 +135,10 @@ export class TestBoss extends Component {
     this.rockMaterial.color = new Color(0.45, 0.4, 0.4);
     // this.throwRocks();
     this.wander();
-    this.stateMachine();
+    // this.stateMachine();
+    this.material = this.gameObject.getComponent(Mesh)!.getMaterial<StandardDiffuseMaterial>(StandardDiffuseMaterial)!;
+    this.ogColor = new Color(this.material.color.r, this.material.color.g, this.material.color.b);
+
   }
 
   private activeSquad: CircularDefenseSquad | null = null;
@@ -153,7 +164,12 @@ export class TestBoss extends Component {
           squad.track(this.gameObject);
           this.activeSquad = squad;
         }
-        else if (boids.length > 10 && this.outterActiveSquad === null) {
+        
+        if (boids.length > 1) {
+          this.throwRock(boids[0].position.clone().sub(this.gameObject.transform.position.clone()));
+        }
+
+        if (boids.length > 20 && this.outterActiveSquad === null) {
           // create a circular defense squad
           const squad = new CircularDefenseSquad(this.scene as BoidScene, this.gameObject.transform.position, 2, 40, () => {
             this.outterActiveSquad = null;
@@ -161,14 +177,35 @@ export class TestBoss extends Component {
           squad.track(this.gameObject);
           this.outterActiveSquad = squad;
         }
-        else if (boids.length > 5) {
-          this.throwRock(boids[0].position.clone().sub(this.gameObject.transform.position.clone()));
-        }
 
       }
 
-      await this.scene.seconds(1);
+      if (this.health > 300) {
+        await this.scene.seconds(0.6);
+      }
+      else {
+        await this.scene.seconds(0.2);
+      }
     }
+  }
+
+  protected handleDamage(amount: number): void {
+    // flash
+    super.handleDamage(amount);
+    this.damageAnim();
+  }
+
+
+  protected handleDeath(): void {
+    this.gameObject.destroy();
+  }
+
+  private async damageAnim() {
+    this.material.color = new Color(1.0, 1.0, 1.0);
+    bobScaleAnimation(this.gameObject.transform,this.originalScale, new Vector3(0.9, 0.9, 0.9), 0.12);
+    await this.scene.seconds(0.1);
+    
+    this.material.color = this.ogColor;
   }
 
   private async wander() {

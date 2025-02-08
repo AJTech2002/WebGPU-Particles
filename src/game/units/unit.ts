@@ -1,5 +1,6 @@
 import { Debug } from "@engine/debug/debug";
 import { Vector3, Vector4 } from "@engine/math/src";
+import { Rigidbody } from "@engine/physics/rigidbody";
 import Component from "@engine/scene/component";
 import Collider from "@engine/scene/core/collider_component";
 import BoidScene from "@game/boid_scene";
@@ -29,7 +30,7 @@ export class Unit extends Damageable {
     this.system = this.gameObject.scene.findObjectsOfType(
       BoidSystemComponent
     )[0] as BoidSystemComponent;
-    // this.setUnitScale();
+    this.setUnitScale();
     this.setUnitColor();
   }
 
@@ -149,6 +150,7 @@ export class Unit extends Damageable {
   override on_collision(collider: Collider): void {
 
     if (this.ownerId === 0) {
+      if (collider?.gameObject)
       if (collider.gameObject.name.includes("rock") && !this.alreadyColliding) {
         const rockComponent = collider.gameObject.getComponent<Rock>(Rock);
         rockComponent?.takeDamage(5);
@@ -204,9 +206,24 @@ export class Unit extends Damageable {
     if (!this.alive) return;
 
     const attackDistance = 0.4;
+    
 
     const now = Date.now();
     if (now - this.lastAttackTime < 400) return;
+
+    const raycast : Rigidbody | null = this.scene.physics.raycast2D(
+      this.position,
+      new Vector3(x, y, 0),
+      attackDistance 
+    );
+
+    if (raycast) {
+      const damageable = raycast.gameObject.getComponent<Damageable>(Damageable);
+      if (damageable) {
+        damageable.takeDamage(10);
+      }
+    }
+
     this.lastAttackTime = now;
     const neighbours = this.system.getBoidNeighbours(this.boidInstance.id);
 

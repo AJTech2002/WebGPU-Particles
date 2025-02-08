@@ -96,6 +96,14 @@ export class TestEnemyScene extends BoidScene {
 
     if (this.boss) {
       const mouse = this.input.mouseToWorld(0);
+      if (this.input.getMouseButton(0)) {
+        this.createUnit(0, "Soldier", mouse);
+      }
+
+      this._units.forEach(u => {
+        u.moveTo(mouse.x, mouse.y);
+        u.attackPosition(mouse.x, mouse.y);
+      });
     }
   }
 

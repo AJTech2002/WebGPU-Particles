@@ -174,6 +174,10 @@ export class StandardMaterial extends Material {
     })
   }
 
+  public get color(): Color {
+    return this.colorUniform.value;
+  }
+
   public set color(value: Color) {
     this.colorUniform.value = value;
   }
@@ -196,8 +200,6 @@ export class StandardDiffuseMaterial extends StandardMaterial {
     if (Array.isArray(url)) {
       this.isMultiTexture = true;
     }
-
-    console.log("isMultiTexture", this.isMultiTexture, url);
 
     this.texture = new Texture(this.isMultiTexture);
 

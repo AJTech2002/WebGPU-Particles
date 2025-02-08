@@ -285,7 +285,7 @@ export default class BoidSystemComponent extends Component {
       speed: init.speed,
       externalForce: [0, 0, 0, 0],
       diffuseColor: [1.0, 1.0, 1.0, 1.0],
-      scale: init.scale,
+      scale: 0,
       steeringSpeed: init.steeringSpeed,
       alive: true,
       avoidanceForce: init.avoidanceForce
