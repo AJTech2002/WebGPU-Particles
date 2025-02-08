@@ -41,6 +41,25 @@ setInterval(() => {
   });
 }, interval);
 
+var center;
+while (true) {
+  const mousePosition = game.mousePosition;
+  const units = squad.units;
+  const mouseX = mousePosition.x;
+  const mouseY = mousePosition.y;
+  const unitCount = units.length;
+
+  units.forEach((unit, index) => {
+    const angle = (index / unitCount) * 2 * Math.PI; // Distribute evenly in a circle
+    const targetX = mouseX + radius * Math.cos(angle);
+    const targetY = mouseY + radius * Math.sin(angle);
+
+    unit.moveTo(targetX, targetY);
+  });
+  await tick();
+  // await seconds(2);
+}
+
 
 const unitCounts = 1000;
 

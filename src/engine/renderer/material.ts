@@ -118,6 +118,13 @@ export default class Material {
     this.bindGroup = undefined;
   }
 
+  public removeMesh (mesh: Mesh) {
+    const index = this.meshes.indexOf(mesh);
+    if (index !== -1) {
+      this.meshes.splice(index, 1);
+    }
+  }
+
   protected setupUniforms() {
     // This is where the material should store the bind group entries
   }

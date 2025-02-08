@@ -423,8 +423,8 @@ export default class BoidSystemComponent extends Component {
   }
 
   private updateBoidCount() {
-    if (this.gameObject.mesh?.material)
-      (this.gameObject.mesh?.material as BoidMaterial).instanceCount =
+    if (this.gameObject.mesh?.mainMaterial)
+      (this.gameObject.mesh?.mainMaterial as BoidMaterial).instanceCount =
       this.instanceCount;
   }
 

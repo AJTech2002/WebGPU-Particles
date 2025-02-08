@@ -171,14 +171,6 @@ export class Unit extends Damageable {
 
   private knockingBack: boolean = false;
 
-  public get friendlyNeighbours() {
-    return this.system.getFriendlyNeighbours(this.boidInstance.id);
-  }
-
-  public get enemyNeighbours() {
-    return this.system.getEnemyNeighbours(this.boidInstance.id);
-  }
-
   async knockbackForce(force: Vector3, duration?: number) {
     if (!this.alive || this.knockingBack) return;
     this.knockingBack = true;

@@ -1,6 +1,5 @@
 import { createContext,  useState } from "react";
 import "./App.css";
-import { SquadProvider } from "@game/ui/game/SquadProvider";
 import GameScreen from "@game/ui/GameScreen";
 import { SquadDef } from "@game/squad/squad";
 
@@ -16,7 +15,6 @@ function App() {
   const [selectedCard, setSelectedCard] = useState<SquadDef | undefined>(undefined);
  
   return (
-    <SquadProvider>
       <CardCodingContext.Provider value={{ 
         // With the state updater 
         selectedCodeEditCard: selectedCard,
@@ -24,7 +22,6 @@ function App() {
       }}>
         <GameScreen />
       </CardCodingContext.Provider>
-    </SquadProvider>
   );
 }
 

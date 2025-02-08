@@ -14,6 +14,10 @@ import {BaseEnemy} from "./units/enemy";
 import { Rigidbody } from "@engine/physics/rigidbody";
 import GameObject from "@engine/scene/gameobject";
 import { TestBoss } from "./components/enemies/test-boss";
+import { TreeSpawner } from "./components/tree_spawner";
+import Mesh from "@engine/scene/core/mesh_component";
+import OutlineMaterial from "./boids/rendering/outline_material";
+import { StandardDiffuseMaterial } from "@engine/renderer/material";
 
 export enum TestEnemySceneLayers {
   BOSS = 1,
@@ -24,6 +28,7 @@ export class TestEnemyScene extends BoidScene {
 
   private maxEnemies = 1000;
   private spawnedEnemies: Unit[] = [];
+  private treeSpawner!: TreeSpawner;
 
   public spawnEnemy(
     position: Vector3,
@@ -59,6 +64,9 @@ export class TestEnemyScene extends BoidScene {
 
   awake(engine: Engine): void {
     super.awake(engine);
+    this.treeSpawner = this.gameManager.addComponent(
+      new TreeSpawner()
+    );
   }
 
   async spawn () {
@@ -81,14 +89,14 @@ export class TestEnemyScene extends BoidScene {
     this.bigBoss(new Vector3(0, 0, 0));
   }
 
+
   render(dT: number): void {
     super.render(dT);
     // follow boss to mouse
 
-    // if (this.boss) {
-    //   const mouse = this.input.mouseToWorld(0);
-    //   this.boss.moveTo(new Vector3(mouse.x, mouse.y, 0));
-    // }
+    if (this.boss) {
+      const mouse = this.input.mouseToWorld(0);
+    }
   }
 
 

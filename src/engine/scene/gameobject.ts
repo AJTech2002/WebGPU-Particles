@@ -136,11 +136,12 @@ export default class GameObject {
   //#endregion
   
   //#region Component Management
-  public addComponent(component: Component, needsUpdate: boolean = true) {
+  public addComponent<T extends Component>(component: T, needsUpdate: boolean = true) : T {
     this._components.push(component);
     component.attach(this);
     if (this.instantiated) component.awake();
     if (needsUpdate) this._updateComponents.push(component);
+    return component;
   }
 
   public getComponent<T extends Component>(type: new (...args: any[]) => T) {

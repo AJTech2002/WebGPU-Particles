@@ -5,16 +5,13 @@ import Player from "@game/player/session_manager";
 
 import { CodeEditor } from "@game/ui/game/CodeEditor";
 import { DndContext, PointerSensor, useSensor } from "@dnd-kit/core";
-import CardTray from "@game/ui/game/CardTray";
 import { CardCodingContext } from "@/App";
-import { useSquads } from "./game/SquadProvider";
 import { saveFile } from "@/tsUtils";
 
 export default function GameScreen() {
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const editor = useRef<ReactCodeMirrorRef>(null);
-  const {squadState, clearSquads} = useSquads();
 
   const memoizedCanvas = useMemo(() => {
     return <canvas id="canvas" ref={canvasRef}></canvas>;
@@ -59,13 +56,6 @@ export default function GameScreen() {
     <DndContext
       onDragEnd={(event) => {
         const id = event.active.id;
-        if (id)
-        {
-          const squad = squadState.get(Number.parseFloat(id.toString()))
-          if (squad) {
-            Player.beginSquad(squad);
-          }
-        }
       }}
       sensors={[pointerSensor]}
     >
@@ -92,7 +82,6 @@ export default function GameScreen() {
           {memoizedCanvas}
         </div>
         {/* Card Tray */}
-        <CardTray />
       </div>
     </DndContext>
   );

@@ -11,6 +11,8 @@ export default class Mesh extends Component {
   protected vertexCount!: number;
 
   private _material: Material | undefined = undefined;
+  private _materials: Material[] = [];
+
   private modelBuffer: GPUBuffer;
 
   public bindGroup?: GPUBindGroup;
@@ -29,24 +31,45 @@ export default class Mesh extends Component {
     this._material = material;
   }
 
-  public setMaterial(material: Material) {
+  public addMaterial(material: Material) {
     this._material = material;
+    this._materials.push(material);
     this._material.meshes.push(this);
     this.scene.registerMaterial(this._material);
 
     // Required uniforms from the mesh
-    this.bindGroup = device.createBindGroup({
-      layout: this._material.meshBindGroupLayout,
-      entries: [
-        {
-          binding: 0,
-          resource: {
-            buffer: this.modelBuffer,
+    // Assuming all materials have the same bind gruop
+    if (this.bindGroup === undefined)
+      this.bindGroup = device.createBindGroup({
+        layout: this._material.meshBindGroupLayout,
+        entries: [
+          {
+            binding: 0,
+            resource: {
+              buffer: this.modelBuffer,
+            },
           },
-        },
-      ],
-    })
+        ],
+      })
 
+  }
+
+  public getMaterial<T extends Material>(type: new (...args: any[]) => T) {
+    for (let i = 0; i < this._materials.length; i++) {
+      if (this._materials[i] instanceof type) {
+        return this._materials[i] as T;
+      }
+    }
+    return null;
+  }
+
+  public removeMaterial <T extends Material>(type: new (...args: any[]) => T) {
+    for (let i = 0; i < this._materials.length; i++) {
+      if (this._materials[i] instanceof type) {
+        return this._materials[i].removeMesh(this);
+      }
+    }
+    return null;
   }
 
   private _needsUpdate: boolean = false;
@@ -69,12 +92,16 @@ export default class Mesh extends Component {
     }
   }
 
-  public get material(): Material {
-    if (!this._material) {
+  public get mainMaterial(): Material {
+    if (!this._materials[0]) {
       console.error("ERR: Material not initialized");
     }
 
-    return this._material!;
+    return this._materials[0]!;
+  }
+
+  public get materials(): Material[] {
+    return [...this._materials];
   }
 
   public getVertexBuffer(): GPUBuffer {
@@ -94,7 +121,7 @@ export default class Mesh extends Component {
     super.awake();
     // Auto register material if provided
     if (this._material) {
-      this.setMaterial(this._material);
+      this.addMaterial(this._material);
     }
   }
 

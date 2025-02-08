@@ -9,6 +9,7 @@ import { GridComponent } from "@game/grid/grid";
 import { Quad, QuadWithMaterial } from "@engine/prefabs/quad.prefab";
 import BoidSystemComponent from "@game/boids/boid_system";
 import { Rigidbody } from "@engine/physics/rigidbody";
+import OutlineMaterial from "@game/boids/rendering/outline_material";
 
 export class TreeSpawner extends Component {
 
@@ -16,7 +17,7 @@ export class TreeSpawner extends Component {
     private grid! : GridComponent;
     private treeMaterial!: StandardDiffuseMaterial;
   
-    private trees: GameObject[] = [];
+    public trees: GameObject[] = [];
 
     constructor() {
       super();

@@ -17,7 +17,7 @@ export class Castle extends Damageable {
     const red = new Color(1, 0.2, 0.2);
 
     await bobAnimation(0, 1, 0.1, (v) => {
-      (this.gameObject.mesh!.material as StandardDiffuseMaterial).color = ogColor.clone().lerp(red, v);
+      (this.gameObject.mesh!.mainMaterial as StandardDiffuseMaterial).color = ogColor.clone().lerp(red, v);
     })
   }
 

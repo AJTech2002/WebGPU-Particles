@@ -25,9 +25,7 @@ export default class BoidScene extends Scene {
     this.reportFPS();
     
     this.gameManager = new GameObject("GAME_MANAGER", this);
-    this.gameManager.addComponent(
-      new TreeSpawner()
-    );
+   
 
     // Add camera movement 
     this.activeCamera!.gameObject.addComponent(new CameraMovement());

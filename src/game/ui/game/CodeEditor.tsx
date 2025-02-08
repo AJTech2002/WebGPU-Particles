@@ -17,7 +17,6 @@ import { useContext, useState } from "react";
 import "./CodeEditor.css";
 import { CardCodingContext } from "@/App";
 import { SquadDef } from "@game/squad/squad";
-import { useSquads } from "./SquadProvider";
 import readOnlyRangesExtension from "codemirror-readonly-ranges";
 
 export interface CodeEditorProps {
@@ -46,15 +45,6 @@ const squadDropPosition : vec3; // Where you dropped the squad
 `;
 
   const context = useContext(CardCodingContext);
-
-  const squadId = context.selectedCodeEditCard?.id ?? -1;
-  const { updateSquad, updateSquadUnitType, squadState } = useSquads();
-
-  const nullSquad = { id: -1, name: "", unitTypes: [], code: "", color: "" };
-
-  const squad: SquadDef =
-    squadId !== -1 ? squadState.get(squadId) ?? nullSquad : nullSquad;
-
   const [editingName, setEditingName] = useState<boolean>(false);
 
   const getReadOnlyRanges = (
@@ -71,7 +61,7 @@ const squadDropPosition : vec3; // Where you dropped the squad
   const save = () => {
 
     // const subcode = squad.code.substring(preCode.length, squad.code.length);
-    updateSquad(squad.id, { code: squad.code, preCode: preCode });
+    // updateSquad(squad.id, { code: squad.code, preCode: preCode });
   };
 
   const customKeyMap: KeyBinding = {
@@ -135,7 +125,7 @@ const squadDropPosition : vec3; // Where you dropped the squad
       >
         <CodeMirror
           ref={props.editor}
-          value={squad.code.trim() === "" ? preCode : squad.code}
+          // value={squad.code.trim() === "" ? preCode : squad.code}
           theme={duotone.duotoneDark}
           height="100%"
           width="100%"
@@ -154,7 +144,7 @@ const squadDropPosition : vec3; // Where you dropped the squad
             }),
           ]}
           onChange={(c) => {
-            updateSquad(squad.id, { code: c });
+            // ON CHANGE
           }}
         />
         <div
@@ -167,115 +157,7 @@ const squadDropPosition : vec3; // Where you dropped the squad
             height: "100%",
           }}
         ></div>
-
-        {/* INFO COLUMN */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            width: "30%",
-            height: "100%",
-            backgroundColor: bgColor,
-          }}
-        >
-          <div
-            style={{
-              width: "100%",
-              textAlign: "center",
-              textWrap: "nowrap",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "row",
-                justifyContent: "center",
-                alignItems: "center",
-                gap: "20px",
-                fontSize: "1.2em",
-              }}
-            >
-              {editingName === false ? (
-                <p
-                  onClick={(e) => {
-                    setEditingName(true);
-                    e.stopPropagation();
-                    // give focus to the input wirth id
-                    setTimeout(() => {
-                      document.getElementById("squad-name-field")?.focus();
-                    }, 100);
-                  }}
-                >
-                  <b> {squad.name === "" ? "Squad Name" : squad.name} </b>
-                </p>
-              ) : (
-                <input
-                  id="squad-name-field"
-                  type="text"
-                  value={squad.name === "" ? "Squad Name" : squad.name}
-                  onChange={(e) => {
-                    updateSquad(squad.id, { name: e.target.value });
-                  }}
-                  onBlur={() => {
-                    setEditingName(false);
-                  }}
-                  onKeyDown={(e) => {
-                    // enter
-                    if (e.key === "Enter") {
-                      setEditingName(false);
-                    }
-                  }}
-                />
-              )}
-              <input
-                type="color"
-                value={squad.color === "" ? "#000000" : squad.color}
-                onChange={(e) => {
-                  updateSquad(squad.id, { color: e.target.value });
-                }}
-              />
-            </div>
-            Props
-            {/* Color Input */}
-            <ul>
-              {squad.unitTypes.map((unitType) => {
-                return (
-                  <div
-                    key={unitType.type.toString() + "_DIV"}
-                    style={{
-                      display: "flex",
-                      flexDirection: "row",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      gap: "10px",
-                    }}
-                  >
-                    <li key={unitType.type.toString() + "_LI"}>
-                      {unitType.type.toString()}
-                    </li>
-                    <input
-                      style={{
-                        width: "50px",
-                      }}
-                      key={+"_INP"}
-                      type="number"
-                      value={unitType.count}
-                      onChange={(e) => {
-                        updateSquadUnitType(
-                          squad.id,
-                          unitType.type,
-                          Number.parseFloat(e.target.value)
-                        );
-                      }}
-                    />
-                  </div>
-                );
-              })}
-            </ul>
-          </div>
         </div>
-      </div>
     </div>
   );
 }
