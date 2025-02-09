@@ -26,4 +26,15 @@ export class GameContext extends GameInterface {
     return this.bridge.getBoidInterface(index);
   }
 
+  public createSoldier(count: number = 1, position?: Vector3) {
+    for (let i = 0; i< count; i++) {
+      this.bridge.sendCommand({
+        type: "Create",
+        props: {
+          type: "Soldier",
+          position: position || this.bridge.mousePosition
+        }
+      })
+    }
+  }
 }

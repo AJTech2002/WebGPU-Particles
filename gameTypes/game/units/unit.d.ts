@@ -1,11 +1,11 @@
 import { Vector3 } from "../../engine/math/src";
+import Collider from "../../engine/scene/core/collider_component";
 import BoidInstance from "../boids/boid_instance";
 import { Damageable } from "../components/damageable";
 import { UnitType } from "../squad/squad";
 export declare class Unit extends Damageable {
     private boidInstance;
     private system;
-    private castle;
     private _unitType;
     private _ownerId;
     constructor(ownerId: number, unitType: UnitType);
@@ -15,13 +15,21 @@ export declare class Unit extends Damageable {
     get boid(): BoidInstance;
     get ownerId(): number;
     get unitType(): UnitType;
+    moveTo(x: number, y: number): void;
     private deathAnimation;
     private enemyColorPallete;
     private playerColorPallete;
     setUnitColor(): Promise<void>;
+    private maxScale;
+    private minScale;
+    setUnitScale(): Promise<void>;
     protected handleDamage(amount: number): void;
+    private alreadyColliding;
+    on_collision(collider: Collider): void;
     protected handleDeath(): void;
     private lastAttackTime;
-    knockbackForce(id: number, force: Vector3): Promise<void>;
+    private knockingBack;
+    knockbackForce(force: Vector3, duration?: number): Promise<void>;
+    attackPosition(x: number, y: number): void;
     attack(x: number, y: number): void;
 }

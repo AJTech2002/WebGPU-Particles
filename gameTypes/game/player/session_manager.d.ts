@@ -17,12 +17,13 @@ export declare class SessionManager {
     private gameContext;
     private codeMirror;
     private sessionContext;
+    private globalContext;
     constructor();
     get runner(): CodeRunner;
     get scene(): BoidScene;
     get context(): SessionContext;
-    init(canvas: HTMLCanvasElement, codeMirror: ReactCodeMirrorRef, stats: Stats | undefined): Promise<void>;
-    updateEditorRef(codeMirror: ReactCodeMirrorRef): void;
+    init(canvas: HTMLCanvasElement, codeMirror: ReactCodeMirrorRef, stats?: Stats): Promise<void>;
+    updateEditorRef(codeMirror?: ReactCodeMirrorRef): void;
     codeEditorHasFocus(): boolean;
     runCode(transpiledCode: string, onEnd?: (err: boolean) => void, customContext?: any): void;
     beginSquad(squad: SquadDef): Promise<void>;

@@ -18,7 +18,7 @@ export function Grid (
 
     const material = new StandardDiffuseMaterial(scene, GridTexture);
     material.color = new Color(0.9,0.9,0.9);
-    material.scale = new Vector2(sizeX * 3, sizeY * 3);
+    material.scale = new Vector2(sizeX * 2, sizeY * 2);
 
     gridObject.transform.scale.x = sizeX;
     gridObject.transform.scale.y = sizeY;

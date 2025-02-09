@@ -54,7 +54,7 @@ export class TestEnemyScene extends BoidScene {
     this.boss.transform.position = new Vector3(position.x, position.y, -7);
     bosGO.getComponent(Rigidbody)?.setLayer(TestEnemySceneLayers.BOSS);
     this.physics.addCollisionMask(TestEnemySceneLayers.BOSS, TestEnemySceneLayers.BOSS, false);
-    this.boidSystem.addCollider(bosGO.getComponent(Collider));
+    this.boidSystem.addCollider(bosGO.getComponent<Collider>(Collider)!);
     
   }
 
@@ -64,9 +64,9 @@ export class TestEnemyScene extends BoidScene {
 
   awake(engine: Engine): void {
     super.awake(engine);
-    this.treeSpawner = this.gameManager.addComponent(
-      new TreeSpawner()
-    );
+    // this.treeSpawner = this.gameManager.addComponent(
+    //   new TreeSpawner()
+    // );
   }
 
   async spawn () {
@@ -86,7 +86,7 @@ export class TestEnemyScene extends BoidScene {
 
   start(): void {
     // this.spawn();
-    this.bigBoss(new Vector3(0, 0, 0));
+    // this.bigBoss(new Vector3(0, 0, 0));
   }
 
 
@@ -94,17 +94,17 @@ export class TestEnemyScene extends BoidScene {
     super.render(dT);
     // follow boss to mouse
 
-    if (this.boss) {
-      const mouse = this.input.mouseToWorld(0);
-      if (this.input.getMouseButton(0)) {
-        this.createUnit(0, "Soldier", mouse);
-      }
+    // if (this.boss) {
+    //   const mouse = this.input.mouseToWorld(0);
+    //   if (this.input.getMouseButton(0)) {
+    //     this.createUnit(0, "Soldier", mouse);
+    //   }
 
-      this._units.forEach(u => {
-        u.moveTo(mouse.x, mouse.y);
-        u.attackPosition(mouse.x, mouse.y);
-      });
-    }
+    //   this._units.forEach(u => {
+    //     u.moveTo(mouse.x, mouse.y);
+    //     u.attackPosition(mouse.x, mouse.y);
+    //   });
+    // }
   }
 
 

@@ -220,9 +220,9 @@ export class Renderer {
         const renderpass: GPURenderPassEncoder = commandEncoder.beginRenderPass({
             colorAttachments: [{
                 view: textureView,
-                // clearValue: { r: (52.0/255.0) , g: (49.0/255.0), b: (62.0/255.0), a: 1.0 },
+                clearValue: { r: (215.0/255.0) , g: (215/255.0), b: (215/255.0), a: 1.0 },
                 // white:
-                clearValue: { r: 1.0, g: 1.0, b: 1.0, a: 1.0 },
+                // clearValue: { r: 0.0, g:0.0, b:0.0, a: 1.0 },
                 loadOp: "clear",
                 storeOp: "store"
             }],

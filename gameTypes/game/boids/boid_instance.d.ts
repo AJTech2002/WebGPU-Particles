@@ -1,7 +1,7 @@
 import Component from "../../engine/scene/component";
 import { BoidInputData, BoidOutputData } from "./boid_compute";
 import { Vector3, Vector4 } from "../../engine/math/src";
-import BoidSystemComponent from "./boid_system";
+import BoidSystemComponent, { Neighbour } from "./boid_system";
 /**
  * BoidInstance
  * ====
@@ -21,6 +21,7 @@ export default class BoidInstance extends Component {
     private _hasTarget;
     private _speed;
     private _scale;
+    private _avoidanceForce;
     originalColor: Vector4;
     originalScale: number;
     originalPosition: Vector3;
@@ -34,6 +35,8 @@ export default class BoidInstance extends Component {
     set position(value: Vector3);
     get targetPosition(): Vector3;
     set targetPosition(value: Vector3);
+    get avoidanceForce(): number;
+    set avoidanceForce(value: number);
     get externalForce(): Vector3;
     set externalForce(value: Vector3);
     get diffuseColor(): Vector4;
@@ -49,6 +52,6 @@ export default class BoidInstance extends Component {
     getGPUInputData(): BoidInputData;
     move(x: number, y: number): void;
     moveTo(x: number, y: number): void;
-    getNeighbours(): BoidInstance[];
+    getNeighbourIds(): Neighbour[];
     awake(): void;
 }

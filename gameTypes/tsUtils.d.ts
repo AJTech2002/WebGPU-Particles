@@ -1,5 +1,5 @@
 export declare const env: import("@typescript/vfs").VirtualTypeScriptEnvironment;
-export declare const typescriptCompletionSource: (context: any) => Promise<{
+export declare const typescriptCompletionSource: (preCode: string, context: any) => Promise<{
     from: number;
     options: {
         label: string;

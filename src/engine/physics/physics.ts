@@ -156,7 +156,12 @@ export class Physics {
       return true;
     }
 
-    return (this.collisionMasks[layerA] & layerB) !== 0;
+    const a = this.collisionMasks.get(layerA);
+    if (a === undefined) {
+      return true;
+    }
+
+    return (a & layerB) !== 0;
   }
 
   private resolveCollision (rigidbody: Rigidbody, other: Rigidbody) {

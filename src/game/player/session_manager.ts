@@ -8,6 +8,7 @@ import { SquadDef, Squad } from "@game/squad/squad";
 import { saveFile } from "@/tsUtils";
 import { GameDataBridge } from "./interface/bridge";
 import { TestEnemyScene } from "@game/test_enemy_scene";
+import { GlobalTerminalContext } from "./contexts/global_terminal_context";
 
 export interface SessionContext {
   game: GameContext;
@@ -27,6 +28,7 @@ export class SessionManager {
   private gameContext: GameContext | undefined;
   private codeMirror: ReactCodeMirrorRef | undefined;
   private sessionContext: SessionContext | undefined;
+  private globalContext: GlobalTerminalContext | undefined;
 
   constructor() {}
 
@@ -46,8 +48,10 @@ export class SessionManager {
         game: this.gameContext as GameContext,
         tick: this.scene.tick.bind(this.scene),
         seconds: this.scene.seconds.bind(this.scene),
-        until: this.scene.until.bind(this.scene)
+        until: this.scene.until.bind(this.scene),
       };
+
+      console.log("Session Context", this.sessionContext);
     }
 
     return this.sessionContext;
@@ -58,7 +62,7 @@ export class SessionManager {
   public async init (
     canvas: HTMLCanvasElement,
     codeMirror: ReactCodeMirrorRef, 
-    stats: Stats | undefined,
+    stats?: Stats,
   ) {
     
     this.updateEditorRef(codeMirror);
@@ -75,10 +79,14 @@ export class SessionManager {
       this.bridge
     );
 
+    this.globalContext = new GlobalTerminalContext(
+      this.bridge
+    );
+
     this.input = new PlayerInput(this);
   }
 
-  public updateEditorRef (codeMirror: ReactCodeMirrorRef) {
+  public updateEditorRef (codeMirror?: ReactCodeMirrorRef) {
     this.codeMirror = codeMirror;
   }
 

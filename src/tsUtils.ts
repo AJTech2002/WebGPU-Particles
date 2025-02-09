@@ -36,13 +36,16 @@ export const env = createVirtualTypeScriptEnvironment(
     compilerOpts
 );
 
-export const typescriptCompletionSource = async (context: any) => {
-    const code = context.state.doc.toString();
-    const cursorPos = context.pos;
+export const typescriptCompletionSource = async (context: any, preCode?: string) => {
+    const code = (preCode ?? "") + context.state.doc.toString();
+    console.log("Code: ", code, context);
+    
+    let cursorPos = context.pos;
 
     //TODO: This needs to be automated
     const totalCode = code;
     env.updateFile("index.ts", totalCode);
+    cursorPos += preCode?.length;
 
     // Get completions from the TypeScript language service
     const completions = env.languageService.getCompletionsAtPosition("index.ts", cursorPos, {

@@ -34,14 +34,14 @@ export default class CameraMovement extends Component {
   }
 
   override mouseEvent(type: number, button: number): void {
-    if (type === 0 && button === 0) {
-      console.log("Middle Mouse Down");
+
+    if (type === 0 && button === 2) {
      this.middleMouseStart = this.input.mouseToWorld(0, false); 
      this.cameraStartPos = this.activeCamera!.gameObject.transform.position.clone();  
     }
 
     if (type === 2) {
-      if (this.input.getMouseButton(0)) {
+      if (this.input.getMouseButton(2)) {
         const mouse = this.input.mouseToWorld(0, false); 
         const diff = this.middleMouseStart.clone().sub(mouse);
 

@@ -7,6 +7,8 @@ import Input from "./scene/inputs";
 import Component from "./scene/component";
 import { Vector3 } from "./math/src";
 import Collider from "./scene/core/collider_component";
+import { Physics } from "./physics/physics";
+import { GridComponent } from "../game/grid/grid";
 export interface CameraData {
     view: mat4;
     projection: mat4;
@@ -22,6 +24,8 @@ export default class Scene {
     protected cameraObject: GameObject;
     protected input: Input;
     private disposed;
+    grid: GridComponent;
+    physics: Physics;
     constructor();
     get activeCamera(): CameraComponent | null;
     get materials(): Material[];

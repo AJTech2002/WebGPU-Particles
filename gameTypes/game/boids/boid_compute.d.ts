@@ -9,6 +9,7 @@ export declare class BoidInputData {
     steeringSpeed: number;
     scale: number;
     alive: boolean;
+    avoidanceForce: number;
 }
 export declare class BoidGPUData {
     avoidanceVector: vec4;
@@ -24,12 +25,19 @@ export declare class BoidObjectData {
     hash: number;
     boidId: number;
     visible: boolean;
+    textureIndex: number;
 }
 export declare class BoidOutputData {
     position: vec3;
 }
+export declare class CollisionHitData {
+    boidId: number;
+    colliderId: number;
+}
 export declare const maxInstanceCount: number;
 export declare class BoidCompute extends Compute {
+    private collisionHitCount;
+    private collisionHits;
     private objects;
     private boid_input;
     private boids;

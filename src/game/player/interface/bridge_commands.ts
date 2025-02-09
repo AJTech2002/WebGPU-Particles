@@ -39,7 +39,11 @@ export type BoidInterfaceCommand =
 } | {
   id: number;
   type: "Terminate";
+} | {
+  type: "Create";
+  props: CreateCommandProps;
 }
+
 
 export interface MoveCommandProps {
   vec: Vector3;
@@ -52,4 +56,9 @@ export interface AttackCommandProps {
 
 export interface TakeDamageCommandProps {
   damage: number;
+}
+
+export interface CreateCommandProps {
+  type: UnitType;
+  position: Vector3;
 }

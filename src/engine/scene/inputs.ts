@@ -2,18 +2,14 @@ import { Vector2, Vector3 } from "@math";
 import Scene from "../scene";
 import { vec4 } from "gl-matrix";
 
-enum MouseButtons {
-  Left = 1,
-  Middle = 2,
-  Right = 4,
-  None = 8,
-}
-
 export default class Input {
   public inputMappings: any;
   public scene: Scene | null;
   public mousePosition: Vector2;
-  public mouseButtons: MouseButtons = MouseButtons.None;
+
+  private leftMouse!: boolean;
+  private rightMouse!: boolean;
+  private middleMouse!: boolean;
 
   constructor(scene: Scene) {
     this.inputMappings = {};
@@ -25,7 +21,6 @@ export default class Input {
   dispose() {
     this.inputMappings = {};
     this.scene = null;
-    this.mouseButtons = MouseButtons.None;
   }
 
   mapMouse(inputMouseButton: number): number {
@@ -74,7 +69,17 @@ export default class Input {
         return;
       }
 
-      this.mouseButtons |= this.mapMouse(e.button);
+
+      if (e.button === 0) {
+        this.leftMouse = true;
+      }
+      if (e.button === 1) {
+        this.rightMouse = true;
+      }
+      if (e.button === 2) {
+        this.middleMouse = true;
+      }
+
       this.scene.mouseEvent(0, e.button);
     });
 
@@ -83,7 +88,16 @@ export default class Input {
         return;
       }
 
-      this.mouseButtons &= ~this.mapMouse(e.button);
+      if (e.button === 0) {
+        this.leftMouse = false;
+      }
+      if (e.button === 1) {
+        this.rightMouse = false;
+      }
+      if (e.button === 2) {
+        this.middleMouse = false;
+      }
+      
       this.scene.mouseEvent(1, e.button);
     });
 
@@ -98,7 +112,9 @@ export default class Input {
   }
 
   getMouseButton(mouseButton: number): boolean {
-    if (this.mouseButtons & this.mapMouse(mouseButton)) return true;
+    if (mouseButton === 0) return this.leftMouse;
+    if (mouseButton === 1) return this.rightMouse;
+    if (mouseButton === 2) return this.middleMouse;
     return false;
   }
 

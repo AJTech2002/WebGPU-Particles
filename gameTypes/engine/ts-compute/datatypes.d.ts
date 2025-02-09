@@ -21,6 +21,10 @@ export interface ShaderDataType {
      */
     key?: string;
     type: keyof typeof ShaderTypes;
+    array?: ShaderArrayProperty;
+}
+export interface ShaderArrayProperty {
+    maxInstanceCount: number;
 }
 export declare function shaderProperty(shaderType: keyof typeof ShaderTypes): PropertyDecorator;
 export declare function shaderStruct(structName: string): ClassDecorator;

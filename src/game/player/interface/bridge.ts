@@ -65,32 +65,43 @@ export class GameDataBridge {
     return await this.scene.until(condition);
   }
 
+  public sendGlobalCommand (command : BoidInterfaceCommand) {
+    
+  }
+
   public sendCommand (command : BoidInterfaceCommand) {
-    const boid = this.getBoid(command.id);
-    const unit = this.getUnit(command.id);
+    if ('id' in command && command.id !== undefined) {
+      const boid = this.getBoid(command.id);
+      const unit = this.getUnit(command.id);
 
-    if (unit.ownerId !== 0) return; // Can only send commands to player units 
+      if (unit.ownerId !== 0) return; // Can only send commands to player units 
 
-    //TODO: Move all this to `command_handler.ts` on the scene thread and do checks there
-    if (command.type === "Move") {
-      if (command.props.dir) {
-        boid.move(command.props.vec.x, command.props.vec.y);
+      //TODO: Move all this to `command_handler.ts` on the scene thread and do checks there
+      if (command.type === "Move") {
+        if (command.props.dir) {
+          boid.move(command.props.vec.x, command.props.vec.y);
+        }
+        else {
+          boid.moveTo(command.props.vec.x, command.props.vec.y);
+        }
       }
-      else {
-        boid.moveTo(command.props.vec.x, command.props.vec.y);
+      else if (command.type === "Attack") {
+        unit.attack(command.props.direction.x, command.props.direction.y);
+      }
+      else if (command.type === "TakeDamage") {
+        unit.takeDamage(command.props.damage);
+      }
+      else if (command.type === "Terminate") {
+        unit.die();
+      }
+      else if (command.type === "Stop") {
+        boid.stop();
       }
     }
-    else if (command.type === "Attack") {
-      unit.attack(command.props.direction.x, command.props.direction.y);
-    }
-    else if (command.type === "TakeDamage") {
-      unit.takeDamage(command.props.damage);
-    }
-    else if (command.type === "Terminate") {
-      unit.die();
-    }
-    else if (command.type === "Stop") {
-      boid.stop();
+    else {
+      if (command.type === "Create") {
+        this.scene.createUnit(0, command.props.type, command.props.position);
+      }
     }
   }
 

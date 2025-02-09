@@ -10,7 +10,9 @@ export declare class Damageable extends EventfulComponent<DamageEvents> {
     get health(): number;
     get alive(): boolean;
     private _lastDamageTime;
-    takeDamage(amount: number): void;
+    canTakeDamage(): boolean;
+    setCanTakeDamage(value: boolean): void;
+    takeDamage(amount: number, force?: boolean): void;
     die(): void;
     protected handleDamage(amount: number): void;
     protected handleDeath(): void;

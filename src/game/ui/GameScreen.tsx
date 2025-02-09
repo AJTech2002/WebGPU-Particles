@@ -7,6 +7,7 @@ import { CodeEditor } from "@game/ui/game/CodeEditor";
 import { DndContext, PointerSensor, useSensor } from "@dnd-kit/core";
 import { CardCodingContext } from "@/App";
 import { saveFile } from "@/tsUtils";
+import { Terminal } from "./game/Terminal";
 
 export default function GameScreen() {
 
@@ -26,13 +27,15 @@ export default function GameScreen() {
 
 
   useEffect(() => {
-    if (canvasRef.current && editor.current) {
+    if (canvasRef.current) {
       // FPS Stats
       const stats = new Stats();
       stats.showPanel(0);
       // document.body.appendChild(stats.dom);
-
-      Player.init(canvasRef.current, editor.current, stats);
+      if (editor.current)
+        Player.init(canvasRef.current, editor.current, stats);
+      else
+        console.error("Editor not initialized");
     }
 
     return () => {
@@ -61,13 +64,7 @@ export default function GameScreen() {
     >
       <div>
         {/* Code Editor */}
-        <CodeEditor
-          editor={editor}
-          editorOpen={selectedCard !== undefined}
-          onUnFocus={() => {
-            setSelectedCard(undefined);
-          }}
-        />
+        <Terminal editor={editor}/>
         {/* Canvas */}
         <div
           style={{

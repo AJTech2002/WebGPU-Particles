@@ -117,7 +117,7 @@ export class TestBoss extends Damageable {
   private boidSystem!: BoidSystemComponent;
   private movementSpeed = 0.5;
   private originalScale = new Vector3(1.0, 1.0, 1.0);
-  private grid: GridComponent;
+  private grid!: GridComponent;
   private material! : StandardDiffuseMaterial;
   private ogColor = new Color(0.45, 0.4, 0.4);
   constructor() {
@@ -197,6 +197,7 @@ export class TestBoss extends Damageable {
 
 
   protected handleDeath(): void {
+    this.boidSystem.removeCollider(this.gameObject.getComponent<Collider>(Collider)!);
     this.gameObject.destroy();
   }
 

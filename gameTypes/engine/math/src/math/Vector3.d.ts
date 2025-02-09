@@ -57,7 +57,9 @@ export class Vector3 {
     reflect(normal: any): this;
     angleTo(v: any): number;
     distanceTo(v: any): number;
+    distanceTo2D(v: any): number;
     distanceToSquared(v: any): number;
+    distanceToSquared2D(v: any): number;
     manhattanDistanceTo(v: any): number;
     setFromSpherical(s: any): this;
     setFromSphericalCoords(radius: any, phi: any, theta: any): this;

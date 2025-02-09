@@ -1,11 +1,12 @@
 import { Vector3 } from "../../../engine/math/src";
+import { Neighbour } from "../../boids/boid_system";
 import { UnitType } from "../../squad/squad";
 export interface BoidInterfaceData {
     id: number;
     ownerId: number;
     position: Vector3;
     alive: boolean;
-    neighbours: number[];
+    neighbours: Neighbour[];
     unitType: UnitType;
 }
 export interface EnemyInterfaceData {
@@ -34,6 +35,9 @@ export type BoidInterfaceCommand = {
 } | {
     id: number;
     type: "Terminate";
+} | {
+    type: "Create";
+    props: CreateCommandProps;
 };
 export interface MoveCommandProps {
     vec: Vector3;
@@ -44,4 +48,8 @@ export interface AttackCommandProps {
 }
 export interface TakeDamageCommandProps {
     damage: number;
+}
+export interface CreateCommandProps {
+    type: UnitType;
+    position: Vector3;
 }

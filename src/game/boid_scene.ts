@@ -9,7 +9,6 @@ import CameraMovement from "./components/camera_movement";
 import {  Vector3 } from "@engine/math/src";
 import { Unit } from "./units/unit";
 import { UnitType } from "./squad/squad";
-import { TreeSpawner } from "./components/tree_spawner";
 
 export default class BoidScene extends Scene {
 
@@ -22,7 +21,7 @@ export default class BoidScene extends Scene {
 
   awake(engine: Engine): void {
     super.awake(engine);
-    this.reportFPS();
+    // this.reportFPS();
     
     this.gameManager = new GameObject("GAME_MANAGER", this);
    

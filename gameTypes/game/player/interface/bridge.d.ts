@@ -13,6 +13,7 @@ export declare class GameDataBridge {
     tick(): Promise<void>;
     seconds(seconds: number): Promise<void>;
     until(condition: () => boolean): Promise<void>;
+    sendGlobalCommand(command: BoidInterfaceCommand): void;
     sendCommand(command: BoidInterfaceCommand): void;
     get mousePosition(): Vector3;
     get boidInterfaces(): BoidInterface[];

@@ -9,4 +9,5 @@ export declare class GameContext extends GameInterface {
     get mousePosition(): Vector3;
     get units(): BoidInterface[];
     getUnit(index: number): BoidInterface;
+    createSoldier(count?: number, position?: Vector3): void;
 }

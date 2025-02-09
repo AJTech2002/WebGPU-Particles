@@ -2,6 +2,7 @@ import Scene from "./";
 import Component from "./component";
 import TransformComponent from "./core/transform_component";
 import Mesh from "./core/mesh_component";
+import Collider from "./core/collider_component";
 export default class GameObject {
     name: string;
     private _scene;
@@ -31,7 +32,8 @@ export default class GameObject {
     destroy(): void;
     mouseEvent(type: number, button: number): void;
     inputEvent(type: number, key: string): void;
-    addComponent(component: Component, needsUpdate?: boolean): void;
+    addComponent<T extends Component>(component: T, needsUpdate?: boolean): T;
     getComponent<T extends Component>(type: new (...args: any[]) => T): T | null;
     removeComponent(component: Component): void;
+    on_collision(other: Collider): void;
 }
