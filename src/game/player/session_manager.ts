@@ -3,12 +3,13 @@ import CodeRunner from "./code_runner/code_runner";
 import PlayerInput from "@game/player/player_input";
 import BoidScene from "@game/boid_scene";
 import { GameContext } from "@game/player/interface/game_interface";
-import { ReactCodeMirrorRef } from "@uiw/react-codemirror";
 import { SquadDef, Squad } from "@game/squad/squad";
 import { saveFile } from "@/tsUtils";
 import { GameDataBridge } from "./interface/bridge";
-import { TestEnemyScene } from "@game/test_enemy_scene";
+import { BaseLevelScene } from "@game/test_enemy_scene";
 import { GlobalTerminalContext } from "./contexts/global_terminal_context";
+import { Vector3 } from "@engine/math/src";
+import { BasicLevel } from "@game/basic_level";
 
 export interface SessionContext {
   game: GameContext;
@@ -18,6 +19,11 @@ export interface SessionContext {
   seconds: (seconds: number) => Promise<void>;
   until: (condition: () => boolean) => Promise<void>;
 }
+
+export interface TerminalProperties {
+  mousePosition: [number, number];
+}
+
 
 /*TODO: UI Hooks for Session Manager*/
 export class SessionManager {
@@ -61,15 +67,14 @@ export class SessionManager {
 
   public async init (
     canvas: HTMLCanvasElement,
-    codeMirror: ReactCodeMirrorRef, 
     stats?: Stats,
   ) {
     
-    this.updateEditorRef(codeMirror);
-    
     this.engine = await createEngine(
       canvas,
-      new TestEnemyScene(),
+      new BasicLevel({
+        startingUnits: 10
+      }),
       stats
     );
 
@@ -86,9 +91,6 @@ export class SessionManager {
     this.input = new PlayerInput(this);
   }
 
-  public updateEditorRef (codeMirror?: ReactCodeMirrorRef) {
-    this.codeMirror = codeMirror;
-  }
 
   public codeEditorHasFocus () {
     return this.codeMirror?.view?.hasFocus ?? false;
@@ -96,24 +98,42 @@ export class SessionManager {
 
   //TODO: returns some way to stop the code execution - and is threaded
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public runCode (transpiledCode: string, onEnd?: (err : boolean) => void, customContext?: any) {
+  public runCode (transpiledCode: string, onEnd?: (err : boolean) => void, customContext?: any, terminalProps?: TerminalProperties) {
     if (this.engine !== undefined) {
-      this.codeRunner.callableFn(transpiledCode, {
+      if (terminalProps?.mousePosition)
+        this.gameContext.defaultMousePosition = this.bridge.screenToWorld(terminalProps.mousePosition[0], terminalProps.mousePosition[1]);
+      else 
+        this.gameContext.defaultMousePosition = null;
+
+      console.log(this.gameContext.defaultMousePosition);
+
+      this.codeRunner.run(transpiledCode, {
         ...this.context,
         ...customContext
-      }, () => {
-      }, () => {
+      }).then(() => {
         if (onEnd) {
           onEnd(false);
         }
-      }, (err) => {
-        console.error(err);
+      }).catch((e) => {
+        console.error(e);
         if (onEnd) {
           onEnd(true);
         }
-      })();
+      });
       
     }
+  }
+
+  public openTerminal (position: [number, number]) {
+    const worldPos = this.bridge.screenToWorld(position[0], position[1], 0, true);
+    this.scene.codeWritingTarget.transform.position.set(worldPos.x, worldPos.y, -9);
+    this.scene.codeWritingTarget.visible = true;
+    this.scene.timeScale = 0.2;
+  }
+
+  public closeTerminal () {
+    this.scene.timeScale = 1;
+    this.scene.codeWritingTarget.visible = false;
   }
 
   public async beginSquad (squad: SquadDef) {

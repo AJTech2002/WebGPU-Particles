@@ -5,7 +5,7 @@ import Input from "@engine/scene/inputs";
 
 export default class CameraMovement extends Component {
 
-  private middleMouseStart: Vector3 = new Vector3();
+  private middleMouseStart: Vector3 | null;
   private cameraStartPos : Vector3 = new Vector3();
 
   private input! : Input;
@@ -35,18 +35,25 @@ export default class CameraMovement extends Component {
 
   override mouseEvent(type: number, button: number): void {
 
-    if (type === 0 && button === 2) {
+    if (this.input.keyIsPressed("Shift") || this.input.blockedByUI) return;
+
+    if (type === 0 && button === 0) {
      this.middleMouseStart = this.input.mouseToWorld(0, false); 
      this.cameraStartPos = this.activeCamera!.gameObject.transform.position.clone();  
     }
 
     if (type === 2) {
-      if (this.input.getMouseButton(2)) {
+      if (this.input.getMouseButton(0) && this.middleMouseStart) {
         const mouse = this.input.mouseToWorld(0, false); 
         const diff = this.middleMouseStart.clone().sub(mouse);
 
         this.activeCamera!.gameObject.transform.position = this.cameraStartPos.clone().sub(diff);
       }
+    }
+    
+    if (type === 1) {
+      this.middleMouseStart = null;
+      this.cameraStartPos = this.activeCamera!.gameObject.transform.position.clone();
     }
   }
 

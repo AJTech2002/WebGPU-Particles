@@ -132,7 +132,7 @@ export class Unit extends Damageable {
     this.scene.runLoopForSeconds(
       lerpTime,
       (dT) => {
-        t += dT / lerpTime / 1000;
+        t += dT / lerpTime;
         const scale = expected * t;
         this.boid.scale = scale;
       },

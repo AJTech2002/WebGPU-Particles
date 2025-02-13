@@ -6,10 +6,11 @@ import { QuadMesh } from "@engine/scene/core/mesh_component";
 import BoidMaterial from "./boids/rendering/boid_material";
 import BoidTexture from "../assets/guy-3.png";
 import CameraMovement from "./components/camera_movement";
-import {  Vector3 } from "@engine/math/src";
+import {  Color, Vector3 } from "@engine/math/src";
 import { Unit } from "./units/unit";
 import { UnitType } from "./squad/squad";
-
+import { QuadNoCollider } from "@engine/prefabs/quad.prefab";
+import CodeWritingMarker from "@assets/code-logo.png";
 export default class BoidScene extends Scene {
 
   public boidSystem!: BoidSystemComponent;
@@ -18,13 +19,19 @@ export default class BoidScene extends Scene {
   private _units : Unit[] = [];
   private _idMappedUnits = new Map<number, Unit>();
 
+  public codeWritingTarget: GameObject;
+
 
   awake(engine: Engine): void {
     super.awake(engine);
     // this.reportFPS();
     
     this.gameManager = new GameObject("GAME_MANAGER", this);
-   
+    
+    this.codeWritingTarget = QuadNoCollider(this, new Color(0.4, 0.4, 0.4), CodeWritingMarker);
+    this.codeWritingTarget.transform.scale = new Vector3(0.5, 0.5, 1);
+    console.log(this.codeWritingTarget.transform.position);
+    this.codeWritingTarget.visible = false;
 
     // Add camera movement 
     this.activeCamera!.gameObject.addComponent(new CameraMovement());
@@ -51,7 +58,7 @@ export default class BoidScene extends Scene {
   }
 
   public get units() : Unit[] {
-    return this.units.filter((b) => b.alive);
+    return this._units.filter((b) => b.alive);
   }
 
   public getUnit (index: number) : Unit {
@@ -80,6 +87,7 @@ export default class BoidScene extends Scene {
 
     let p = position ?? this.input.mouseToWorld(0).clone();
     p = p.add(rV3).toVec3();
+    p.z = 0;
 
     const spawnData = this.boidSystem.addBoid({
      position: p,

@@ -22,6 +22,8 @@ export default class GameObject {
   private _active: boolean = true;
   private _started: boolean = false;
 
+  public visible: boolean = true;
+
   constructor (name: string, scene: Scene) {
     this.name = name;
     this._scene = scene;
@@ -53,6 +55,10 @@ export default class GameObject {
 
   public get active() {
     return this._active;
+  }
+
+  public set active(active: boolean) {
+    this._active = active;
   }
 
   public get started() {

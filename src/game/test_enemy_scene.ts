@@ -18,15 +18,16 @@ import { TreeSpawner } from "./components/tree_spawner";
 import Mesh from "@engine/scene/core/mesh_component";
 import OutlineMaterial from "./boids/rendering/outline_material";
 import { StandardDiffuseMaterial } from "@engine/renderer/material";
+import { HouseSpawner } from "./components/house_spawner";
 
 export enum TestEnemySceneLayers {
   BOSS = 1,
   TREE = 2,
 }
 
-export class TestEnemyScene extends BoidScene {
+export class BaseLevelScene extends BoidScene {
 
-  private maxEnemies = 1000;
+  private maxEnemies = 40;
   private spawnedEnemies: Unit[] = [];
   private treeSpawner!: TreeSpawner;
 
@@ -64,9 +65,13 @@ export class TestEnemyScene extends BoidScene {
 
   awake(engine: Engine): void {
     super.awake(engine);
-    // this.treeSpawner = this.gameManager.addComponent(
-    //   new TreeSpawner()
-    // );
+    this.treeSpawner = this.gameManager.addComponent(
+      new TreeSpawner()
+    );
+
+    this.gameManager.addComponent(
+      new HouseSpawner()
+    );
   }
 
   async spawn () {
@@ -80,7 +85,7 @@ export class TestEnemyScene extends BoidScene {
       const y = Math.sin(randomAngle) * distance;
 
 
-      this.spawnEnemy(this.boss.transform.position.clone(), "Soldier");
+      this.spawnEnemy(new Vector3(x, y, 0), "Soldier");
     }
   }
 

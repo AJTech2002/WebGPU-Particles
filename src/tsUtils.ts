@@ -38,7 +38,6 @@ export const env = createVirtualTypeScriptEnvironment(
 
 export const typescriptCompletionSource = async (context: any, preCode?: string) => {
     const code = (preCode ?? "") + context.state.doc.toString();
-    console.log("Code: ", code, context);
     
     let cursorPos = context.pos;
 

@@ -173,7 +173,12 @@ export class BoidInterface extends GameInterface {
   }
 
   public stop() {
-    
+    this.bridge.sendCommand(
+      {
+        id: this.id,
+        type: "Stop",
+      }
+    )
   }
 
   public attack (target: Positional) {

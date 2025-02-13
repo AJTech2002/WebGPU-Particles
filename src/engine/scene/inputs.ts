@@ -2,8 +2,14 @@ import { Vector2, Vector3 } from "@math";
 import Scene from "../scene";
 import { vec4 } from "gl-matrix";
 
+function hasParentWithMatchingSelector (target, selector) {
+  return [...document.querySelectorAll(selector)].some(el =>
+    el !== target && el.contains(target)
+  )
+}
+
 export default class Input {
-  public inputMappings: any;
+  public inputMappings: Map<string, boolean>;
   public scene: Scene | null;
   public mousePosition: Vector2;
 
@@ -12,14 +18,16 @@ export default class Input {
   private middleMouse!: boolean;
 
   constructor(scene: Scene) {
-    this.inputMappings = {};
+    this.inputMappings = new Map();
     this.scene = scene;
     this.keyIsPressed = this.keyIsPressed.bind(this);
     this.mousePosition = new Vector2(0, 0);
   }
 
+  private _blockedByUI = false;
+
   dispose() {
-    this.inputMappings = {};
+    this.inputMappings = new Map();
     this.scene = null;
   }
 
@@ -27,9 +35,15 @@ export default class Input {
     return Math.pow(2, inputMouseButton);
   }
 
+  public get blockedByUI() {
+    const activeElement = document.activeElement;
+    //TODO: This should be reported by the UI to the input system
+    return hasParentWithMatchingSelector(activeElement, ".block-game-input");
+  }
+
   setup() {
 
-    const canvas = this.scene!.engine.outputCanvas;
+    const canvas = window;
 
     canvas.addEventListener("keydown", (e) => {
 
@@ -39,9 +53,9 @@ export default class Input {
 
       if (!this.keyIsPressed(e.key.toLowerCase()))
         this.scene?.inputEvent(0, e.key.toLowerCase());
-      this.inputMappings[e.key.toLowerCase()] = true;
-    });
 
+      this.inputMappings.set(e.key.toLowerCase(), true);
+    });
 
 
     canvas.addEventListener("keyup", (e) => {
@@ -51,7 +65,7 @@ export default class Input {
 
       if (this.keyIsPressed(e.key.toLowerCase()))
         this.scene?.inputEvent(1, e.key.toLowerCase());
-      this.inputMappings[e.key.toLowerCase()] = false;
+      this.inputMappings.set(e.key.toLowerCase(), false);
     });
 
     document.addEventListener("mousemove", (e) => {
@@ -107,7 +121,7 @@ export default class Input {
         return;
       }
 
-      this.inputMappings = {};
+      this.inputMappings = new Map();
     });
   }
 
@@ -142,15 +156,22 @@ export default class Input {
         return new Vector3(0, 0, 0);
     }
 
+    const x = this.mousePosition.x;
+    const y = this.mousePosition.y;
+    return this.screenToWorld(x, y, z, absolute);
+    
+  };
 
+  screenToWorld = (_x: number, _y: number, z: number, absolute: boolean): Vector3 => {
     const canvas = this.scene!.engine.outputCanvas;
 
     const rect = canvas.getBoundingClientRect();
-    const x = this.mousePosition.x - rect.left;
-    const y = this.mousePosition.y - rect.top;
+
     const bounds : vec4 = this.scene.activeCamera!.extents;
     const width = canvas.width;
     const height = canvas.height;
+    const x = _x - rect.left;
+    const y = _y - rect.top;
     const xNDC = x / width;
     const yNDC = 1 - ( y / height);
     const xWorld = bounds[0] + (bounds[1] - bounds[0]) * xNDC;
@@ -161,12 +182,12 @@ export default class Input {
       return new Vector3(xWorld, yWorld, z).sub(this.scene.activeCamera!.gameObject.transform.position.clone());
     else 
       return new Vector3(xWorld, yWorld, zWorld);
-  };
+  }
 
   keyIsPressed(key: string): boolean {
+    
     if (
-      key.toLowerCase() in this.inputMappings &&
-      this.inputMappings[key.toLowerCase()] === true
+      this.inputMappings.get(key.toLowerCase()) === true
     )
       return true;
     return false;

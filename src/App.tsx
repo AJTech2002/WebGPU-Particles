@@ -26,11 +26,4 @@ function App() {
 }
 
 
-const onMouseMove = (e: MouseEvent) => {
-  (window as any).lastMouseX = e.clientX;
-  (window as any).lastMouseY = e.clientY;
-};
-
-window.addEventListener("mousemove", onMouseMove);
-
 export default App;

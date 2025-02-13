@@ -30,7 +30,7 @@ export default class TransformComponent extends Component {
   }
 
   rotateOnAxis(axis: Vector3, angle: number) {
-    let newQuat = new Quaternion()
+    const newQuat = new Quaternion()
       .setFromAxisAngle(axis.normalize(), angle)
       .normalize();
     this._quaternion = this._quaternion.multiply(newQuat).normalize();

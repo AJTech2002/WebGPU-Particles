@@ -395,7 +395,7 @@ export default class BoidSystemComponent extends Component {
 
   private dispatch(dT : number) {
 
-    this.compute.set("time", this.scene.sceneTime / 1000);
+    this.compute.set("time", this.scene.sceneTime );
     this.compute.set("dT", dT );
     this.compute.set("numBoids", this.instanceCount);
     this.compute.set("collisionHitCount", 0);

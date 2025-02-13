@@ -32,10 +32,8 @@ export default function GameScreen() {
       const stats = new Stats();
       stats.showPanel(0);
       // document.body.appendChild(stats.dom);
-      if (editor.current)
-        Player.init(canvasRef.current, editor.current, stats);
-      else
-        console.error("Editor not initialized");
+      Player.init(canvasRef.current,  stats);
+
     }
 
     return () => {
@@ -45,7 +43,7 @@ export default function GameScreen() {
 
   useEffect(() => {
     if (editor.current) {
-      Player.updateEditorRef(editor.current);
+      // Player.updateEditorRef(editor.current);
     }
   }, [editor]);
 

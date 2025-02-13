@@ -38,7 +38,7 @@ export default class Scene {
   public grid!: GridComponent;
   public physics!: Physics;
 
-
+  public timeScale: number = 1.0;
 
   constructor() {
     this.cameraObject = new GameObject("MainCamera", this);
@@ -158,7 +158,7 @@ export default class Scene {
   }
 
   public get sceneTimeSeconds() {
-    return this.time / 1000;
+    return this.time;
   }
   //#endregion
 
@@ -171,14 +171,14 @@ export default class Scene {
       return;
     }
 
-    this.dT = dT/1000;
-    this.time += dT;
+    this.dT = (dT/1000) * this.timeScale;
+    this.time += this.dT;
     this.frame++;
 
     
     for (const callback of this.callbacks) {
       
-      callback(dT);
+      callback(this.dT);
 
     }
 
@@ -202,7 +202,7 @@ export default class Scene {
   awake(engine: Engine) {
     this._engine = engine;
     this.input.setup();
-    this.grid = Grid(this, 20, 20).getComponent<GridComponent>(GridComponent)!;
+    this.grid = Grid(this, 7, 7).getComponent<GridComponent>(GridComponent)!;
     this.physics = new Physics(this, this.grid);
   }
 
@@ -243,7 +243,7 @@ export default class Scene {
 
   runLoopForSeconds (seconds: number, callback: (dt: number) => void, endCallback?: () => void) {
     const startTime = this.time;
-    const endTime = startTime + seconds * 1000;
+    const endTime = startTime + seconds;
 
     const f = (dt: number) => {
       if (this.time >= endTime) {

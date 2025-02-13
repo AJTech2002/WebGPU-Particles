@@ -22,7 +22,7 @@ export class GameDataBridge {
     return this.scene.getUnit(id);
   }
 
-  private get units () : Unit[] {
+  private getUnits () : Unit[] {
     return this.scene.units;
   }
   /* ^^ THIS WILL BE REMOVED AND REPLACED WITH COMMANDS ^^ */
@@ -109,8 +109,14 @@ export class GameDataBridge {
     return this.scene.inputSystem.mouseToWorld(0, true);
   }
 
+  // TODO: Will need to handle these across threads - best to write annotation @return(ETC) to quickly
+  // cross call and return functions from threads
+  public screenToWorld (x: number, y: number, z: number = 0, absolute : boolean = true) : Vector3 {
+    return this.scene.inputSystem.screenToWorld(x, y, z, absolute);
+  }
+
   public get boidInterfaces () : BoidInterface[] {
-    return this.units.map((unit) => new BoidInterface(unit.id, this));
+    return this.getUnits().map((unit) => new BoidInterface(unit.id, this));
   }
 
   public getBoidInterface (id : number) : BoidInterface {

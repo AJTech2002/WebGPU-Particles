@@ -14,6 +14,8 @@ export class GameInterface {
 
 export class GameContext extends GameInterface {
 
+  public defaultMousePosition: Vector3 | null;
+
   public get mousePosition() : Vector3 {
     return this.bridge.mousePosition;
   }
@@ -32,7 +34,7 @@ export class GameContext extends GameInterface {
         type: "Create",
         props: {
           type: "Soldier",
-          position: position || this.bridge.mousePosition
+          position: position || this.defaultMousePosition || this.bridge.mousePosition
         }
       })
     }

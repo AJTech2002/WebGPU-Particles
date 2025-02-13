@@ -4,30 +4,30 @@ import Component from "@engine/scene/component";
 import Collider, { ColliderShape } from "@engine/scene/core/collider_component";
 import Mesh, { QuadMesh } from "@engine/scene/core/mesh_component";
 import GameObject from "@engine/scene/gameobject";
-import TreeTexture from "../../assets/tree.png";
+import HouseTexture from "../../assets/house.png";
 import { GridComponent } from "@game/grid/grid";
 import { Quad, QuadWithMaterial } from "@engine/prefabs/quad.prefab";
 import BoidSystemComponent from "@game/boids/boid_system";
 import { Rigidbody } from "@engine/physics/rigidbody";
 import OutlineMaterial from "@game/boids/rendering/outline_material";
 
-export class TreeSpawner extends Component {
+export class HouseSpawner extends Component {
 
-    private treeCount: number = 4;
+    private houseCount: number = 2;
     private grid! : GridComponent;
-    private treeMaterial!: StandardDiffuseMaterial;
+    private houseMaterial!: StandardDiffuseMaterial;
   
     public trees: GameObject[] = [];
 
     constructor() {
       super();
-      this.treeMaterial = new StandardDiffuseMaterial(this.scene, TreeTexture);
+      this.houseMaterial = new StandardDiffuseMaterial(this.scene, HouseTexture);
     }
 
     public awake(): void {
       this.grid = this.scene.findObjectOfType<GridComponent>(GridComponent)!;
-      for (let i = 0; i < this.treeCount; i++) {
-        this.createTree();
+      for (let i = 0; i < this.houseCount; i++) {
+        this.createHouse();
       }
     }
 
@@ -39,16 +39,16 @@ export class TreeSpawner extends Component {
       });
     }
 
-    private createTree() {
-      const squareCollider = QuadWithMaterial(this.scene, this.treeMaterial);
+    private createHouse() {
+      const squareCollider = QuadWithMaterial(this.scene, this.houseMaterial);
       // randomize position
       const x = Math.random() * this.grid.size.x;
       const y = Math.random() * this.grid.size.y;
       const position = new Vector3(x - this.grid.size.x / 2, y - this.grid.size.y / 2, -9);
-      squareCollider.transform.position = position;
-
       position.x = Math.round(position.x);
       position.y = Math.round(position.y);
+      squareCollider.transform.position = position;
+
 
       let maxAttempts = 100;
       for (let i = 0; i < maxAttempts; i++) {
@@ -56,7 +56,7 @@ export class TreeSpawner extends Component {
         // check other trees
         
         if (this.grid.canPlaceAtGridCell(squareCollider)) {
-          squareCollider.transform.scale = new Vector3(0.5, 0.8, 1.0).multiplyScalar(0.8);
+          squareCollider.transform.scale = new Vector3(0.6, 0.6, 1.0).multiplyScalar(0.8);
           squareCollider.getComponent(Collider)!.isStatic = true;
           squareCollider.addComponent(new Rigidbody());
           this.trees.push(squareCollider);
