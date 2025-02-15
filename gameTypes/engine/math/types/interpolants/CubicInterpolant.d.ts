@@ -35,6 +35,6 @@ export class CubicInterpolant extends Interpolant {
         endingEnd: number;
     };
     intervalChanged_(i1: any, t0: any, t1: any): void;
-    interpolate_(i1: any, t0: any, t: any, t1: any): any[] | undefined;
+    interpolate_(i1: any, t0: any, t: any, t1: any): any[];
 }
 import { Interpolant } from '../Interpolant.js';

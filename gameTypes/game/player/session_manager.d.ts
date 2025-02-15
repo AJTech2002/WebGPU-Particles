@@ -1,32 +1,37 @@
-import CodeRunner from "./code_runner/code_runner";
 import BoidScene from "../boid_scene";
 import { GameContext } from "./interface/game_interface";
-import { ReactCodeMirrorRef } from "@uiw/react-codemirror";
-import { SquadDef } from "../squad/squad";
+export declare class GlobalStorage {
+    private storage;
+    get(key: string): unknown;
+    set(key: string, value: unknown): void;
+}
 export interface SessionContext {
     game: GameContext;
+    globals: GlobalStorage;
     tick: () => Promise<void>;
     seconds: (seconds: number) => Promise<void>;
     until: (condition: () => boolean) => Promise<void>;
 }
+export interface TerminalProperties {
+    mousePosition: [number, number];
+    loop: boolean;
+}
 export declare class SessionManager {
-    private codeRunner;
     private bridge;
     private input;
     private engine;
     private gameContext;
     private codeMirror;
     private sessionContext;
-    private globalContext;
+    private globalStorage;
     constructor();
-    get runner(): CodeRunner;
     get scene(): BoidScene;
     get context(): SessionContext;
-    init(canvas: HTMLCanvasElement, codeMirror: ReactCodeMirrorRef, stats?: Stats): Promise<void>;
-    updateEditorRef(codeMirror?: ReactCodeMirrorRef): void;
+    init(canvas: HTMLCanvasElement, stats?: Stats): Promise<void>;
     codeEditorHasFocus(): boolean;
-    runCode(transpiledCode: string, onEnd?: (err: boolean) => void, customContext?: any): void;
-    beginSquad(squad: SquadDef): Promise<void>;
+    runCode(codeTitle: string, transpiledCode: string, terminalProps?: TerminalProperties): void;
+    openTerminal(position: [number, number]): void;
+    closeTerminal(): void;
     dispose(): void;
 }
 declare const sessionManager: SessionManager;

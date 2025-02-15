@@ -26,6 +26,7 @@ export default class Scene {
     private disposed;
     grid: GridComponent;
     physics: Physics;
+    timeScale: number;
     constructor();
     get activeCamera(): CameraComponent | null;
     get materials(): Material[];
@@ -37,7 +38,7 @@ export default class Scene {
     private runStart;
     addGameObject(gameObject: GameObject): void;
     removeGameObject(gameObject: GameObject): void;
-    findGameObject(name: string): GameObject | null;
+    findGameObject(name: string): GameObject;
     findObjectsOfType<T extends Component>(type: new (...args: any[]) => T): T[];
     findObjectOfType<T extends Component>(type: new (...args: any[]) => T): T | null;
     appendScene(scene: Scene): void;

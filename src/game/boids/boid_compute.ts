@@ -36,6 +36,9 @@ export class BoidInputData {
 
   @shaderProperty(ShaderTypes.f32)
   public avoidanceForce: number = 1.0; // bytes: 4
+
+  @shaderProperty(ShaderTypes.bool)
+  public clampToGrid: boolean = false; // bytes: 4
 }
 
 @shaderStruct("BoidGPUData")

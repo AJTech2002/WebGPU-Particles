@@ -1,5 +1,17 @@
+export interface CodeContext<T> {
+    scope: T;
+    running: boolean;
+    paused: boolean;
+    begin: () => void;
+    end: () => void;
+    on_error: (err: any) => void;
+    code: string;
+    loop: boolean;
+}
 export default class CodeRunner {
-    callableFn(code: string, context: any, onBegin: () => void, onEnd: () => void, onError: (err: any) => void): (() => void);
     private wrapCode;
-    run(code: string, context: any): Promise<void>;
+    run<T>(code: string, context: T, loop: boolean): {
+        promise: Promise<void>;
+        codeContext: CodeContext<T> | undefined;
+    };
 }

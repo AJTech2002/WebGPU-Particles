@@ -17,8 +17,8 @@ export class Sphere {
     applyMatrix4(matrix: any): this;
     translate(offset: any): this;
     expandByPoint(point: any): this;
-    union(sphere: any): this | undefined;
-    equals(sphere: any): any;
+    union(sphere: any): this;
+    equals(sphere: any): boolean;
     clone(): any;
 }
 import { Vector3 } from './Vector3.js';

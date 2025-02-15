@@ -10,6 +10,7 @@ export default class BoidScene extends Scene {
     protected gameManager: GameObject;
     private _units;
     private _idMappedUnits;
+    codeWritingTarget: GameObject;
     awake(engine: Engine): void;
     get units(): Unit[];
     getUnit(index: number): Unit;

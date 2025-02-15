@@ -2,7 +2,7 @@ import BoidScene from "@game/boid_scene";
 import BoidInstance from "@game/boids/boid_instance";
 import { Unit } from "@game/units/unit";
 import { BoidInterfaceCommand, BoidInterfaceData, EnemyInterfaceData } from "./bridge_commands";
-import { Vector3 } from "@engine/math/src";
+import { Vector2, Vector3 } from "@engine/math/src";
 import { BoidInterface } from "./boid_interface";
 
 export class GameDataBridge {
@@ -25,6 +25,15 @@ export class GameDataBridge {
   private getUnits () : Unit[] {
     return this.scene.units;
   }
+
+  public getUnitsAtGrid (x: number, y: number) : BoidInstance[] {
+    return this.scene.boidSystem.getBoidsInTile(x, y);
+  }
+
+  public worldToGrid (x: number, y: number) : { x: number, y: number } {
+    return this.scene.grid.gridTileAt([x,y,0]);
+  }
+
   /* ^^ THIS WILL BE REMOVED AND REPLACED WITH COMMANDS ^^ */
 
   public getBoidData (id : number) : BoidInterfaceData {
@@ -115,12 +124,33 @@ export class GameDataBridge {
     return this.scene.inputSystem.screenToWorld(x, y, z, absolute);
   }
 
+  public worldToScreen (pos: Vector3) : Vector2 {
+    return this.scene.inputSystem.worldToScreen(pos, true);
+  }
+
+  private interfaces: Map<number, BoidInterface> = new Map();
+
+  public getOrCreateInterface (id: number) : BoidInterface {
+    if (this.interfaces.has(id)) {
+      return this.interfaces.get(id)!;
+    }
+    else {
+      const boidInterface = new BoidInterface(id, this);
+      this.interfaces.set(id, boidInterface);
+      return boidInterface;
+    }
+  }
+
+  public getOrCreateInterfaces (instances: BoidInstance[]) : BoidInterface[] {
+    return instances.map((instance) => this.getOrCreateInterface(instance.id));
+  }
+
   public get boidInterfaces () : BoidInterface[] {
-    return this.getUnits().map((unit) => new BoidInterface(unit.id, this));
+    return this.getUnits().map((unit) =>  this.getOrCreateInterface(unit.id));
   }
 
   public getBoidInterface (id : number) : BoidInterface {
-    return new BoidInterface(id, this);
+    return this.getOrCreateInterface(id);
   }
 
 }  

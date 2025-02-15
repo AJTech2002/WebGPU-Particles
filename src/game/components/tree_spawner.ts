@@ -41,19 +41,20 @@ export class TreeSpawner extends Component {
 
     private createTree() {
       const squareCollider = QuadWithMaterial(this.scene, this.treeMaterial);
-      // randomize position
-      const x = Math.random() * this.grid.size.x;
-      const y = Math.random() * this.grid.size.y;
-      const position = new Vector3(x - this.grid.size.x / 2, y - this.grid.size.y / 2, -9);
-      squareCollider.transform.position = position;
-
-      position.x = Math.round(position.x);
-      position.y = Math.round(position.y);
-
+     
       let maxAttempts = 100;
       for (let i = 0; i < maxAttempts; i++) {
 
         // check other trees
+        // randomize position
+        const x = Math.random() * this.grid.size.x;
+        const y = Math.random() * this.grid.size.y;
+        const position = new Vector3(x - this.grid.size.x / 2, y - this.grid.size.y / 2, -9);
+        squareCollider.transform.position = position;
+
+        position.x = Math.round(position.x);
+        position.y = Math.round(position.y);
+
         
         if (this.grid.canPlaceAtGridCell(squareCollider)) {
           squareCollider.transform.scale = new Vector3(0.5, 0.8, 1.0).multiplyScalar(0.8);
@@ -62,6 +63,7 @@ export class TreeSpawner extends Component {
           this.trees.push(squareCollider);
           this.grid.placeAtGridCell (squareCollider);
           maxAttempts = -1;
+          break;
         }
   
       }

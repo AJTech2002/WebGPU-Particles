@@ -253,6 +253,7 @@ export default class BoidInstance extends Component {
     dir = dir.multiplyScalar(1000);
 
     const targetPos = unitPos.clone().add(dir);
+    console.log(x,y);
     this.targetPosition = targetPos;
   }
 

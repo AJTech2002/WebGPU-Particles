@@ -28,7 +28,7 @@ export default class BoidScene extends Scene {
     
     this.gameManager = new GameObject("GAME_MANAGER", this);
     
-    this.codeWritingTarget = QuadNoCollider(this, new Color(0.4, 0.4, 0.4), CodeWritingMarker);
+    this.codeWritingTarget = QuadNoCollider(this, new Color(50/255, 168/255, 82/255), CodeWritingMarker);
     this.codeWritingTarget.transform.scale = new Vector3(0.5, 0.5, 1);
     console.log(this.codeWritingTarget.transform.position);
     this.codeWritingTarget.visible = false;
@@ -76,7 +76,8 @@ export default class BoidScene extends Scene {
     position?: Vector3,
     avoidanceForce : number = 1.0,
     textureIndex: number = 0,
-    scale : number = 0.3
+    scale : number = 0.3,
+    clampToGrid = true
   ) : Unit | undefined {
 
     const rV3 = new Vector3(
@@ -95,7 +96,8 @@ export default class BoidScene extends Scene {
      steeringSpeed: 6.0,
      avoidanceForce: avoidanceForce,
      textureIndex: textureIndex,
-     scale: scale
+     scale: scale,
+     clampToGrid: clampToGrid,
    });
    
    if (spawnData?.instance)  {

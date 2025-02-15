@@ -1,6 +1,6 @@
 import lib from "./lib.json";
 import { createDefaultMapFromCDN, createSystem, createVirtualTypeScriptEnvironment } from "@typescript/vfs"
-import ts from "typescript"
+import ts, { CompilerOptions } from "typescript"
 
 const fsMap = new Map();
 
@@ -22,9 +22,14 @@ const code = 'const a = "Hello World"; a.';
 fsMap.set('index.ts', code);
 
 // Set compiler options with the appropriate library
-const compilerOpts = {
-    target: ts.ScriptTarget.ES2015,
+const compilerOpts: CompilerOptions = {
+    target: ts.ScriptTarget.ESNext,
     lib: libs,
+    experimentalDecorators: true,
+    allowJs: true,
+    noImplicitAny: false,
+    emitDecoratorMetadata: true,
+    // emitDecoratorMetadata: true,
 };
 
 
@@ -93,7 +98,7 @@ export const saveFile = (code: string) : string | null => {
     env.updateFile("index.ts", code);
 
     const transpiledCode = transpile();
-
+    console.log(transpiledCode);
     if (!transpiledCode) {
         console.error("Transpilation failed");
         return null;

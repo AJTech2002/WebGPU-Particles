@@ -158,6 +158,19 @@ export class BoidInterface extends GameInterface {
     )
   }
 
+  public moveToPos (pos: Vector3) {
+    this.bridge.sendCommand(
+      {
+        id: this.id,
+        type: "Move",
+        props: {
+          vec: pos,
+          dir: false
+        }
+      }
+    )
+  }
+
   public moveTo (x: number, y: number, distanceThreshold?: number) {
     const targetPos = new Vector3(x, y, 0);
     this.bridge.sendCommand(

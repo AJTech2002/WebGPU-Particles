@@ -34,4 +34,4 @@ export declare enum StorageMode {
     write = "write",
     read_write = "read_write"
 }
-export declare function shaderBuffer<T>(type: (new () => T) | keyof typeof ShaderTypes, storageMode: StorageMode | undefined, defaultValue: T | T[], maxInstanceCount?: number): PropertyDecorator;
+export declare function shaderBuffer<T>(type: (new () => T) | keyof typeof ShaderTypes, storageMode: StorageMode, defaultValue: T | T[], maxInstanceCount?: number): PropertyDecorator;

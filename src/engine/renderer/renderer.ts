@@ -243,7 +243,8 @@ export class Renderer {
         return;
       }
 
-    const clearColor = new Color(145, 209, 237);
+    // const clearColor = new Color(145, 209, 237);
+    const clearColor = new Color(210, 210, 210);
     const renderpass: GPURenderPassEncoder = commandEncoder.beginRenderPass({
       colorAttachments: [
         {

@@ -20,7 +20,7 @@ export class Plane {
     coplanarPoint(target: any): any;
     applyMatrix4(matrix: any, optionalNormalMatrix: any): this;
     translate(offset: any): this;
-    equals(plane: any): any;
+    equals(plane: any): boolean;
     clone(): any;
 }
 import { Vector3 } from './Vector3.js';

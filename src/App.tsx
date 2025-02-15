@@ -13,15 +13,15 @@ export const CardCodingContext = createContext({} as ICardContextProps);
 function App() {
 
   const [selectedCard, setSelectedCard] = useState<SquadDef | undefined>(undefined);
- 
+
   return (
-      <CardCodingContext.Provider value={{ 
-        // With the state updater 
-        selectedCodeEditCard: selectedCard,
-        setSelectedCodeEditCard: setSelectedCard 
-      }}>
-        <GameScreen />
-      </CardCodingContext.Provider>
+    <CardCodingContext.Provider value={{ 
+      // With the state updater 
+      selectedCodeEditCard: selectedCard,
+      setSelectedCodeEditCard: setSelectedCard 
+    }}>
+    <GameScreen />
+    </CardCodingContext.Provider>
   );
 }
 

@@ -16,7 +16,6 @@
     "jsx": "react-jsx",
 
     "noImplicitAny": false,
-
     /* Linting */
     "strict": false,
     // "noUnusedLocals": true,

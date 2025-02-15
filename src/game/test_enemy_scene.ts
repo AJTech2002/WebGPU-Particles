@@ -40,7 +40,7 @@ export class BaseLevelScene extends BoidScene {
       return undefined;
     }
 
-    const u = this.createUnit(1, unitType, position, 1.0, 0);
+    const u = this.createUnit(1, unitType, position, 1.0, 0, undefined, false);
     u?.gameObject.addComponent(new BaseEnemy());
     if (u) this.spawnedEnemies.push(u);
 

@@ -12,8 +12,8 @@ export default class Mesh extends Component {
     manualUpdate: boolean;
     constructor(material?: Material);
     addMaterial(material: Material): void;
-    getMaterial<T extends Material>(type: new (...args: any[]) => T): T | null;
-    removeMaterial<T extends Material>(type: new (...args: any[]) => T): void | null;
+    getMaterial<T extends Material>(type: new (...args: any[]) => T): T;
+    removeMaterial<T extends Material>(type: new (...args: any[]) => T): void;
     private _needsUpdate;
     set needsUpdate(value: boolean);
     get needsUpdate(): boolean;

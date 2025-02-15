@@ -22,7 +22,7 @@ export class QuaternionLinearInterpolant extends Interpolant {
      * @param resultBuffer - buffer to store the interpolation results.
      */
     constructor(parameterPositions: any, sampleValues: any, sampleSize: any, resultBuffer: any);
-    interpolate_(i1: any, t0: any, t: any, t1: any): any[] | undefined;
+    interpolate_(i1: any, t0: any, t: any, t1: any): any[];
     intervalChanged_(i1: any, t0: any, t1: any): void;
 }
 import { Interpolant } from '../Interpolant.js';

@@ -15,9 +15,13 @@ export class GameInterface {
 export class GameContext extends GameInterface {
 
   public defaultMousePosition: Vector3 | null;
-
+  
   public get mousePosition() : Vector3 {
     return this.bridge.mousePosition;
+  }
+
+  public get dropPosition() : Vector3 {
+    return this.defaultMousePosition || this.bridge.mousePosition;
   }
 
   public get units() : BoidInterface[] {

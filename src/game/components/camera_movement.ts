@@ -35,7 +35,9 @@ export default class CameraMovement extends Component {
 
   override mouseEvent(type: number, button: number): void {
 
-    if (this.input.keyIsPressed("Shift") || this.input.blockedByUI) return;
+    if (this.input.keyIsPressed("Shift") || this.input.blockedByUI || this.input.keyIsPressed("Meta") || 
+        this.input.keyIsPressed("Control") || this.input.keyIsPressed("Alt")
+  ) return;
 
     if (type === 0 && button === 0) {
      this.middleMouseStart = this.input.mouseToWorld(0, false); 

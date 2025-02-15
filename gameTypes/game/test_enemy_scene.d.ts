@@ -8,7 +8,7 @@ export declare enum TestEnemySceneLayers {
     BOSS = 1,
     TREE = 2
 }
-export declare class TestEnemyScene extends BoidScene {
+export declare class BaseLevelScene extends BoidScene {
     private maxEnemies;
     private spawnedEnemies;
     private treeSpawner;

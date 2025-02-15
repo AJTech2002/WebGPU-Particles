@@ -18,6 +18,7 @@ interface BoidInitData {
   avoidanceForce: number;
   textureIndex: number;
   scale: number;
+  clampToGrid: boolean;
 }
 
 interface BoidSpawnData {
@@ -288,7 +289,8 @@ export default class BoidSystemComponent extends Component {
       scale: 0,
       steeringSpeed: init.steeringSpeed,
       alive: true,
-      avoidanceForce: init.avoidanceForce
+      avoidanceForce: init.avoidanceForce,
+      clampToGrid: init.clampToGrid
     };
 
     this.compute.setElement<BoidInputData>("boid_input", slot, input);

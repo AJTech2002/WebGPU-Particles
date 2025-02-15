@@ -32,7 +32,7 @@ export declare class ArrayUniform<T> extends Uniform<T[]> {
     protected fromF32Array(f32Array: Float32Array): T[];
     protected setArrayData(index: number, data: T): void;
     protected getArrayData(index: number, f32Array: Float32Array): T | null;
-    readTo(index: number): Promise<T[] | null>;
+    readTo(index: number): Promise<T[]>;
     readElement(index: number): Promise<T | null>;
     updateBufferAt(index: number, data: T): void;
     protected updateBuffer(): void;

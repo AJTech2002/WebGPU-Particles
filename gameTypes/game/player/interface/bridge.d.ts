@@ -7,7 +7,7 @@ export declare class GameDataBridge {
     constructor(scene: BoidScene);
     private getBoid;
     private getUnit;
-    private get units();
+    private getUnits;
     getBoidData(id: number): BoidInterfaceData;
     getEnemyData(id: number): EnemyInterfaceData;
     tick(): Promise<void>;
@@ -16,6 +16,7 @@ export declare class GameDataBridge {
     sendGlobalCommand(command: BoidInterfaceCommand): void;
     sendCommand(command: BoidInterfaceCommand): void;
     get mousePosition(): Vector3;
+    screenToWorld(x: number, y: number, z?: number, absolute?: boolean): Vector3;
     get boidInterfaces(): BoidInterface[];
     getBoidInterface(id: number): BoidInterface;
 }
