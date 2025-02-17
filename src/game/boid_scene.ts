@@ -77,6 +77,7 @@ export default class BoidScene extends Scene {
     avoidanceForce : number = 1.0,
     textureIndex: number = 0,
     scale : number = 0.3,
+    speed : number = 1.0,
     clampToGrid = true
   ) : Unit | undefined {
 
@@ -92,7 +93,7 @@ export default class BoidScene extends Scene {
 
     const spawnData = this.boidSystem.addBoid({
      position: p,
-     speed: 1.0,
+     speed: speed,
      steeringSpeed: 6.0,
      avoidanceForce: avoidanceForce,
      textureIndex: textureIndex,

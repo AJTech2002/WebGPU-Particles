@@ -13,6 +13,7 @@ interface BoidInitData {
     avoidanceForce: number;
     textureIndex: number;
     scale: number;
+    clampToGrid: boolean;
 }
 interface BoidSpawnData {
     instance: BoidInstance;

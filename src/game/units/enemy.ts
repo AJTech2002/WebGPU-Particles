@@ -20,10 +20,10 @@ export class BaseEnemy extends Component {
     super.update(dT);
 
     // move towards center
-    // const center = new Vector3(0,0,0);
-    // const dir = center.sub(this.unit.position).normalize();
-    // this.unit.boid.moveTo(center.x, center.y);
-    // this.unit.attack(dir.x, dir.y);
+    const center = new Vector3(0,0,0);
+    const dir = center.sub(this.unit.position).normalize();
+    this.unit.boid.moveTo(center.x, center.y);
+    this.unit.attack(dir.x, dir.y);
   }
 
 

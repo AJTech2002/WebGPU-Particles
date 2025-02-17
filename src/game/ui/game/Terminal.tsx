@@ -20,7 +20,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import hotkey from "hotkeys-js";
 import { TerminalEventEmitter, TerminalOpenArgs } from "./TerminalHandler";
 import { s } from "node_modules/framer-motion/dist/types.d-6pKw1mTI";
-
+import GameHelpers from "@game/player/interface/game_helpers?raw";
 
 export interface TerminalProps {
   editor: React.RefObject<ReactCodeMirrorRef>;
@@ -63,18 +63,17 @@ export function Terminal(props: TerminalProps) {
 
     Player.openTerminal(args.mousePosition);
 
-    let clearContent = "";
+    // let clearContent = "";
 
-    if (args.mousePosition) {
-      const world = Player.bridge.screenToWorld(args.mousePosition[0], args.mousePosition[1]);
-      clearContent += `const dropPoint : Vector3 = new Vector3(${world.x.toFixed(2)}, ${world.y.toFixed(2)}, 0);\n`;
-    }
+    // if (args.mousePosition) {
+    //   const world = Player.bridge.screenToWorld(args.mousePosition[0], args.mousePosition[1]);
+    //   clearContent += `const dropPoint : Vector3 = new Vector3(${world.x.toFixed(2)}, ${world.y.toFixed(2)}, 0);\n`;
+    // }
 
-    if (args.fromSelection) {
-      clearContent += `const selected : BoidInterface[] = [...selection];\n`;
-    }
+    // if (args.fromSelection) {
+    //   clearContent += `const selected : BoidInterface[] = [...selection];\n`;
+    // }
 
-    console.log("Clear Content", clearContent, args);
 
     setTimeout(() => {
       setTerminalContent(clearContent);
@@ -158,7 +157,14 @@ export function Terminal(props: TerminalProps) {
         
         const titleStr = title ? title.replace("//", "").trim() : "Command #" + commandCount;
 
-        Player.runCode( titleStr, code, {
+        // Start from #region HELPERS and end at #endregion HELPERS
+        const helperFns = GameHelpers.substring(
+          GameHelpers.indexOf("//#region HELPERS")
+        ) + "\n";
+
+
+
+        Player.runCode( titleStr, helperFns + code, {
           mousePosition: [terminalPosition.x, terminalPosition.y],
           loop: loop,
         });
@@ -177,24 +183,14 @@ export function Terminal(props: TerminalProps) {
 
   const tsComplete: any = useCallback(
     (context: ReactCodeMirrorRef) => {
-      const preCode = `
-    import {GameContext} from "/gameTypes/game/player/interface/game_interface.d.ts";
-    import {Vector3} from "/gameTypes/engine/math/src/math/Vector3.d.ts";
-    import {BoidInterface} from "/gameTypes/game/boids/interfaces/boid_interface.d.ts";
-
-    const game: GameContext;
-    const globals: GlobalStorage;
-
-    // ==== Game Helpers ====
-    const tick : () => Promise<void>; // Call this to wait for one tick in the game
-    const seconds : (seconds: number) => Promise<void>; // Call this to wait for seconds
-    const until : (condition: () => boolean) => Promise<void>; // Call this to wait until a condition is met
-
-    
-    `
+      let preCode = GameHelpers + "\n"
         .trim()
         .toString();
 
+      // preCode = preCode.replace("@/", "/gameTypes/");
+      // replace all
+      preCode = preCode.replace(/@/g, "/gameTypes/");
+      
       return typescriptCompletionSource(
         context,
         preCode + "\n" + oldTerminalContent + "\n"

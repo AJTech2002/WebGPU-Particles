@@ -14,6 +14,6 @@ export default class BoidScene extends Scene {
     awake(engine: Engine): void;
     get units(): Unit[];
     getUnit(index: number): Unit;
-    createUnit(ownerId?: number, unitType?: UnitType, position?: Vector3, avoidanceForce?: number, textureIndex?: number, scale?: number): Unit | undefined;
+    createUnit(ownerId?: number, unitType?: UnitType, position?: Vector3, avoidanceForce?: number, textureIndex?: number, scale?: number, speed?: number, clampToGrid?: boolean): Unit | undefined;
     render(dT: number): void;
 }

@@ -41,6 +41,18 @@ export const env = createVirtualTypeScriptEnvironment(
     compilerOpts
 );
 
+const recurseTree = (node: ts.Node, level: number = 0) => {
+    if (node.kind === ts.SyntaxKind.FunctionDeclaration) {
+        console.log(node.getText());
+        // name
+        console.log((node as ts.FunctionTypeNode).name?.getText());
+    }
+
+    ts.forEachChild(node, (child) => {
+        recurseTree(child, level + 1);
+    });
+}
+
 export const typescriptCompletionSource = async (context: any, preCode?: string) => {
     const code = (preCode ?? "") + context.state.doc.toString();
     
@@ -57,6 +69,13 @@ export const typescriptCompletionSource = async (context: any, preCode?: string)
         includeExternalModuleExports: true,
         includeInsertTextCompletions: true,
     });
+
+    // find the functions using ast
+    const sourceFile = env.languageService.getProgram()?.getSourceFile("index.ts");
+    console.log(sourceFile);
+    if (sourceFile) {
+        recurseTree(sourceFile);
+    }
 
     // If no completions are available, return null
     if (!completions || !completions.entries) return null;

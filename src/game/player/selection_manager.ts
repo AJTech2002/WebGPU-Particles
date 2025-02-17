@@ -210,7 +210,7 @@ export class SelectionManager extends GameInterface {
         this.appendSelections([boid]);
         if (this.activeSelections.length > 0) {
           TerminalEventEmitter.emit('open_new_terminal', {
-            mousePosition: [e.clientX, e.clientY],
+            // mousePosition: [e.clientX, e.clientY],
             fromSelection: true
           });
         }
@@ -229,7 +229,7 @@ export class SelectionManager extends GameInterface {
         const avg = [(start[0] + end[0]) / 2, (start[1] + end[1]) / 2];
 
         TerminalEventEmitter.emit('open_new_terminal', {
-          mousePosition: [avg[0], avg[1]],
+          // mousePosition: [avg[0], avg[1]],
           fromSelection: true
         });
       }

@@ -10,6 +10,7 @@ export interface CodeContext<T> {
 }
 export default class CodeRunner {
     private wrapCode;
+    private types;
     run<T>(code: string, context: T, loop: boolean): {
         promise: Promise<void>;
         codeContext: CodeContext<T> | undefined;

@@ -74,7 +74,51 @@ export class SessionManager {
     this.engine = await createEngine(
       canvas,
       new BasicLevel({
-        startingUnits: 10
+        startingUnits: 10, 
+        enemySettings: {
+          waves: [
+            {
+              groups: [
+                {
+                  numUnits: 3,
+                  minDelay: 0,
+                  maxDelay: 0
+                },
+                {
+                  numUnits: 2,
+                  minDelay: 10,
+                  maxDelay: 15
+                },
+                {
+                  numUnits: 5,
+                  minDelay: 5,
+                  maxDelay: 10
+                },
+                {
+                  numUnits: 4,
+                  minDelay: 0,
+                  maxDelay: 0
+                },
+                {
+                  numUnits: 6,
+                  minDelay: 5,
+                  maxDelay: 15
+                },
+                {
+                  numUnits: 10,
+                  minDelay: 7,
+                  maxDelay: 12
+                },
+                {
+                  numUnits: 2,
+                  boss: true,
+                  minDelay: 0,
+                  maxDelay: 0
+                }
+              ]
+            }
+          ]
+        }
       }),
       stats
     );
@@ -121,11 +165,19 @@ export class SessionManager {
     }
   }
 
-  public openTerminal (position: [number, number]) {
+  public openTerminal (position?: [number, number]) {
+
+    this.scene.timeScale = 0.2;
+
+    
+    if (position === undefined) {
+      this.scene.codeWritingTarget.visible = false;
+      return;
+    }
+
     const worldPos = this.bridge.screenToWorld(position[0], position[1], 0, true);
     this.scene.codeWritingTarget.transform.position.set(worldPos.x, worldPos.y, -9);
     this.scene.codeWritingTarget.visible = true;
-    // this.scene.timeScale = 0.2;
   }
 
   public closeTerminal () {

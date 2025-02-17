@@ -8,7 +8,6 @@ export default class Input {
     private rightMouse;
     private middleMouse;
     constructor(scene: Scene);
-    private _blockedByUI;
     dispose(): void;
     mapMouse(inputMouseButton: number): number;
     get blockedByUI(): boolean;
@@ -19,5 +18,6 @@ export default class Input {
     getRawVertical(): number;
     mouseToWorld: (z: number, absolute?: boolean) => Vector3;
     screenToWorld: (_x: number, _y: number, z: number, absolute: boolean) => Vector3;
+    worldToScreen: (worldPos: Vector3, absolute: boolean) => Vector2;
     keyIsPressed(key: string): boolean;
 }

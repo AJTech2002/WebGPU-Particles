@@ -24,6 +24,7 @@ export declare class BoidInterface extends GameInterface {
     getClosestEnemy(): EnemyInterface | null;
     kill(): void;
     move(x: number, y: number): void;
+    moveToPos(pos: Vector3): void;
     moveTo(x: number, y: number, distanceThreshold?: number): void;
     stop(): void;
     attack(target: Positional): void;

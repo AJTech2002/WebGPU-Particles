@@ -10,6 +10,7 @@ export declare class BoidInputData {
     scale: number;
     alive: boolean;
     avoidanceForce: number;
+    clampToGrid: boolean;
 }
 export declare class BoidGPUData {
     avoidanceVector: vec4;

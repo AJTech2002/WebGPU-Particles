@@ -142,3 +142,12 @@ while (true) {
     }
   }
 }
+
+
+/// -- BACKGROUND ATTACK
+selection.forEach((u) => {
+  const nearest  = u.getClosestEnemy();
+  if (nearest !== null) {
+    u.attack(nearest)
+  }
+})

@@ -28,7 +28,8 @@
       "@game/*": ["src/game/*"],
       "@player/*": ["src/game/player/*"],
       "@/*": ["src/*"],
-      "@assets/*": ["src/assets/*"]
+      "@assets/*": ["src/assets/*"],
+      "@gameTypes/*": ["gameTypes/*"]
     },
     "typeRoots": [ 
       "./node_modules/@webgpu/types", 
