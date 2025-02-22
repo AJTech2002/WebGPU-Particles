@@ -161,7 +161,6 @@ export default class BoidSystemComponent extends Component {
             tile.x, tile.y
           );
   
-          if ((this.scene as BoidScene).getUnit(boidId)?.alive) {
             if (this.hashMappedBoidRefs.has(hash)) {
               const b = this.hashMappedBoidRefs.get(hash)!;
               
@@ -178,7 +177,6 @@ export default class BoidSystemComponent extends Component {
                 ownerId: unit.ownerId
               }]); 
             }
-          }
   
           this.idMappedBoidData.set(boidId, {
             data: output[i]
