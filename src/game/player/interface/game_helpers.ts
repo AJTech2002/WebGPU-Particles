@@ -18,39 +18,49 @@ const until : (condition: () => boolean) => Promise<void>; // Call this to wait 
 //#region HELPERS
 
 function moveToMouse () {
+  const selected = selection.length > 0 ? selection : game.units;
+
+  console.log('Moving to mouse', selected);
   const mouse = game.mousePosition;
-  if (selection.length > 0) {
-    for (let i = 0; i < selection.length; i++) {
-      selection[i].moveToPos(mouse);
+  if (selected.length > 0) {
+    for (let i = 0; i < selected.length; i++) {
+      selected[i].moveToPos(mouse);
     }
   }
 }
 
 function moveTo (x: number, y: number) {
-  if (selection.length > 0) {
-    for (let i = 0; i < selection.length; i++) {
-      selection[i].moveTo(x, y);
+
+  const selected = selection.length > 0 ? selection : game.units;
+
+  if (selected.length > 0) {
+    for (let i = 0; i < selected.length; i++) {
+      selected[i].moveTo(x, y);
     }
   }
 }
 
 function followNearestEnemy() {
-  if (selection.length > 0) {
-    for (let i = 0; i < selection.length; i++) {
-      const enemy = selection[i].getClosestEnemy();
+  const selected = selection.length > 0 ? selection : game.units;
+
+  if (selected.length > 0) {
+    for (let i = 0; i < selected.length; i++) {
+      const enemy = selected[i].getClosestEnemy();
       if (enemy) {
-        selection[i].moveToPos(enemy.position);
+        selected[i].moveToPos(enemy.position);
       }
     }
   }
 }
 
 function attackNearest() {
-  if (selection.length > 0) {
-    for (let i = 0; i < selection.length; i++) {
-      const enemy = selection[i].getClosestEnemy();
+  const selected = selection.length > 0 ? selection : game.units;
+
+  if (selected.length > 0) {
+    for (let i = 0; i < selected.length; i++) {
+      const enemy = selected[i].getClosestEnemy();
       if (enemy) {
-        selection[i].attack(enemy);
+        selected[i].attack(enemy);
       }
     }
   }

@@ -36,6 +36,7 @@ export class BasicLevel extends BaseLevelScene {
 
   async init() {
     await this.seconds(1);
+    this.timeScale = 2.0;
     for (let i = 0; i < this.settings.startingUnits; i++) {
       this.createUnit(0, "Soldier", new Vector3(0, 0, 0), 1.0, 0);
     }
@@ -52,8 +53,8 @@ export class BasicLevel extends BaseLevelScene {
       const nextGroup : Group | undefined = wave.groups.length > i + 1 ? wave.groups[i + 1] : undefined;
 
       // pick a random position greater than grid.width radius, but less than grid.width * 2
-      const x = (Math.random() > 0.5 ? 1 : -1) * (Math.random() * this.grid.size.x/2 + this.grid.size.x);
-      const y = (Math.random() > 0.5 ? 1 : -1) * (Math.random() * this.grid.size.y/2 + this.grid.size.y);
+      const x = (Math.random() > 0.5 ? 1 : -1) * (Math.random() * this.grid.size.x/2 + this.grid.size.x/2);
+      const y = (Math.random() > 0.5 ? 1 : -1) * (Math.random() * this.grid.size.y/2 + this.grid.size.y/2);
 
       const position = new Vector3(x, y, 0);
 

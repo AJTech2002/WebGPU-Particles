@@ -10,18 +10,17 @@ import { Quad, QuadWithMaterial } from "@engine/prefabs/quad.prefab";
 import BoidSystemComponent from "@game/boids/boid_system";
 import { Rigidbody } from "@engine/physics/rigidbody";
 import OutlineMaterial from "@game/boids/rendering/outline_material";
+import { Castle } from "./castle";
 
 export class HouseSpawner extends Component {
 
     private houseCount: number = 2;
     private grid! : GridComponent;
-    private houseMaterial!: StandardDiffuseMaterial;
   
     public trees: GameObject[] = [];
 
     constructor() {
       super();
-      this.houseMaterial = new StandardDiffuseMaterial(this.scene, HouseTexture);
     }
 
     public awake(): void {
@@ -40,7 +39,10 @@ export class HouseSpawner extends Component {
     }
 
     private createHouse() {
-      const squareCollider = QuadWithMaterial(this.scene, this.houseMaterial);
+      
+      //TODO: Make this use the same material but have instanced properties
+
+      const squareCollider = Quad(this.scene, undefined, HouseTexture);
      
 
 
@@ -64,8 +66,11 @@ export class HouseSpawner extends Component {
         squareCollider.transform.position = position;
 
         if (this.grid.canPlaceAtGridCell(squareCollider)) {
-          squareCollider.transform.scale = new Vector3(0.6, 0.6, 1.0).multiplyScalar(0.8);
-          squareCollider.getComponent(Collider)!.isStatic = true;
+          squareCollider.transform.scale = new Vector3(1.0,1.0, 1.0).multiplyScalar(0.5);
+          squareCollider.name = "House";
+          squareCollider.getComponent(Collider)!.isStatic = false;
+          squareCollider.getComponent(Collider)!.size = [1.5, 1.5, 1.5];
+          squareCollider.addComponent(new Castle());
           squareCollider.addComponent(new Rigidbody());
           this.trees.push(squareCollider);
           this.grid.placeAtGridCell (squareCollider);

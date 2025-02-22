@@ -89,6 +89,7 @@ fn collisionMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
   var unitPosition = boids[index].position.xyz; 
   var collisionOffset = vec3<f32>(0.0, 0.0, 0.0);
   let objectModelLength: u32 = u32(clamp(numColliders, 0.0, f32(100000)));
+  let threshold = 0.2;
 
   // Loop through all colliders in scene `colliders`
   for (var i = 0u; i < objectModelLength; i = i + 1u) {
@@ -97,8 +98,9 @@ fn collisionMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
     center_pos.z = unitPosition.z;
     var center = center_pos.xyz;
 
+
     if (colliders[i].shape == 1u) {
-      var avoidance = circle_collision(unitPosition, center, colliders[i].size.x * scale.x);
+      var avoidance = circle_collision(unitPosition, center, colliders[i].size.x+threshold );
       avoidance.z = 0.0;
 
       // check avoidance mag
@@ -119,7 +121,11 @@ fn collisionMain(@builtin(global_invocation_id) global_id: vec3<u32>) {
       collisionOffset = collisionOffset + avoidance;
     }
     else if (colliders[i].shape == 0u) {
-      var avoidance = box_collision(unitPosition, center, colliders[i].size, colliders[i].model, colliders[i].inverted);
+      var avoidance = box_collision(unitPosition, center, vec3<f32>(
+        colliders[i].size.x + threshold,
+        colliders[i].size.y + threshold,
+        colliders[i].size.z + threshold,
+      ), colliders[i].model, colliders[i].inverted);
       avoidance.z = 0.0;
 
       // check avoidance mag

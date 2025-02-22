@@ -29,21 +29,28 @@ export class Physics {
     if (!other.collider) {
       return { intersectionPoint: null };
     }
-
+  
     const origin = new Vector2(_origin.x, _origin.y);
-    const direction = new Vector2(_direction.x, _direction.y);
+    const direction = new Vector2(_direction.x, _direction.y).normalize();
   
     const collider = other.collider;
-    const circleOrigin = other.transform.position;
-    const circleRadius = collider.worldExtents.x / 2;
+    const circleOrigin = new Vector2(other.transform.position.x, other.transform.position.y);
+    const circleRadius = collider.size[0] / 2;
   
     // Compute vector from ray origin to circle center
     const oc = origin.clone().sub(circleOrigin.clone());
+    const originDistanceSquared = oc.dot(oc);
+  
+    // If origin is inside the circle, return the point where it exits
+    if (originDistanceSquared < circleRadius * circleRadius) {
+      
+      return { intersectionPoint: new Vector2(origin.x, origin.y) };
+    }
   
     // Quadratic equation coefficients (ray equation with circle equation)
     const a = direction.dot(direction);
     const b = 2 * oc.dot(direction);
-    const c = oc.dot(oc) - circleRadius * circleRadius;
+    const c = originDistanceSquared - circleRadius * circleRadius;
   
     // Compute the discriminant
     const discriminant = b * b - 4 * a * c;
@@ -71,6 +78,7 @@ export class Physics {
   
     return { intersectionPoint };
   }
+  
 
   //TODO: This is really bad, need to implement Bresemham's line algorithm
   public raycast2D(origin: Vector3, direction: Vector3, distance: number, debug: boolean = false): Rigidbody | null {
@@ -169,8 +177,8 @@ export class Physics {
       return;
     }
 
-    const circleRadius = rigidbody.collider.worldExtents.x / 2;
-    const otherCircleRadius = other.collider.worldExtents.x / 2;
+    const circleRadius = rigidbody.collider.size[0] / 2;
+    const otherCircleRadius = other.collider.size[0] / 2;
 
     const aPos = rigidbody.transform.position;
     const bPos = other.transform.position;

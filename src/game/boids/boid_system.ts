@@ -161,23 +161,22 @@ export default class BoidSystemComponent extends Component {
             tile.x, tile.y
           );
   
-         
-          if (this.hashMappedBoidRefs.has(hash)) {
-            const b = this.hashMappedBoidRefs.get(hash)!;
-            
-            if (b) {
-              b.push({
+          if ((this.scene as BoidScene).getUnit(boidId)?.alive) {
+            if (this.hashMappedBoidRefs.has(hash)) {
+              const b = this.hashMappedBoidRefs.get(hash)!;
+              
+              if (b) {
+                b.push({
+                  id: boidId,
+                  ownerId: unit.ownerId
+                });
+              }
+            }
+            else {
+              this.hashMappedBoidRefs.set(hash, [{
                 id: boidId,
                 ownerId: unit.ownerId
-              });
-            }
-          }
-          else {
-            if ((this.scene as BoidScene).getUnit(boidId)?.alive) {
-            this.hashMappedBoidRefs.set(hash, [{
-              id: boidId,
-              ownerId: unit.ownerId
-            }]); 
+              }]); 
             }
           }
   

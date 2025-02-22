@@ -14,6 +14,7 @@ import codeExecutionManager from "./code_runner/code_exec_manager";
 import { ReactCodeMirrorRef } from "@uiw/react-codemirror";
 import { SelectionManager } from "./selection_manager";
 import { BoidInterface } from "./interface/boid_interface";
+import { UserCodeStorage } from "@game/ui/game/UserCodeStorage";
 
 // Proxy class that supports dot notation for accessing & creating properties
 export class GlobalStorage {
@@ -52,9 +53,11 @@ export class SessionManager {
   private engine : Engine | undefined;
   private gameContext: GameContext | undefined;
   private codeMirror: ReactCodeMirrorRef | undefined;
-  // private sessionContext: SessionContext | undefined;
   private globalStorage: GlobalStorage | undefined = new GlobalStorage();
   private selectionManager: SelectionManager;
+
+  // Stores User Code Context (Functions)
+  public userCodeStorage: UserCodeStorage | undefined = new UserCodeStorage();
   
 
   constructor() {}
@@ -74,7 +77,7 @@ export class SessionManager {
     this.engine = await createEngine(
       canvas,
       new BasicLevel({
-        startingUnits: 10, 
+        startingUnits: 40, 
         enemySettings: {
           waves: [
             {
@@ -133,6 +136,9 @@ export class SessionManager {
 
 
     this.input = new PlayerInput(this);
+
+    this.userCodeStorage.retrieveFromLocalStorage();
+    this.userCodeStorage.commit(); // Run the code
   }
 
 
@@ -161,11 +167,13 @@ export class SessionManager {
         selection: this.selectionManager.selections
       };
 
-      codeExecutionManager.runCode(codeTitle, transpiledCode, newContext, terminalProps.loop);
+      codeExecutionManager.runCode(codeTitle, transpiledCode, newContext, terminalProps?.loop ?? false);
     }
   }
 
   public openTerminal (position?: [number, number]) {
+
+    if (this.scene === undefined) return;
 
     this.scene.timeScale = 0.2;
 
@@ -181,6 +189,8 @@ export class SessionManager {
   }
 
   public closeTerminal () {
+    if (this.scene === undefined) return;
+    
     this.scene.timeScale = 1;
     this.scene.codeWritingTarget.visible = false;
   }

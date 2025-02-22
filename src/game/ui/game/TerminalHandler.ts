@@ -10,6 +10,7 @@ export type TerminalEvents = {
   close_active_terminal: void;
   submit_terminal: void;
   loop_toggle: void;
+  focus_terminal: void;
 };
 
 export const TerminalEventEmitter = mitt<TerminalEvents>();
@@ -43,6 +44,11 @@ const submitTerminal = (e: KeyboardEvent) => {
   if (e.key === "l" && (e.ctrlKey || e.metaKey)) {
     TerminalEventEmitter.emit("loop_toggle");
     console.log("Loop Toggle");
+  }
+
+  // on Slash
+  if (e.key === "/") {
+    TerminalEventEmitter.emit("focus_terminal");
   }
   
 };

@@ -3,7 +3,7 @@ import "./Terminal.css";
 import { bgColor, fgColor } from "@/style";
 import { javascript } from "@codemirror/lang-javascript";
 import * as duotone from "@uiw/codemirror-theme-duotone";
-import { saveFile, typescriptCompletionSource } from "../../../tsUtils";
+import { findFunctions, saveFile, typescriptCompletionSource } from "../../../tsUtils";
 import Player from "@game/player/session_manager";
 import mitt, { Emitter } from "mitt";
 import { AnimatePresence } from "framer-motion";
@@ -27,7 +27,6 @@ export interface TerminalProps {
 }
 
 export function Terminal(props: TerminalProps) {
-
   const [terminalPosition, setTerminalPosition] = useState(() => {
     return {
       x: 0,
@@ -35,15 +34,14 @@ export function Terminal(props: TerminalProps) {
     };
   });
 
-
-  const [terminalActive, setTerminalActive] = useState(false);
+  // const [terminalActive, setTerminalActive] = useState(false);
   const [oldTerminalContent, setOldTerminalContent] = useState("");
   const [hasFocus, setHasFocus] = useState(false);
   const [terminalRunning, setTerminalRunning] = useState(false);
   const [terminalHistory, setTerminalHistory] = useState<string[]>([]);
 
   const [commandCount, setCommandCount] = useState(() => {
-    return 0
+    return 0;
   });
 
   const clearContent = useCallback(() => {
@@ -56,38 +54,48 @@ export function Terminal(props: TerminalProps) {
   const [historyIndex, setHistoryIndex] = useState(0);
   const [loop, setLoop] = useState(false);
 
-  const openTerminal = useCallback((args: TerminalOpenArgs) => {
-    console.log("Opening terminal");
-    setTerminalActive(true);
-    setHasFocus(true);
-
-    Player.openTerminal(args.mousePosition);
-
-    // let clearContent = "";
-
-    // if (args.mousePosition) {
-    //   const world = Player.bridge.screenToWorld(args.mousePosition[0], args.mousePosition[1]);
-    //   clearContent += `const dropPoint : Vector3 = new Vector3(${world.x.toFixed(2)}, ${world.y.toFixed(2)}, 0);\n`;
-    // }
-
-    // if (args.fromSelection) {
-    //   clearContent += `const selected : BoidInterface[] = [...selection];\n`;
-    // }
+  const openTerminal = useCallback(
+    (args: TerminalOpenArgs) => {
+      console.log("Opening terminal");
+      // setTerminalActive(true);
+      setHasFocus(true);
+      props.editor.current?.view?.focus();
 
 
-    setTimeout(() => {
-      setTerminalContent(clearContent);
+      // let clearContent = "";
+
+      // if (args.mousePosition) {
+      //   const world = Player.bridge.screenToWorld(args.mousePosition[0], args.mousePosition[1]);
+      //   clearContent += `const dropPoint : Vector3 = new Vector3(${world.x.toFixed(2)}, ${world.y.toFixed(2)}, 0);\n`;
+      // }
+
+      // if (args.fromSelection) {
+      //   clearContent += `const selected : BoidInterface[] = [...selection];\n`;
+      // }
+
       setTimeout(() => {
-        setCursorToLast();
-      }, 10);
-    }, 100);
-  }, [terminalActive, props.editor]);
+        setTerminalContent(clearContent);
+        setTimeout(() => {
+          setCursorToLast();
+        }, 10);
+      }, 100);
+    },
+    [props.editor]
+  );
 
   const closeTerminal = useCallback(() => {
-    setTerminalActive(false);
+    // setTerminalActive(false);
     setTerminalContent(clearContent());
-    Player.closeTerminal();
-  }, [terminalActive, props.editor]);
+  }, [props.editor]);
+
+  useEffect(() => {
+    if (hasFocus) {
+      Player.openTerminal();
+    }
+    else {
+      Player.closeTerminal();
+    }
+  }, [hasFocus])
 
   const setCursorToLast = useCallback(() => {
     props.editor.current?.view?.focus();
@@ -100,20 +108,23 @@ export function Terminal(props: TerminalProps) {
 
   const setToLastCommand = useCallback(
     (up) => {
-
-      const cursorPosition = props.editor.current?.view?.state.selection.main.head;
+      const cursorPosition =
+        props.editor.current?.view?.state.selection.main.head;
 
       // ENsure if going up, terminal content is empty or the content is not modified
-      if (up && terminalContent && hasModified ) {
+      if (up && terminalContent && hasModified) {
         return false;
       }
 
       // Ensure if going down, content is not modified
-      if (!up && hasModified && cursorPosition ) {
+      if (!up && hasModified && cursorPosition) {
         return false;
       }
 
-      if (!up && cursorPosition !== props.editor.current?.view?.state.doc.length) {
+      if (
+        !up &&
+        cursorPosition !== props.editor.current?.view?.state.doc.length
+      ) {
         return false;
       }
 
@@ -142,29 +153,33 @@ export function Terminal(props: TerminalProps) {
       });
       return true;
     },
-    [terminalHistory, hasModified, terminalContent, props.editor.current?.view?.state.selection.main.head]
+    [
+      terminalHistory,
+      hasModified,
+      terminalContent,
+      props.editor.current?.view?.state.selection.main.head,
+    ]
   );
 
-  const runCode = useCallback(async () => {
+  const runCode = useCallback(async (postCode?: string) => {
     const code = terminalContent;
     if (code) {
       try {
-
         // get the first line, if it is a comment use it as the title
         const firstLine = code.split("\n")[0];
         const title = firstLine.startsWith("//") ? firstLine : undefined;
         // remove // from the title
-        
-        const titleStr = title ? title.replace("//", "").trim() : "Command #" + commandCount;
+
+        const titleStr = title
+          ? title.replace("//", "").trim()
+          : "Command #" + commandCount;
 
         // Start from #region HELPERS and end at #endregion HELPERS
-        const helperFns = GameHelpers.substring(
-          GameHelpers.indexOf("//#region HELPERS")
-        ) + "\n";
+        const helperFns =
+          GameHelpers.substring(GameHelpers.indexOf("//#region HELPERS")) +
+          "\n";
 
-
-
-        Player.runCode( titleStr, helperFns + code, {
+        Player.runCode(titleStr, helperFns + code + "\n" + (postCode ?? ""), {
           mousePosition: [terminalPosition.x, terminalPosition.y],
           loop: loop,
         });
@@ -183,27 +198,44 @@ export function Terminal(props: TerminalProps) {
 
   const tsComplete: any = useCallback(
     (context: ReactCodeMirrorRef) => {
-      let preCode = GameHelpers + "\n"
-        .trim()
-        .toString();
-
-      // preCode = preCode.replace("@/", "/gameTypes/");
-      // replace all
+      let preCode = GameHelpers + "\n".trim().toString();
       preCode = preCode.replace(/@/g, "/gameTypes/");
-      
+
       return typescriptCompletionSource(
         context,
-        preCode + "\n" + oldTerminalContent + "\n"
+        preCode + "\n" + Player.userCodeStorage.getPreCode() + "\n"
       );
     },
     [oldTerminalContent]
   );
 
+  const focusTerminal = useCallback(() => {
+   // if didnt have focus
+    props.editor.current?.view?.focus();
+    setTimeout(() => {
+      setTerminalContent(clearContent());
+      setCursorToLast();
+    }, 10);
+  }, [hasFocus]);
+
+
   useEffect(() => {
     const submit = () => {
-      if (terminalActive && props.editor.current?.view?.hasFocus) {
-        runCode().then(() => {
+      if (props.editor.current?.view?.hasFocus) {
+
+        // This appends all fns to the globals env to be used directly later on
+        const fns = findFunctions();
+        let postCode = "";
+        if (fns.length > 0) {
+          for (let i = 0; i < fns.length; i++) {
+            postCode += `globals.${fns[i].name} = ${fns[i].name};\n`;
+            Player.userCodeStorage.store(fns[i]);
+          }
+        }
+
+        runCode(postCode).then(() => {
           // NOT ERROR -> SAVE TO GLOBAL LIST FOR INTELLISENSE - FOR THIS CONTEXT
+          console.log(findFunctions())
         });
 
         setLoop(false);
@@ -212,32 +244,32 @@ export function Terminal(props: TerminalProps) {
         setHistoryIndex((i) => terminalHistory.length + 1);
         setTimeout(() => {
           setTerminalContent(clearContent());
-          setCursorToLast();  
-        },0);
+          setCursorToLast();
+        }, 0);
         // closeTerminal();
       }
     };
-
-   
 
     TerminalEventEmitter.on("open_new_terminal", openTerminal);
     TerminalEventEmitter.on("close_active_terminal", closeTerminal);
     TerminalEventEmitter.on("submit_terminal", submit);
     TerminalEventEmitter.on("loop_toggle", toggleLoop);
+    TerminalEventEmitter.on("focus_terminal", focusTerminal);
 
     return () => {
       TerminalEventEmitter.off("open_new_terminal", openTerminal);
       TerminalEventEmitter.off("close_active_terminal", closeTerminal);
       TerminalEventEmitter.off("submit_terminal", submit);
       TerminalEventEmitter.off("loop_toggle", toggleLoop);
+      TerminalEventEmitter.off("focus_terminal", focusTerminal);
     };
-  }, [terminalActive, terminalContent, terminalHistory, runCode]);
+  }, [terminalContent, terminalHistory, runCode]);
 
   const exitMap: KeyBinding = {
     key: "Escape",
     win: "Escape",
     run: () => {
-      if (terminalActive && props.editor.current?.view?.hasFocus) {
+      if (props.editor.current?.view?.hasFocus) {
         closeTerminal();
         return true;
       }
@@ -262,87 +294,87 @@ export function Terminal(props: TerminalProps) {
 
   return (
     <AnimatePresence>
-      {terminalActive && (
-        <motion.div
-          key="terminal"
-          onMouseEnter={() => {
-            setHasFocus(true);
+      (
+      <motion.div
+        key="terminal"
+        onMouseEnter={() => {
+          setHasFocus(true);
+        }}
+        onMouseLeave={() => {
+          setHasFocus(false);
+        }}
+        transition={{ duration: 0.2 }}
+        // initial={{ translateY: 30 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: hasFocus ? 1 : 0.5, translateY: 0 }}
+        // exit={{ translateY: 30 }}
+        exit={{ opacity: 0 }}
+        style={{
+          width: "100vw",
+          // position: "rel",
+          display: "flex",
+          flexDirection: "row",
+          backgroundColor: bgColor,
+          zIndex: 1000,
+          // left: 0,
+          // bottom: 0,
+          // opacity: hasFocus ? 1 : 0.5,
+        }}
+      >
+        <div
+          id="loop-button"
+          onClick={() => {
+            setLoop(!loop);
           }}
-          onMouseLeave={() => {
-            setHasFocus(false);
-          }}
-          transition={{ duration: 0.2 }}
-          // initial={{ translateY: 30 }}
-          initial={{ opacity: 0, }}
-          animate={{ opacity: hasFocus ? 1 : 0.5, translateY: 0 }}
-          // exit={{ translateY: 30 }}
-          exit={{ opacity: 0 }}
           style={{
-            width: "100vw",
-            // position: "rel",
-            display: "flex",
-            flexDirection: "row",
-            backgroundColor: bgColor,
-            zIndex: 1000,
-            // left: 0,
-            // bottom: 0,
-            // opacity: hasFocus ? 1 : 0.5,
+            width: "26.4px",
+            height: "26.4px",
+            backgroundColor: loop ? "#32a852" : "#433e54",
           }}
         >
-          <div
-            id="loop-button"
-            onClick={() => {
-              setLoop(!loop);
-            }}
+          <motion.div
+            transition={{ duration: 0.5 }}
+            animate={{ rotate: loop ? 360 : 0 }}
             style={{
-              width: "26.4px",
-              height: "26.4px",
-              backgroundColor: loop ? "#32a852" : "#433e54",
-            }}
-          >
-            <motion.div
-              transition={{ duration: 0.5 }}
-              animate={{ rotate: loop ? 360 : 0 }}
-              style={{
-                position: "relative",
-                width: "100%",
-                height: "100%",
-                backgroundImage: `url(${LoopTexture})`,
-                backgroundSize: "80%",
-                backgroundPosition: "center",
-                backgroundRepeat: "no-repeat",
-              }}
-            />
-          </div>
-          <CodeMirror
-            className="block-game-input"
-            ref={props.editor}
-            value={terminalContent}
-            theme={duotone.duotoneDark}
-            height={"100%"}
-            width="100%"
-            extensions={[
-              Prec.highest(keymap.of([exitMap, previousMap, nextMap])),
-
-              javascript({
-                typescript: true,
-              }),
-
-              autocompletion({
-                override: [tsComplete],
-                activateOnTyping: true,
-                filterStrict: false,
-                aboveCursor: true,
-                maxRenderedOptions: 30,
-              }),
-            ]}
-            onChange={(c) => {
-              setHasModified(true);
-              setTerminalContent(c);
+              position: "relative",
+              width: "100%",
+              height: "100%",
+              backgroundImage: `url(${LoopTexture})`,
+              backgroundSize: "80%",
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat",
             }}
           />
-        </motion.div>
-      )}
+        </div>
+        <CodeMirror
+          className="block-game-input"
+          ref={props.editor}
+          value={terminalContent}
+          theme={duotone.duotoneDark}
+          height={"100%"}
+          width="100%"
+          extensions={[
+            Prec.highest(keymap.of([exitMap, previousMap, nextMap])),
+
+            javascript({
+              typescript: true,
+            }),
+
+            autocompletion({
+              override: [tsComplete],
+              activateOnTyping: true,
+              filterStrict: false,
+              aboveCursor: true,
+              maxRenderedOptions: 30,
+            }),
+          ]}
+          onChange={(c) => {
+            setHasModified(true);
+            setTerminalContent(c);
+          }}
+        />
+      </motion.div>
+      )
     </AnimatePresence>
   );
 }

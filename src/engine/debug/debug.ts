@@ -23,10 +23,10 @@ export class Debug {
     if (scene) {
       
       var end = _end.clone();
-      end.z = -9;
+      end.z = -10;
 
       var start = _start.clone();
-      start.z = -9;
+      start.z = -10;
 
       const lineQuad = QuadNoCollider(scene, color);
       

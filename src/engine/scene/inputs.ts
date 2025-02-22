@@ -2,10 +2,10 @@ import { Vector2, Vector3 } from "@math";
 import Scene from "../scene";
 import { vec4 } from "gl-matrix";
 
-function hasParentWithMatchingSelector (target, selector) {
-  return [...document.querySelectorAll(selector)].some(el =>
-    el !== target && el.contains(target)
-  )
+function hasParentWithMatchingSelector(target, selector) {
+  return [...document.querySelectorAll(selector)].some(
+    (el) => el !== target && el.contains(target)
+  );
 }
 
 export default class Input {
@@ -24,7 +24,6 @@ export default class Input {
     this.mousePosition = new Vector2(0, 0);
   }
 
-
   dispose() {
     this.inputMappings = new Map();
     this.scene = null;
@@ -35,17 +34,18 @@ export default class Input {
   }
 
   public get blockedByUI() {
-    const activeElement = document.elementFromPoint(this.mousePosition.x, this.mousePosition.y);
+    const activeElement = document.elementFromPoint(
+      this.mousePosition.x,
+      this.mousePosition.y
+    );
     //TODO: This should be reported by the UI to the input system
     return hasParentWithMatchingSelector(activeElement, ".block-game-input");
   }
 
   setup() {
-
     const canvas = window;
 
     canvas.addEventListener("keydown", (e) => {
-
       if (this.scene === null) {
         return;
       }
@@ -55,7 +55,6 @@ export default class Input {
 
       this.inputMappings.set(e.key.toLowerCase(), true);
     });
-
 
     canvas.addEventListener("keyup", (e) => {
       if (this.scene === null) {
@@ -73,15 +72,13 @@ export default class Input {
       }
 
       this.mousePosition = new Vector2(e.clientX, e.clientY);
-      this.scene.mouseEvent(2, 0)
+      this.scene.mouseEvent(2, 0);
     });
 
     canvas.addEventListener("mousedown", (e) => {
-        
       if (this.scene === null) {
         return;
       }
-
 
       if (e.button === 0) {
         this.leftMouse = true;
@@ -110,7 +107,7 @@ export default class Input {
       if (e.button === 2) {
         this.middleMouse = false;
       }
-      
+
       this.scene.mouseEvent(1, e.button);
     });
 
@@ -152,55 +149,59 @@ export default class Input {
 
   mouseToWorld = (z: number, absolute: boolean = true): Vector3 => {
     if (this.scene === null) {
-        return new Vector3(0, 0, 0);
+      return new Vector3(0, 0, 0);
     }
 
     const x = this.mousePosition.x;
     const y = this.mousePosition.y;
     return this.screenToWorld(x, y, z, absolute);
-    
   };
 
-  screenToWorld = (_x: number, _y: number, z: number, absolute: boolean): Vector3 => {
+  screenToWorld = (
+    _x: number,
+    _y: number,
+    z: number,
+    absolute: boolean
+  ): Vector3 => {
+    if (this.scene && this.scene.engine && this.scene.engine.outputCanvas) {
+      const canvas = this.scene!.engine.outputCanvas;
 
-    if (this.scene === null || this.scene.engine === null) {
-      return new Vector3(0, 0, 0);
+      const rect = canvas.getBoundingClientRect();
+
+      const bounds: vec4 = this.scene.activeCamera!.extents;
+      const width = canvas.width;
+      const height = canvas.height;
+      const x = _x - rect.left;
+      const y = _y - rect.top;
+      const xNDC = x / width;
+      const yNDC = 1 - y / height;
+      const xWorld = bounds[0] + (bounds[1] - bounds[0]) * xNDC;
+      const yWorld = bounds[2] + (bounds[3] - bounds[2]) * yNDC;
+      const zWorld = 0;
+      // return new Vector3(xWorld, yWorld, z).sub(this.scene.activeCamera!.gameObject.transform.position.clone());
+      if (absolute)
+        return new Vector3(xWorld, yWorld, z).sub(
+          this.scene.activeCamera!.gameObject.transform.position.clone()
+        );
+      else return new Vector3(xWorld, yWorld, zWorld);
     }
+    return new Vector3(0, 0, 0);
+  };
 
-    const canvas = this.scene!.engine.outputCanvas;
-
-    const rect = canvas.getBoundingClientRect();
-
-    const bounds : vec4 = this.scene.activeCamera!.extents;
-    const width = canvas.width;
-    const height = canvas.height;
-    const x = _x - rect.left;
-    const y = _y - rect.top;
-    const xNDC = x / width;
-    const yNDC = 1 - ( y / height);
-    const xWorld = bounds[0] + (bounds[1] - bounds[0]) * xNDC;
-    const yWorld = bounds[2] + (bounds[3] - bounds[2]) * yNDC;
-    const zWorld = 0;
-    // return new Vector3(xWorld, yWorld, z).sub(this.scene.activeCamera!.gameObject.transform.position.clone());
-    if (absolute) 
-      return new Vector3(xWorld, yWorld, z).sub(this.scene.activeCamera!.gameObject.transform.position.clone());
-    else 
-      return new Vector3(xWorld, yWorld, zWorld);
-  }
-
-
-  worldToScreen = (worldPos: Vector3 , absolute: boolean): Vector2 => {
+  worldToScreen = (worldPos: Vector3, absolute: boolean): Vector2 => {
     if (this.scene === null || this.scene.engine === null) {
       return new Vector2(0, 0);
     }
 
     if (absolute) {
-      worldPos = worldPos.clone().add(this.scene.activeCamera!.gameObject.transform.position.clone());
+      worldPos = worldPos
+        .clone()
+        .add(this.scene.activeCamera!.gameObject.transform.position.clone());
     }
 
     const canvas = this.scene!.engine.outputCanvas;
     const rect = canvas.getBoundingClientRect();
-    const bounds : vec4 = this.scene.activeCamera!.extents;
+    const bounds: vec4 = this.scene.activeCamera!.extents;
     const width = canvas.width;
     const height = canvas.height;
     const xNDC = (worldPos.x - bounds[0]) / (bounds[1] - bounds[0]);
@@ -208,14 +209,10 @@ export default class Input {
     const x = xNDC * width + rect.left;
     const y = (1 - yNDC) * height + rect.top;
     return new Vector2(x, y);
-  }
+  };
 
   keyIsPressed(key: string): boolean {
-    
-    if (
-      this.inputMappings.get(key.toLowerCase()) === true
-    )
-      return true;
+    if (this.inputMappings.get(key.toLowerCase()) === true) return true;
     return false;
   }
 }

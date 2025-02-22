@@ -1,14 +1,22 @@
 import { Vector3 } from "@engine/math/src";
 import Component from "@engine/scene/component";
 import { Unit } from "./unit";
+import { Castle } from "@game/components/castle";
 
 export class BaseEnemy extends Component {
 
   private unit! : Unit;
 
+  private castles: Castle[] = [];
+  private targetCastle: Castle;
+
   public awake(): void {
     super.awake ();
     this.unit = this.gameObject.getComponent<Unit>(Unit)!;
+
+    this.castles = this.scene.findObjectsOfType<Castle>(Castle);
+    // find random
+    this.targetCastle = this.castles[Math.floor(Math.random() * this.castles.length)];
   }
 
   public start(): void {
@@ -20,10 +28,16 @@ export class BaseEnemy extends Component {
     super.update(dT);
 
     // move towards center
-    const center = new Vector3(0,0,0);
-    const dir = center.sub(this.unit.position).normalize();
-    this.unit.boid.moveTo(center.x, center.y);
-    this.unit.attack(dir.x, dir.y);
+
+    if (this.targetCastle?.transform !== undefined) {
+      const dir = this.targetCastle.transform.position.clone().sub(this.unit.position).normalize();
+      this.unit.boid.moveTo(this.targetCastle.transform.position.x, this.targetCastle.transform.position.y);
+      this.unit.attack(dir.x, dir.y);
+    }
+    else {
+      // find anothter castle
+      this.targetCastle = this.castles[Math.floor(Math.random() * this.castles.length)];
+    }
   }
 
 

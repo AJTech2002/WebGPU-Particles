@@ -26,7 +26,7 @@ export class SelectionManager extends GameInterface {
     this.boxSelectDiv.style.pointerEvents = "none";
     this.boxSelectDiv.style.zIndex = "9999";
     this.boxSelectDiv.id = "box-select";
-    this.boxSelectDiv.style.backgroundColor = "rgba(255,255,255,0.1)";
+    this.boxSelectDiv.style.backgroundColor = "rgba(255,255,255,0.0)";
     // duisplay none
     this.boxSelectDiv.style.display = "none";
     document.body.appendChild(this.boxSelectDiv);
@@ -162,7 +162,7 @@ export class SelectionManager extends GameInterface {
       }
 
       for (const boid of selectedBoids) {
-        boid.diffuseColor = boid.originalColor.clone().add(new Vector4(0.2, 0.2, 0.2, 0));
+        boid.diffuseColor = new Vector4(1.1, 1.1, 1.1, 1.0);
       }
 
 
@@ -175,7 +175,7 @@ export class SelectionManager extends GameInterface {
 
   private appendSelections (selection: BoidInstance[]) {
     for (const boid of selection) {
-      boid.diffuseColor = boid.originalColor.clone().add(new Vector4(0.2, 0.2, 0.2, 0));
+      boid.diffuseColor = new Vector4(1.1, 1.1, 1.1, 1.0);
     }
 
     this.activeSelections = this.activeSelections.concat(selection);

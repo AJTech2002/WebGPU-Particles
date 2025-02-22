@@ -57,8 +57,9 @@ export class TreeSpawner extends Component {
 
         
         if (this.grid.canPlaceAtGridCell(squareCollider)) {
-          squareCollider.transform.scale = new Vector3(0.5, 0.8, 1.0).multiplyScalar(0.8);
+          squareCollider.transform.scale = new Vector3(0.5*0.8, 0.8*0.8, 1.0)
           squareCollider.getComponent(Collider)!.isStatic = true;
+          squareCollider.getComponent(Collider).size = [0.5, 0.8, 1.0];
           squareCollider.addComponent(new Rigidbody());
           this.trees.push(squareCollider);
           this.grid.placeAtGridCell (squareCollider);

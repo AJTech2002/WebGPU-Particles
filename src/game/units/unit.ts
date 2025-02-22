@@ -202,10 +202,32 @@ export class Unit extends Damageable {
     this.attack(dir.x, dir.y);
   }
 
+  public getNeighbours() : Unit[] {
+    const neighbours =  this.system.getBoidNeighbours(this.boidInstance.id);
+    const units: Unit[] = [];
+    for (let i = 0; i < neighbours.length; i++) {
+      if (neighbours[i].id === this.boidInstance.id) continue;
+      const unit = (this.scene as BoidScene).getUnit(neighbours[i].id);
+      if (unit) units.push(unit);
+    }
+    return units;
+  }
+
+  public getEnemyNeighbours() : Unit[] {
+    const neighbours =  this.system.getBoidNeighbours(this.boidInstance.id);
+    const units: Unit[] = [];
+    for (let i = 0; i < neighbours.length; i++) {
+      if (neighbours[i].id === this.boidInstance.id) continue;
+      const unit = (this.scene as BoidScene).getUnit(neighbours[i].id);
+      if (unit && unit.ownerId !== this.ownerId) units.push(unit);
+    }
+    return units;
+  }
+
   public attack(x: number, y: number) {
     if (!this.alive) return;
 
-    const attackDistance = 0.4;
+    const attackDistance =.3;
     
 
     const now = Date.now();
@@ -214,13 +236,16 @@ export class Unit extends Damageable {
     const raycast : Rigidbody | null = this.scene.physics.raycast2D(
       this.position,
       new Vector3(x, y, 0),
-      attackDistance 
+      attackDistance,
+      false
     );
 
     if (raycast) {
       const damageable = raycast.gameObject.getComponent<Damageable>(Damageable);
       if (damageable) {
-        damageable.takeDamage(10);
+        if ((damageable.owner ?? -1) !== this.ownerId) {
+          damageable.takeDamage(10);
+        }
       }
     }
 
@@ -234,7 +259,7 @@ export class Unit extends Damageable {
 
       const unit = (this.scene as BoidScene).getUnit(neighbours[i].id);
 
-      if (unit && unit.boid) {
+      if (unit && unit.boid && unit.ownerId !== this.ownerId) {
         const boid = unit.boid;
         const boidPosition = new Vector3(
           boid.transform.position.x,

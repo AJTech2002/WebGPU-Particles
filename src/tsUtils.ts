@@ -6,6 +6,12 @@ const fsMap = new Map();
 
 const libs = [];
 const imports = [];
+
+export interface FunctionInfo {
+    name: string;
+    code: string;
+}
+
 //loop through lib and add all to fsMap
 for (const key in lib) {
     
@@ -41,16 +47,30 @@ export const env = createVirtualTypeScriptEnvironment(
     compilerOpts
 );
 
-const recurseTree = (node: ts.Node, level: number = 0) => {
+const recurseTree = (node: ts.Node, level: number = 0, arr: FunctionInfo[]) => {
     if (node.kind === ts.SyntaxKind.FunctionDeclaration) {
-        console.log(node.getText());
+        // console.log(node.getText());
         // name
-        console.log((node as ts.FunctionTypeNode).name?.getText());
+        // console.log((node as ts.FunctionTypeNode).name?.getText());
+        arr.push({
+            name: (node as ts.FunctionTypeNode).name?.getText() ?? "",
+            code: node.getText()
+        });
     }
 
     ts.forEachChild(node, (child) => {
-        recurseTree(child, level + 1);
+        recurseTree(child, level + 1, arr);
     });
+}
+
+export const findFunctions = () => {
+    const sourceFile = env.languageService.getProgram()?.getSourceFile("index.ts");
+    console.log(sourceFile);
+    const output: FunctionInfo[] = [];
+    if (sourceFile) {
+        recurseTree(sourceFile, 0, output);
+    }
+    return output;
 }
 
 export const typescriptCompletionSource = async (context: any, preCode?: string) => {
@@ -71,11 +91,7 @@ export const typescriptCompletionSource = async (context: any, preCode?: string)
     });
 
     // find the functions using ast
-    const sourceFile = env.languageService.getProgram()?.getSourceFile("index.ts");
-    console.log(sourceFile);
-    if (sourceFile) {
-        recurseTree(sourceFile);
-    }
+    
 
     // If no completions are available, return null
     if (!completions || !completions.entries) return null;

@@ -12,11 +12,13 @@ type DamageEvents = {
 export class Damageable extends EventfulComponent<DamageEvents> {
   private _health: number = 100;
   private _damageTimeout: number = 0;
+  public owner?: number;
 
-  constructor(health: number, damageTimeout: number = 0.3) {
+  constructor(health: number, damageTimeout: number = 0.3, ownerId?: number) {
     super();
     this._health = health;
     this._damageTimeout = damageTimeout;
+    this.owner = ownerId;
   }
 
   public get health(): number {
