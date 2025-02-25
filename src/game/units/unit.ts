@@ -30,7 +30,9 @@ export class Unit extends Damageable {
     this.system = this.gameObject.scene.findObjectsOfType(
       BoidSystemComponent
     )[0] as BoidSystemComponent;
-    this.setUnitScale();
+    // this.setUnitScale();
+    this.boidInstance.originalScale = 0.25;
+    this.boidInstance.scale = 0.25;
     this.setUnitColor();
   }
 
@@ -118,13 +120,10 @@ export class Unit extends Damageable {
     );
   }
 
-  private maxScale = 0.32;
-  private minScale = 0.3;
 
   async setUnitScale () {
-    const expected = this.minScale + Math.random() * (this.maxScale - this.minScale);
 
-    this.boid.originalScale = expected;
+    // this.boid.originalScale = 0
 
     // lerp up
     let t = 0;
@@ -227,7 +226,7 @@ export class Unit extends Damageable {
   public attack(x: number, y: number) {
     if (!this.alive) return;
 
-    const attackDistance =.3;
+    const attackDistance =.2;
     
 
     const now = Date.now();

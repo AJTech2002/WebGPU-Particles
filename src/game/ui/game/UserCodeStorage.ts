@@ -12,7 +12,6 @@ export class UserCodeStorage {
   public store(fn: FunctionInfo) {
     this.fns.set(fn.name, fn);
     const localStorage = window.localStorage;
-    console.log(JSON.stringify(Array.from(this.fns.entries())));
     localStorage.setItem("functions", JSON.stringify(Array.from(this.fns.entries())));
   }
 
@@ -32,7 +31,6 @@ export class UserCodeStorage {
   public retrieveFromLocalStorage() {
     const localStorage = window.localStorage;
     const stored = localStorage.getItem("functions");
-    console.log(stored);
     if (stored) {
 
       // check if the stored functions are valid

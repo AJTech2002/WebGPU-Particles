@@ -19,8 +19,6 @@ const until : (condition: () => boolean) => Promise<void>; // Call this to wait 
 
 function moveToMouse () {
   const selected = selection.length > 0 ? selection : game.units;
-
-  console.log('Moving to mouse', selected);
   const mouse = game.mousePosition;
   if (selected.length > 0) {
     for (let i = 0; i < selected.length; i++) {

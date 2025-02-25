@@ -7,36 +7,36 @@ import { BoidInterface } from "./boid_interface";
 
 export class GameDataBridge {
 
-  private scene : BoidScene;
+  private scene: BoidScene;
 
-  constructor (scene : BoidScene) {
+  constructor(scene: BoidScene) {
     this.scene = scene;
   }
 
   /* THIS WILL BE REMOVED AND REPLACED WITH COMMANDS */
-  private getBoid (id : number) : BoidInstance {
+  private getBoid(id: number): BoidInstance {
     return this.scene.getUnit(id).boid;
   }
 
-  private getUnit (id : number) : Unit {
+  private getUnit(id: number): Unit {
     return this.scene.getUnit(id);
   }
 
-  private getUnits () : Unit[] {
+  private getUnits(): Unit[] {
     return this.scene.units;
   }
 
-  public getUnitsAtGrid (x: number, y: number) : BoidInstance[] {
+  public getUnitsAtGrid(x: number, y: number): BoidInstance[] {
     return this.scene.boidSystem.getBoidsInTile(x, y);
   }
 
-  public worldToGrid (x: number, y: number) : { x: number, y: number } {
-    return this.scene.grid.gridTileAt([x,y,0]);
+  public worldToGrid(x: number, y: number): { x: number, y: number } {
+    return this.scene.grid.gridTileAt([x, y, 0]);
   }
 
   /* ^^ THIS WILL BE REMOVED AND REPLACED WITH COMMANDS ^^ */
 
-  public getBoidData (id : number) : BoidInterfaceData {
+  public getBoidData(id: number): BoidInterfaceData {
     const boid = this.getBoid(id);
     const unit = this.getUnit(id);
     return {
@@ -49,7 +49,7 @@ export class GameDataBridge {
     }
   }
 
-  public getEnemyData (id : number) : EnemyInterfaceData {
+  public getEnemyData(id: number): EnemyInterfaceData {
     const boid = this.getBoid(id);
     const unit = this.getUnit(id);
     return {
@@ -62,23 +62,27 @@ export class GameDataBridge {
     }
   }
 
-  public async tick() : Promise<void> {
+  public async postTick(): Promise<void> {
+    return await this.scene.tick(true);
+  }
+
+  public async tick(): Promise<void> {
     return await this.scene.tick();
   }
 
-  public async seconds(seconds: number) : Promise<void> {
+  public async seconds(seconds: number): Promise<void> {
     return await this.scene.seconds(seconds);
   }
 
-  public async until (condition: () => boolean) : Promise<void> {
+  public async until(condition: () => boolean): Promise<void> {
     return await this.scene.until(condition);
   }
 
-  public sendGlobalCommand (command : BoidInterfaceCommand) {
-    
+  public sendGlobalCommand(command: BoidInterfaceCommand) {
+
   }
 
-  public sendCommand (command : BoidInterfaceCommand) {
+  public sendCommand(command: BoidInterfaceCommand) {
     if ('id' in command && command.id !== undefined) {
       const boid = this.getBoid(command.id);
       const unit = this.getUnit(command.id);
@@ -114,23 +118,23 @@ export class GameDataBridge {
     }
   }
 
-  public get mousePosition () : Vector3 {
+  public get mousePosition(): Vector3 {
     return this.scene.inputSystem.mouseToWorld(0, true);
   }
 
   // TODO: Will need to handle these across threads - best to write annotation @return(ETC) to quickly
   // cross call and return functions from threads
-  public screenToWorld (x: number, y: number, z: number = 0, absolute : boolean = true) : Vector3 {
+  public screenToWorld(x: number, y: number, z: number = 0, absolute: boolean = true): Vector3 {
     return this.scene.inputSystem.screenToWorld(x, y, z, absolute);
   }
 
-  public worldToScreen (pos: Vector3) : Vector2 {
+  public worldToScreen(pos: Vector3): Vector2 {
     return this.scene.inputSystem.worldToScreen(pos, true);
   }
 
   private interfaces: Map<number, BoidInterface> = new Map();
 
-  public getOrCreateInterface (id: number) : BoidInterface {
+  public getOrCreateInterface(id: number): BoidInterface {
     if (this.interfaces.has(id)) {
       return this.interfaces.get(id)!;
     }
@@ -141,15 +145,15 @@ export class GameDataBridge {
     }
   }
 
-  public getOrCreateInterfaces (instances: BoidInstance[]) : BoidInterface[] {
+  public getOrCreateInterfaces(instances: BoidInstance[]): BoidInterface[] {
     return instances.map((instance) => this.getOrCreateInterface(instance.id));
   }
 
-  public get boidInterfaces () : BoidInterface[] {
-    return this.getUnits().map((unit) =>  this.getOrCreateInterface(unit.id));
+  public get boidInterfaces(): BoidInterface[] {
+    return this.getUnits().map((unit) => this.getOrCreateInterface(unit.id));
   }
 
-  public getBoidInterface (id : number) : BoidInterface {
+  public getBoidInterface(id: number): BoidInterface {
     return this.getOrCreateInterface(id);
   }
 

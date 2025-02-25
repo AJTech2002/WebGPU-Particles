@@ -21,6 +21,7 @@ import hotkey from "hotkeys-js";
 import { TerminalEventEmitter, TerminalOpenArgs } from "./TerminalHandler";
 import { s } from "node_modules/framer-motion/dist/types.d-6pKw1mTI";
 import GameHelpers from "@game/player/interface/game_helpers?raw";
+import { useGameCamera } from "../core/hooks/useGameCamera";
 
 export interface TerminalProps {
   editor: React.RefObject<ReactCodeMirrorRef>;
@@ -30,15 +31,26 @@ export function Terminal(props: TerminalProps) {
   const [terminalPosition, setTerminalPosition] = useState(() => {
     return {
       x: 0,
-      y: 0,
+      y: 30,
     };
   });
+
+  console.log("re-rendering terminal");
 
   // const [terminalActive, setTerminalActive] = useState(false);
   const [oldTerminalContent, setOldTerminalContent] = useState("");
   const [hasFocus, setHasFocus] = useState(false);
   const [terminalRunning, setTerminalRunning] = useState(false);
   const [terminalHistory, setTerminalHistory] = useState<string[]>([]);
+
+
+  const {
+    trackingScreenPosition,
+    setTrackingPosition,
+    trackingScale,
+  } = useGameCamera(Player);
+
+
 
   const [commandCount, setCommandCount] = useState(() => {
     return 0;
@@ -53,26 +65,18 @@ export function Terminal(props: TerminalProps) {
   const [hasModified, setHasModified] = useState(false);
   const [historyIndex, setHistoryIndex] = useState(0);
   const [loop, setLoop] = useState(false);
+  const [lastTypedTime, setLastTypedTime] = useState(0);
 
   const openTerminal = useCallback(
     (args: TerminalOpenArgs) => {
       console.log("Opening terminal");
-      // setTerminalActive(true);
-      setHasFocus(true);
+
+      setTerminalPosition({
+        x: args.mousePosition?.[0] ?? 0,
+        y: args.mousePosition?.[1] ?? 0,
+      })
+      console.log("Setting terminal position", args.mousePosition);
       props.editor.current?.view?.focus();
-
-
-      // let clearContent = "";
-
-      // if (args.mousePosition) {
-      //   const world = Player.bridge.screenToWorld(args.mousePosition[0], args.mousePosition[1]);
-      //   clearContent += `const dropPoint : Vector3 = new Vector3(${world.x.toFixed(2)}, ${world.y.toFixed(2)}, 0);\n`;
-      // }
-
-      // if (args.fromSelection) {
-      //   clearContent += `const selected : BoidInterface[] = [...selection];\n`;
-      // }
-
       setTimeout(() => {
         setTerminalContent(clearContent);
         setTimeout(() => {
@@ -210,7 +214,7 @@ export function Terminal(props: TerminalProps) {
   );
 
   const focusTerminal = useCallback(() => {
-   // if didnt have focus
+    // if didnt have focus
     props.editor.current?.view?.focus();
     setTimeout(() => {
       setTerminalContent(clearContent());
@@ -218,8 +222,16 @@ export function Terminal(props: TerminalProps) {
     }, 10);
   }, [hasFocus]);
 
+  const checkLastTyped = useCallback(() => {
+    if (Date.now() - lastTypedTime > 300) {
+      setHasFocus(false);
+    }
+  }, [lastTypedTime]);
 
   useEffect(() => {
+
+    setTrackingPosition({ x: 0.5, y: 1, z: 0 });
+
     const submit = () => {
       if (props.editor.current?.view?.hasFocus) {
 
@@ -250,6 +262,10 @@ export function Terminal(props: TerminalProps) {
       }
     };
 
+    const interval = setInterval(() => {
+      checkLastTyped();
+    }, 300);
+
     TerminalEventEmitter.on("open_new_terminal", openTerminal);
     TerminalEventEmitter.on("close_active_terminal", closeTerminal);
     TerminalEventEmitter.on("submit_terminal", submit);
@@ -257,6 +273,7 @@ export function Terminal(props: TerminalProps) {
     TerminalEventEmitter.on("focus_terminal", focusTerminal);
 
     return () => {
+      clearInterval(interval);
       TerminalEventEmitter.off("open_new_terminal", openTerminal);
       TerminalEventEmitter.off("close_active_terminal", closeTerminal);
       TerminalEventEmitter.off("submit_terminal", submit);
@@ -293,88 +310,94 @@ export function Terminal(props: TerminalProps) {
   };
 
   return (
-    <AnimatePresence>
-      (
-      <motion.div
-        key="terminal"
-        onMouseEnter={() => {
-          setHasFocus(true);
-        }}
-        onMouseLeave={() => {
-          setHasFocus(false);
-        }}
-        transition={{ duration: 0.2 }}
-        // initial={{ translateY: 30 }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: hasFocus ? 1 : 0.5, translateY: 0 }}
-        // exit={{ translateY: 30 }}
-        exit={{ opacity: 0 }}
-        style={{
-          width: "100vw",
-          // position: "rel",
-          display: "flex",
-          flexDirection: "row",
-          backgroundColor: bgColor,
-          zIndex: 1000,
-          // left: 0,
-          // bottom: 0,
-          // opacity: hasFocus ? 1 : 0.5,
-        }}
-      >
-        <div
-          id="loop-button"
-          onClick={() => {
-            setLoop(!loop);
-          }}
+    <>
+      <div style={{
+        position: "absolute",
+        top: trackingScreenPosition.y - (300 * trackingScale) / 2,
+        left: trackingScreenPosition.x - (300 * trackingScale) / 2,
+        width: `${300 * trackingScale}px`,
+        height: `${300 * trackingScale}px`,
+        backgroundColor: "red",
+      }} />
+      <AnimatePresence>
+        (
+        <motion.div
+          key="terminal"
+          transition={{ duration: 0.2 }}
+          // initial={{ translateY: 30 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: hasFocus ? 1 : 0.8, translateX: terminalPosition.x, top: terminalPosition.y }}
+          // exit={{ translateY: 30 }}
+          exit={{ opacity: 0 }}
           style={{
-            width: "26.4px",
-            height: "26.4px",
-            backgroundColor: loop ? "#32a852" : "#433e54",
+            width: "300px",
+            position: "absolute",
+            // position: "rel",
+            display: "flex",
+            flexDirection: "row",
+            backgroundColor: bgColor,
+            zIndex: 1000,
+            // opacity: hasFocus ? 1 : 0.5,
           }}
         >
-          <motion.div
-            transition={{ duration: 0.5 }}
-            animate={{ rotate: loop ? 360 : 0 }}
-            style={{
-              position: "relative",
-              width: "100%",
-              height: "100%",
-              backgroundImage: `url(${LoopTexture})`,
-              backgroundSize: "80%",
-              backgroundPosition: "center",
-              backgroundRepeat: "no-repeat",
+          <div
+            id="loop-button"
+            onClick={() => {
+              setLoop(!loop);
             }}
+            style={{
+              width: "26.4px",
+              height: "26.4px",
+              backgroundColor: loop ? "#32a852" : "#433e54",
+            }}
+          >
+            <motion.div
+              transition={{ duration: 0.5 }}
+              animate={{ rotate: loop ? 360 : 0 }}
+              style={{
+                position: "relative",
+                width: "100%",
+                height: "100%",
+                backgroundImage: `url(${LoopTexture})`,
+                backgroundSize: "80%",
+                backgroundPosition: "center",
+                backgroundRepeat: "no-repeat",
+              }}
+            />
+          </div>
+          <CodeMirror
+            className="block-game-input"
+            ref={props.editor}
+            value={terminalContent}
+            theme={duotone.duotoneDark}
+            height={"100%"}
+            width="100%"
+            extensions={[
+              Prec.highest(keymap.of([exitMap, previousMap, nextMap])),
+
+              javascript({
+                typescript: true,
+              }),
+
+              autocompletion({
+                override: [tsComplete],
+                activateOnTyping: true,
+                filterStrict: false,
+                aboveCursor: true,
+                maxRenderedOptions: 30,
+              }),
+            ]}
+            onChange={(c) => {
+              setHasModified(true);
+              setTerminalContent(c);
+              setLastTypedTime(Date.now());
+              setHasFocus(true);
+            }}
+
           />
-        </div>
-        <CodeMirror
-          className="block-game-input"
-          ref={props.editor}
-          value={terminalContent}
-          theme={duotone.duotoneDark}
-          height={"100%"}
-          width="100%"
-          extensions={[
-            Prec.highest(keymap.of([exitMap, previousMap, nextMap])),
-
-            javascript({
-              typescript: true,
-            }),
-
-            autocompletion({
-              override: [tsComplete],
-              activateOnTyping: true,
-              filterStrict: false,
-              aboveCursor: true,
-              maxRenderedOptions: 30,
-            }),
-          ]}
-          onChange={(c) => {
-            setHasModified(true);
-            setTerminalContent(c);
-          }}
-        />
-      </motion.div>
-      )
-    </AnimatePresence>
+        </motion.div>
+        )
+      </AnimatePresence>
+    </>
   );
 }

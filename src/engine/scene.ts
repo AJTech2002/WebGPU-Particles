@@ -76,17 +76,17 @@ export default class Scene {
     this._materials.push(material);
     material.start(this.engine);
   }
-  
-  public raycast (
-    start : Vector3,
-    direction : Vector3,
-    distance : number,
-  ) : Collider[] {
+
+  public raycast(
+    start: Vector3,
+    direction: Vector3,
+    distance: number,
+  ): Collider[] {
     throw new Error("Method not implemented.");
   }
-  
+
   //#endregion
-  
+
 
   //#region GameObjects
 
@@ -137,7 +137,7 @@ export default class Scene {
   public findObjectOfType<T extends Component>(type: new (...args: any[]) => T): T | null {
     for (let i = 0; i < this._gameObjects.length; i++) {
       const component = this._gameObjects[i].getComponent(type);
-      if (component) 
+      if (component)
         return component;
     }
     return null;
@@ -171,13 +171,13 @@ export default class Scene {
       return;
     }
 
-    this.dT = (dT/1000) * this.timeScale;
+    this.dT = (dT / 1000) * this.timeScale;
     this.time += this.dT;
     this.frame++;
 
-    
+
     for (const callback of this.callbacks) {
-      
+
       callback(this.dT);
 
     }
@@ -187,16 +187,31 @@ export default class Scene {
     }
 
     if (this.physics) this.physics.update(this.dT);
+
+    for (const callback of this.postFrameCallbacks) {
+      callback(this.dT);
+    }
   }
 
   // render callback (dt) type
   private callbacks: Set<RenderCallback> = new Set();
-  createRenderCallback(callback : RenderCallback) {
+  private postFrameCallbacks: Set<RenderCallback> = new Set();
+
+  createRenderCallback(callback: RenderCallback) {
     this.callbacks.add(callback);
   }
 
-  removeRenderCallback(callback : RenderCallback) {
-      this.callbacks.delete(callback);
+  createPostFrameCallback(callback: RenderCallback) {
+    this.postFrameCallbacks.add(callback);
+  }
+
+
+  removeRenderCallback(callback: RenderCallback) {
+    this.callbacks.delete(callback);
+  }
+
+  removePostFrameCallback(callback: RenderCallback) {
+    this.postFrameCallbacks.delete(callback);
   }
 
   awake(engine: Engine) {
@@ -241,7 +256,7 @@ export default class Scene {
     this.input.dispose();
   }
 
-  runLoopForSeconds (seconds: number, callback: (dt: number) => void, endCallback?: () => void) {
+  runLoopForSeconds(seconds: number, callback: (dt: number) => void, endCallback?: () => void) {
     const startTime = this.time;
     const endTime = startTime + seconds;
 
@@ -264,14 +279,23 @@ export default class Scene {
    * @returns Awaitable Promise
    * @example `await gameManager.tick();`
    */
-  tick = () =>
+  tick = (post: boolean = false) =>
     new Promise<void>((resolve) => {
-      const f = (dt : number) => {
+      const f = (dt: number) => {
         resolve();
-        this.removeRenderCallback(f);
+        if (post) {
+          this.removePostFrameCallback(f);
+        }
+        else {
+          this.removeRenderCallback(f);
+        }
       };
 
-      this.createRenderCallback(f);
+      if (post) {
+        this.createPostFrameCallback(f);
+      } else {
+        this.createRenderCallback(f);
+      }
     });
 
   /**
@@ -310,9 +334,9 @@ export default class Scene {
   protected async reportFPS() {
     while (true) {
       await this.seconds(2);
-      console.log("FPS: ", 1.0/(this.dT));
+      console.log("FPS: ", 1.0 / (this.dT));
     }
   }
-  
+
   //#endregion
 }

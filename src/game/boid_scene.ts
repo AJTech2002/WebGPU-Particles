@@ -11,6 +11,7 @@ import { Unit } from "./units/unit";
 import { UnitType } from "./squad/squad";
 import { QuadNoCollider } from "@engine/prefabs/quad.prefab";
 import CodeWritingMarker from "@assets/code-logo.png";
+import BoidOutlineMaterial from "./boids/rendering/boid_outline_material";
 export default class BoidScene extends Scene {
 
   public boidSystem!: BoidSystemComponent;
@@ -49,8 +50,17 @@ export default class BoidScene extends Scene {
       boidSystem.objectBuffer,
     );
 
-    boids.addComponent(new QuadMesh(material));
+    const outlineMaterial = new BoidOutlineMaterial(
+      this,
+      boidSystem.objectBuffer
+    )
 
+    const mesh = new QuadMesh(material);
+    boids.addComponent(mesh);
+
+    mesh.addMaterial(outlineMaterial);
+
+    outlineMaterial.textureUrl = [BoidTexture, BoidTexture];
     material.textureUrl = [BoidTexture, BoidTexture];
 
 
@@ -99,6 +109,7 @@ export default class BoidScene extends Scene {
      textureIndex: textureIndex,
      scale: scale,
      clampToGrid: clampToGrid,
+     outlineColor: ownerId === 0 ? [0, 0, 0, 0] : [1, 0, 0, 1],
    });
    
    if (spawnData?.instance)  {

@@ -81,6 +81,9 @@ export class BoidObjectData {
 
   @shaderProperty(ShaderTypes.u32)
   public textureIndex: number = 0; // bytes: 4
+
+  @shaderProperty(ShaderTypes.vec4)
+  public outlineColor: vec4 = [0,0,0,0]; // bytes: 16
 }
 
 @shaderStruct("BoidOutputData")

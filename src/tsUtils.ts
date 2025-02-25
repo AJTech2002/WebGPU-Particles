@@ -65,7 +65,6 @@ const recurseTree = (node: ts.Node, level: number = 0, arr: FunctionInfo[]) => {
 
 export const findFunctions = () => {
     const sourceFile = env.languageService.getProgram()?.getSourceFile("index.ts");
-    console.log(sourceFile);
     const output: FunctionInfo[] = [];
     if (sourceFile) {
         recurseTree(sourceFile, 0, output);
@@ -133,7 +132,6 @@ export const saveFile = (code: string) : string | null => {
     env.updateFile("index.ts", code);
 
     const transpiledCode = transpile();
-    console.log(transpiledCode);
     if (!transpiledCode) {
         console.error("Transpilation failed");
         return null;

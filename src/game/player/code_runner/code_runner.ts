@@ -47,7 +47,6 @@ export default class CodeRunner {
         })
       `;
 
-      console.log(wrappedCode);
     return wrappedCode;
   }
 

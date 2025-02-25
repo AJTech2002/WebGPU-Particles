@@ -1,9 +1,10 @@
 import Component from "@engine/scene/component";
-import { BoidInputData, BoidOutputData } from "./boid_compute";
+import { BoidInputData, BoidObjectData, BoidOutputData } from "./boid_compute";
 import { Vector3, Vector4 } from "@engine/math/src";
 import BoidSystemComponent, { Neighbour } from "./boid_system";
 import { mat4, vec3 } from "gl-matrix";
 import Collider from "@engine/scene/core/collider_component";
+import { Unit } from "@game/units/unit";
 
 /**
  * BoidInstance
@@ -21,20 +22,21 @@ export default class BoidInstance extends Component {
   private system: BoidSystemComponent;
 
   // Core 
-  private _targetPosition : Vector3 = new Vector3();
-  private _externalForce : Vector3 = new Vector3();
-  private _diffuseColor : Vector4 = new Vector4();
-  private _hasTarget : boolean = false;
-  private _speed : number = 0.0;
-  private _scale : number = 0.0;
-  private _avoidanceForce : number = 1.0;
-  
+  private _targetPosition: Vector3 = new Vector3();
+  private _externalForce: Vector3 = new Vector3();
+  private _diffuseColor: Vector4 = new Vector4();
+  private _outlineColor: Vector4 = new Vector4();
+  private _hasTarget: boolean = false;
+  private _speed: number = 0.0;
+  private _scale: number = 0.0;
+  private _avoidanceForce: number = 1.0;
+
   // Game Logic
   public originalColor: Vector4 = new Vector4(1, 1, 1);
   public originalScale: number = 0.0;
   public originalPosition: Vector3 = new Vector3();
 
-  constructor(boidId: number, boidSystem: BoidSystemComponent, initial : BoidInputData, initialPosition: Vector3) {
+  constructor(boidId: number, boidSystem: BoidSystemComponent, initial: BoidInputData, initialPosition: Vector3, initialModel: BoidObjectData) {
     super();
     this.boidId = boidId;
     this.system = boidSystem;
@@ -44,6 +46,7 @@ export default class BoidInstance extends Component {
     this.targetPosition = new Vector3(initial.targetPosition[0], initial.targetPosition[1], initial.targetPosition[2]);
     this.externalForce = new Vector3(initial.externalForce[0], initial.externalForce[1], initial.externalForce[2]);
     this.diffuseColor = new Vector4(initial.diffuseColor[0], initial.diffuseColor[1], initial.diffuseColor[2], initial.diffuseColor[3]);
+    this.outlineColor = new Vector4(initialModel.outlineColor[0], initialModel.outlineColor[1], initialModel.outlineColor[2], initialModel.outlineColor[3]);
     this.hasTarget = initial.hasTarget;
     this.speed = initial.speed;
     this.scale = initial.scale;
@@ -58,33 +61,41 @@ export default class BoidInstance extends Component {
 
   //#region == Property Accessors ==
 
-  public get index() : number {
+  public get index(): number {
     return this.boidIndex;
   }
 
-  public set index(value : number) {
+  public set index(value: number) {
     this.boidIndex = value;
   }
 
-  public get id () : number {
+  private _unit?: Unit;
+  public get unit(): Unit {
+    if (!this._unit) {
+      this._unit = this.gameObject.getComponent(Unit);
+    }
+    return this._unit!;
+  }
+
+  public get id(): number {
     return this.boidId;
   }
 
-  public get alive () : boolean {
+  public get alive(): boolean {
     return this.gameObject?.active ?? true;
   }
 
-  public get position () : Vector3 {
+  public get position(): Vector3 {
     return new Vector3(this.transform.position.x, this.transform.position.y, this.transform.position.z);
   }
 
-  public setAlive (alive: boolean) {
+  public setAlive(alive: boolean) {
     this.system.setBoidInputData(this.boidIndex, {
       alive: alive,
     });
   }
 
-  public set position (value : Vector3) {
+  public set position(value: Vector3) {
 
     if (!this.alive) return;
 
@@ -95,7 +106,7 @@ export default class BoidInstance extends Component {
     mat4.translate(model, model, [value.x, value.y, value.z]);
     mat4.scale(model, model, [this._scale, this._scale, this._scale]);
 
-    this.system.setBoidModelData(this.boidIndex, {model});
+    this.system.setBoidModelData(this.boidIndex, { model });
 
     this.system.setGpuData(this.boidIndex, {
       position: [value.x, value.y, value.z, 0],
@@ -103,30 +114,30 @@ export default class BoidInstance extends Component {
     });
   }
 
-  public get targetPosition() : Vector3 {
+  public get targetPosition(): Vector3 {
     return this._targetPosition;
   }
 
-  public set targetPosition(value : Vector3) {
+  public set targetPosition(value: Vector3) {
 
     if (!this.alive) return;
 
     this._targetPosition = value;
 
     this.system.setBoidInputData(this.boidIndex, {
-      targetPosition: [this._targetPosition .x, this._targetPosition .y, this._targetPosition .z, 0],
+      targetPosition: [this._targetPosition.x, this._targetPosition.y, this._targetPosition.z, 0],
       hasTarget: true,
     });
   }
 
-  public get avoidanceForce() : number {
+  public get avoidanceForce(): number {
     return this._avoidanceForce;
   }
 
-  public set avoidanceForce(value : number) {
+  public set avoidanceForce(value: number) {
 
     if (!this.alive) return;
-    
+
     this._avoidanceForce = value;
 
     this.system.setBoidInputData(this.boidIndex, {
@@ -134,11 +145,11 @@ export default class BoidInstance extends Component {
     });
   }
 
-  public get externalForce() : Vector3 {
+  public get externalForce(): Vector3 {
     return this._externalForce;
   }
 
-  public set externalForce(value : Vector3) {
+  public set externalForce(value: Vector3) {
 
     if (!this.alive) return;
 
@@ -149,13 +160,13 @@ export default class BoidInstance extends Component {
     });
   }
 
-  public get diffuseColor() : Vector4 {
+  public get diffuseColor(): Vector4 {
     return this._diffuseColor;
   }
 
-  public set diffuseColor(value : Vector4) {
+  public set diffuseColor(value: Vector4) {
 
-    if (!this.alive) return; 
+    if (!this.alive) return;
 
     this._diffuseColor = value;
     this.system.setBoidInputData(this.boidIndex, {
@@ -163,11 +174,25 @@ export default class BoidInstance extends Component {
     });
   }
 
-  public get hasTarget() : boolean {
+  public get outlineColor(): Vector4 {
+    return this._outlineColor;
+  }
+
+  public set outlineColor(value: Vector4) {
+
+    if (!this.alive) return;
+
+    this._outlineColor = value;
+    this.system.setBoidModelData(this.boidIndex, {
+      outlineColor: [this._outlineColor.x, this._outlineColor.y, this._outlineColor.z, this._outlineColor.w],
+    });
+  }
+
+  public get hasTarget(): boolean {
     return this._hasTarget;
   }
 
-  public set hasTarget(value : boolean) {
+  public set hasTarget(value: boolean) {
 
     if (!this.alive) return;
 
@@ -178,11 +203,11 @@ export default class BoidInstance extends Component {
     });
   }
 
-  public get speed() : number {
+  public get speed(): number {
     return this._speed;
   }
 
-  public set speed(value : number) {
+  public set speed(value: number) {
 
     if (!this.alive) return;
 
@@ -192,11 +217,11 @@ export default class BoidInstance extends Component {
     });
   }
 
-  public get scale() : number {
+  public get scale(): number {
     return this._scale;
   }
 
-  public set scale(value : number) {
+  public set scale(value: number) {
 
     if (!this.alive) return;
 
@@ -206,7 +231,7 @@ export default class BoidInstance extends Component {
     });
   }
 
-  public stop () {
+  public stop() {
 
     if (!this.alive) return;
 
@@ -217,12 +242,38 @@ export default class BoidInstance extends Component {
   //#endregion
 
   //#region == Memory Transfer ==
-  setGPUData (boidOutputData : BoidOutputData) {
-    if (!this.alive) return;
+  setGPUData(boidOutputData: BoidOutputData) {
+    if (!this.alive) {
+      return;
+    }
     this.transform.position.set(boidOutputData.position[0], boidOutputData.position[1], boidOutputData.position[2]);
+    this.hash();
   }
 
-  getGPUInputData () : BoidInputData {
+  private _hash: number | undefined = undefined;
+
+  public get lastHash(): number | undefined {
+    return this._hash;
+  }
+
+  hash() {
+    const tile = this.system.grid.gridTileAt(
+      this.position.clone().toVec3()
+    );
+
+    const hash = this.system.grid.hashedTileIndex(
+      tile.x, tile.y
+    );
+
+
+    if (this._hash === hash) return;
+
+    this.system.removeBoidHash(this.boidIndex, this._hash);
+    this._hash = hash;
+    this.system.setBoidHash(this.boidIndex, hash);
+  }
+
+  getGPUInputData(): BoidInputData {
     if (!this.alive) return new BoidInputData();
     const boidInputData = new BoidInputData();
     boidInputData.targetPosition = [this._targetPosition.x, this._targetPosition.y, this._targetPosition.z, 0];
@@ -244,7 +295,7 @@ export default class BoidInstance extends Component {
 
   //#region Movement
 
-  public move (x: number, y: number) {
+  public move(x: number, y: number) {
     // move in this direction
     const unitPos: Vector3 = this.position;
 
@@ -253,11 +304,11 @@ export default class BoidInstance extends Component {
     dir = dir.multiplyScalar(1000);
 
     const targetPos = unitPos.clone().add(dir);
-    console.log(x,y);
+    console.log(x, y);
     this.targetPosition = targetPos;
   }
 
-  public moveTo (x: number, y: number) {
+  public moveTo(x: number, y: number) {
     const targetPos = new Vector3(x, y, this.position.z);
     this.targetPosition = targetPos;
   }
@@ -265,7 +316,7 @@ export default class BoidInstance extends Component {
 
   //#endregion
 
-  public getNeighbourIds () : Neighbour[] {
+  public getNeighbourIds(): Neighbour[] {
     const neighbours = this.system.getBoidNeighbours(this.id);
     return neighbours;
   }

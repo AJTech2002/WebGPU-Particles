@@ -175,7 +175,7 @@ export class SessionManager {
 
     if (this.scene === undefined) return;
 
-    this.scene.timeScale = 0.2;
+    this.scene.timeScale = 0.02;
 
     
     if (position === undefined) {

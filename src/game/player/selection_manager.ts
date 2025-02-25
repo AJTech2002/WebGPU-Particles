@@ -51,25 +51,25 @@ export class SelectionManager extends GameInterface {
     });
 
     window.addEventListener("mousemove", (e) => {
-        this.onMouseMove(e);
+      this.onMouseMove(e);
     });
 
     window.addEventListener("mouseup", (e) => {
-        this.onMouseUp(e);
+      this.onMouseUp(e);
     });
 
   }
 
   private downPosition: Vector3 | null = null;
-  private activePointerPosition: Vector3 = new Vector3(0,0,0);
+  private activePointerPosition: Vector3 = new Vector3(0, 0, 0);
 
-  private onMouseDown (e: MouseEvent) {
+  private onMouseDown(e: MouseEvent) {
     this.downPosition = new Vector3(e.clientX, e.clientY, 0);
-  
+
   }
 
   //TODO: This should use the BoidINterface for WebWorker support
-  private selectOnMouse () : BoidInstance | null {
+  private selectOnMouse(): BoidInstance | null {
     const mousePosition = this.bridge.mousePosition;
     const toGridTile = this.bridge.worldToGrid(mousePosition.x, mousePosition.y);
     const boids = this.bridge.getUnitsAtGrid(toGridTile.x, toGridTile.y);
@@ -85,12 +85,12 @@ export class SelectionManager extends GameInterface {
     return foundBoid;
   }
 
-  private onMouseMove (e: MouseEvent) {
+  private onMouseMove(e: MouseEvent) {
     if (this.shiftKey) {
       // look for boids in the area
 
       if (!this.boxSelect) {
-        
+
         const boid = this.selectOnMouse();
 
         if (boid !== null) {
@@ -117,7 +117,7 @@ export class SelectionManager extends GameInterface {
 
   private tempSelection: BoidInstance[] = [];
 
-  private runBoxSelect() {
+  private async runBoxSelect() {
     if (this.downPosition) {
       const start = this.downPosition;
       const end = this.activePointerPosition;
@@ -134,13 +134,19 @@ export class SelectionManager extends GameInterface {
       const startGridPos = this.bridge.worldToGrid(startWorldPos.x, startWorldPos.y);
       const endGridPos = this.bridge.worldToGrid(endWorldPos.x, endWorldPos.y);
 
-      const selectedBoids : BoidInstance[] = [];
+      const selectedBoids: BoidInstance[] = [];
+
+      await this.bridge.postTick();
 
       for (let x = Math.min(startGridPos.x, endGridPos.x); x <= Math.max(startGridPos.x, endGridPos.x); x++) {
         for (let y = Math.min(startGridPos.y, endGridPos.y); y <= Math.max(startGridPos.y, endGridPos.y); y++) {
           const boids = this.bridge.getUnitsAtGrid(x, y);
           for (const boid of boids) {
             // check if the boid is in the box
+
+            if (boid.unit.ownerId !== 0) continue;
+
+
             const boidWorldPos = boid.position;
             const boidScreenPos = this.bridge.worldToScreen(boidWorldPos);
             if (boidScreenPos.x > Math.min(start.x, end.x) && boidScreenPos.x < Math.max(start.x, end.x) && boidScreenPos.y > Math.min(start.y, end.y) && boidScreenPos.y < Math.max(start.y, end.y)) {
@@ -149,46 +155,31 @@ export class SelectionManager extends GameInterface {
           }
         }
       }
-
-
-      // hihghlight selected boids & remove from previous selection
-    
-      // find the intersection of the two arrays
-      const intersection = this.tempSelection.filter(boid => !selectedBoids.find(b => b.id === boid.id));
-
-      // remove the intersection from both arrays
-      for (const boid of intersection) {
-        boid.diffuseColor = boid.originalColor.clone();
-      }
-
-      for (const boid of selectedBoids) {
-        boid.diffuseColor = new Vector4(1.1, 1.1, 1.1, 1.0);
-      }
-
-
       this.tempSelection = selectedBoids;
+      console.log(this.tempSelection.length, start, end);
     }
 
   }
 
   private activeSelections: BoidInstance[] = [];
 
-  private appendSelections (selection: BoidInstance[]) {
+  private appendSelections(selection: BoidInstance[]) {
     for (const boid of selection) {
-      boid.diffuseColor = new Vector4(1.1, 1.1, 1.1, 1.0);
+      boid.outlineColor = new Vector4(0.0, 1.0, 0.0, 1.0);
+      console.log(boid);
     }
 
     this.activeSelections = this.activeSelections.concat(selection);
   }
 
-  private clearSelections () {
+  private clearSelections() {
     for (const boid of this.activeSelections) {
-      boid.diffuseColor = boid.originalColor.clone();
+      boid.outlineColor = new Vector4(0.0, 0.0, 0.0, 0.0);
     }
     this.activeSelections = [];
   }
 
-  private disableSelections () {
+  private disableSelections() {
     this.boxSelect = false;
 
     this.downPosition = null;
@@ -198,11 +189,11 @@ export class SelectionManager extends GameInterface {
 
   }
 
-  public get selections () {
+  public get selections() {
     return this.bridge.getOrCreateInterfaces(this.activeSelections);
   }
 
-  private onMouseUp (e: MouseEvent) {
+  private onMouseUp(e: MouseEvent) {
 
     if (!this.boxSelect && this.shiftKey) {
       const boid = this.selectOnMouse();
@@ -214,12 +205,13 @@ export class SelectionManager extends GameInterface {
             fromSelection: true
           });
         }
-    
+
       }
       else
         this.clearSelections();
     }
     else if (this.boxSelect) {
+      console.log("box select", this.tempSelection.length);
       this.appendSelections(this.tempSelection);
 
       if (this.activeSelections.length > 0 && this.tempSelection.length > 0) {
@@ -236,10 +228,10 @@ export class SelectionManager extends GameInterface {
 
       this.tempSelection = [];
 
-  
+
     }
 
-   
+
     this.disableSelections();
 
   }
