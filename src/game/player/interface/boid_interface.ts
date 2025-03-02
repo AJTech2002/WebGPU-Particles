@@ -12,27 +12,27 @@ type Positional = {
 // Scene Facing
 export class BoidInterface extends GameInterface {
 
-  private _id : number = 0;
-  private mappedInterfaces : Map<number, BoidInterface | EnemyInterface> = new Map();
+  private _id: number = 0;
+  private mappedInterfaces: Map<number, BoidInterface | EnemyInterface> = new Map();
 
   constructor(id: number, bridge: GameDataBridge) {
     super(bridge);
     this._id = id;
   }
 
-  private get data () : BoidInterfaceData {
+  private get data(): BoidInterfaceData {
     return this.bridge.getBoidData(this.id);
   }
-  
-  public get id () : number {
+
+  public get id(): number {
     return this._id;
   }
 
-  public get unitType () : UnitType {
+  public get unitType(): UnitType {
     return this.data.unitType;
   }
 
-  public get ownerId () : number {
+  public get ownerId(): number {
     return this.data.ownerId;
   }
 
@@ -40,25 +40,25 @@ export class BoidInterface extends GameInterface {
     return this.data.position;
   }
 
-  public get alive () : boolean {
+  public get alive(): boolean {
     return this.data.alive;
   }
 
-  public get neighbours () : Neighbour[] {
+  public get neighbours(): Neighbour[] {
     return this.data.neighbours;
   }
 
-  public get friendlyNeighbours () : BoidInterface[] {
+  public get friendlyNeighbours(): BoidInterface[] {
     // return this.neighbours.filter((boid) => boid.id !== this.id && boid.alive && (this.bridge.getBoidData(boid.id).ownerId === this.ownerId));
-    const _neighbours : BoidInterface[] = [] as BoidInterface[];
-    
+    const _neighbours: BoidInterface[] = [] as BoidInterface[];
+
     for (const neighbour of this.neighbours) {
 
       if (neighbour.id === this.id || neighbour.ownerId !== this.ownerId) continue;
 
-      let foundBoid : BoidInterface | undefined;
+      let foundBoid: BoidInterface | undefined;
       const id = neighbour.id;
-      
+
       if (this.mappedInterfaces.has(id)) {
         const boid = this.mappedInterfaces.get(id);
         if (boid instanceof BoidInterface) {
@@ -83,17 +83,17 @@ export class BoidInterface extends GameInterface {
     return _neighbours;
   }
 
-  public get enemyNeighbours () : EnemyInterface[] {
+  public get enemyNeighbours(): EnemyInterface[] {
     // return this.neighbours.filter((boid) => boid.id !== this.id && boid.alive && (this.bridge.getBoidData(boid.id).ownerId === this.ownerId));
-    const _neighbours : EnemyInterface[] = [] as EnemyInterface[];
-    
+    const _neighbours: EnemyInterface[] = [] as EnemyInterface[];
+
     for (const neighbour of this.neighbours) {
 
       if (neighbour.id === this.id || neighbour.ownerId === this.ownerId) continue;
 
-      let foundBoid : EnemyInterface | undefined;
+      let foundBoid: EnemyInterface | undefined;
       const id = neighbour.id;
-      
+
       if (this.mappedInterfaces.has(id)) {
         const boid = this.mappedInterfaces.get(id);
         if (boid instanceof EnemyInterface) {
@@ -102,9 +102,9 @@ export class BoidInterface extends GameInterface {
       }
       else {
         const boidData = this.bridge.getBoidData(id);
-          const boid = new EnemyInterface(id, this.bridge);
-          this.mappedInterfaces.set(id, boid);
-          foundBoid = boid;
+        const boid = new EnemyInterface(id, this.bridge);
+        this.mappedInterfaces.set(id, boid);
+        foundBoid = boid;
       }
 
       if (foundBoid && foundBoid.alive) {
@@ -116,7 +116,7 @@ export class BoidInterface extends GameInterface {
     return _neighbours;
   }
 
-  public getClosest<Positional> (units: Positional[]) : Positional | null {
+  public getClosest<Positional>(units: Positional[]): Positional | null {
     let minDist = Number.MAX_VALUE;
     let closest: Positional | null = null;
     for (const unit of units) {
@@ -130,7 +130,7 @@ export class BoidInterface extends GameInterface {
     return closest;
   }
 
-  public getClosestEnemy () : EnemyInterface | null {
+  public getClosestEnemy(): EnemyInterface | null {
     const closest = this.getClosest(this.enemyNeighbours);
     return closest ? new EnemyInterface(closest.id, this.bridge) : null;
   }
@@ -145,7 +145,7 @@ export class BoidInterface extends GameInterface {
     )
   }
 
-  public move (x: number, y: number) {
+  public move(x: number, y: number) {
     this.bridge.sendCommand(
       {
         id: this.id,
@@ -158,7 +158,7 @@ export class BoidInterface extends GameInterface {
     )
   }
 
-  public moveToPos (pos: Vector3) {
+  public moveToPos(pos: Vector3) {
     this.bridge.sendCommand(
       {
         id: this.id,
@@ -171,7 +171,7 @@ export class BoidInterface extends GameInterface {
     )
   }
 
-  public moveTo (x: number, y: number, distanceThreshold?: number) {
+  public moveTo(x: number, y: number, distanceThreshold?: number) {
     const targetPos = new Vector3(x, y, 0);
     this.bridge.sendCommand(
       {
@@ -194,13 +194,13 @@ export class BoidInterface extends GameInterface {
     )
   }
 
-  public attack (target: Positional) {
+  public attack(target: Positional) {
     const dir = target.position.clone().sub(this.position);
     dir.normalize();
     this.attack_dir(dir.x, dir.y);
   }
 
-  public attack_dir (x: number, y: number) {
+  public attack_dir(x: number, y: number) {
     this.bridge.sendCommand(
       {
         id: this.id,

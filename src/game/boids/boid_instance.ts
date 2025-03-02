@@ -270,7 +270,10 @@ export default class BoidInstance extends Component {
 
     this.system.removeBoidHash(this.boidIndex, this._hash);
     this._hash = hash;
-    this.system.setBoidHash(this.boidIndex, hash);
+    this.system.setBoidHash({
+      id: this.boidId,
+      ownerId: this.unit.ownerId,
+    }, hash);
   }
 
   getGPUInputData(): BoidInputData {

@@ -12,10 +12,14 @@
   opacity: 0.3;
 }
 
-
+/* Code Mirror Stuff */
 .cm-theme {
   border-radius: 10px;
   width: 100%;
+}
+
+.cm-editor.cm-focused {
+  outline: none;
 }
 
 #terminal * {

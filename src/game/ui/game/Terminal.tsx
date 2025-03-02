@@ -37,7 +37,7 @@ export function Terminal(props: TerminalProps) {
 
   console.log("re-rendering terminal");
 
-  // const [terminalActive, setTerminalActive] = useState(false);
+  const [terminalActive, setTerminalActive] = useState(false);
   const [oldTerminalContent, setOldTerminalContent] = useState("");
   const [hasFocus, setHasFocus] = useState(false);
   const [terminalRunning, setTerminalRunning] = useState(false);
@@ -45,9 +45,9 @@ export function Terminal(props: TerminalProps) {
 
 
   const {
-    trackingScreenPosition,
-    setTrackingPosition,
-    trackingScale,
+    cameraPosition,
+    screenToWorld,
+    worldToScreen
   } = useGameCamera(Player);
 
 
@@ -70,7 +70,7 @@ export function Terminal(props: TerminalProps) {
   const openTerminal = useCallback(
     (args: TerminalOpenArgs) => {
       console.log("Opening terminal");
-
+      setTerminalActive(true);
       setTerminalPosition({
         x: args.mousePosition?.[0] ?? 0,
         y: args.mousePosition?.[1] ?? 0,
@@ -88,7 +88,7 @@ export function Terminal(props: TerminalProps) {
   );
 
   const closeTerminal = useCallback(() => {
-    // setTerminalActive(false);
+    setTerminalActive(false);
     setTerminalContent(clearContent());
   }, [props.editor]);
 
@@ -230,8 +230,6 @@ export function Terminal(props: TerminalProps) {
 
   useEffect(() => {
 
-    setTrackingPosition({ x: 0.5, y: 1, z: 0 });
-
     const submit = () => {
       if (props.editor.current?.view?.hasFocus) {
 
@@ -311,14 +309,7 @@ export function Terminal(props: TerminalProps) {
 
   return (
     <>
-      <div style={{
-        position: "absolute",
-        top: trackingScreenPosition.y - (300 * trackingScale) / 2,
-        left: trackingScreenPosition.x - (300 * trackingScale) / 2,
-        width: `${300 * trackingScale}px`,
-        height: `${300 * trackingScale}px`,
-        backgroundColor: "red",
-      }} />
+
       <AnimatePresence>
         (
         <motion.div
@@ -326,7 +317,7 @@ export function Terminal(props: TerminalProps) {
           transition={{ duration: 0.2 }}
           // initial={{ translateY: 30 }}
           initial={{ opacity: 0 }}
-          animate={{ opacity: hasFocus ? 1 : 0.8, translateX: terminalPosition.x, top: terminalPosition.y }}
+          animate={{ opacity: hasFocus ? 1 : 0.8, height: terminalActive ? "auto" : "0px" }}
           // exit={{ translateY: 30 }}
           exit={{ opacity: 0 }}
           style={{
@@ -337,6 +328,7 @@ export function Terminal(props: TerminalProps) {
             flexDirection: "row",
             backgroundColor: bgColor,
             zIndex: 1000,
+            translateX: terminalPosition.x - 150, top: terminalPosition.y,
             // opacity: hasFocus ? 1 : 0.5,
           }}
         >
@@ -347,8 +339,9 @@ export function Terminal(props: TerminalProps) {
             }}
             style={{
               width: "26.4px",
-              height: "26.4px",
+              height: terminalActive ? "26.4px" : "0px",
               backgroundColor: loop ? "#32a852" : "#433e54",
+              transitionDuration: "0.2s",
             }}
           >
             <motion.div
@@ -401,3 +394,15 @@ export function Terminal(props: TerminalProps) {
     </>
   );
 }
+
+/*
+  <div style={{
+  position: "absolute",
+  top: trackingScreenPosition.y - (300 * trackingScale) / 2,
+  left: trackingScreenPosition.x - (300 * trackingScale) / 2,
+  width: `${300 * trackingScale}px`,
+  height: `${300 * trackingScale}px`,
+  backgroundColor: "red",
+}} />
+
+*/

@@ -13,6 +13,14 @@ export type TerminalEvents = {
   focus_terminal: void;
 };
 
+// extend window object to store last mouse mousePosition
+declare global {
+  interface Window {
+    lastMouseX: number;
+    lastMouseY: number;
+  }
+}
+
 export const TerminalEventEmitter = mitt<TerminalEvents>();
 
 const onMouseMove = (e: MouseEvent) => {
@@ -39,8 +47,8 @@ const submitTerminal = (e: KeyboardEvent) => {
   console.log("Key Pressed", e.key, e.ctrlKey, e.metaKey, e.shiftKey);
   if (e.key === "Enter" && (e.ctrlKey || e.metaKey || e.shiftKey)) {
     TerminalEventEmitter.emit("submit_terminal");
-  } 
-  
+  }
+
   if (e.key === "l" && (e.ctrlKey || e.metaKey)) {
     TerminalEventEmitter.emit("loop_toggle");
     console.log("Loop Toggle");
@@ -48,9 +56,13 @@ const submitTerminal = (e: KeyboardEvent) => {
 
   // on Slash
   if (e.key === "/") {
-    TerminalEventEmitter.emit("focus_terminal");
+    //TerminalEventEmitter.emit("focus_terminal");
+    TerminalEventEmitter.emit("open_new_terminal", {
+      mousePosition: [window.lastMouseX, window.lastMouseY],
+    });
+
   }
-  
+
 };
 
 window.addEventListener("keydown", submitTerminal);

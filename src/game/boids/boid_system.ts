@@ -189,9 +189,7 @@ export default class BoidSystemComponent extends Component {
     if (!boid) return [];
     const tile = this.grid.gridTileAt(boid.data.position);
     const neighbours = this.grid.getNeighbours(tile.x, tile.y);
-
     let neighbourBoids: Neighbour[] = [];
-
     for (const neighbour of neighbours) {
       neighbourBoids = neighbourBoids.concat(this.getBoidIdsAtTile(neighbour.x, neighbour.y));
     }
@@ -199,7 +197,7 @@ export default class BoidSystemComponent extends Component {
     return neighbourBoids;
   }
 
-  public setBoidHash(boidId: number, hash: number) {
+  public setBoidHash(neighbour: Neighbour, hash: number) {
     if (!this.hashMappedBoidRefs.has(hash)) {
       this.hashMappedBoidRefs.set(hash, new Map());
     }
@@ -207,10 +205,7 @@ export default class BoidSystemComponent extends Component {
     const map = this.hashMappedBoidRefs.get(hash);
     if (!map) return;
 
-    map.set(boidId, {
-      id: boidId,
-      ownerId: 0
-    });
+    map.set(neighbour.id, neighbour);
   }
 
   public removeBoidHash(boidId: number, hash: number) {

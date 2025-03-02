@@ -6,26 +6,15 @@ const v3 = new Vector3(0, 0, 0);
 const v2 = new Vector2(0, 0);
 export function useGameCamera(player: SessionManager) {
 
-  const [trackingPosition, setTrackingPosition] = useState({ x: 0, y: 0, z: 0 });
-  const [trackingScreenPosition, setTrackingScreenPosition] = useState({ x: 0, y: 0 });
-  const [trackingScale, setTrackingScale] = useState(1);
-
+  const [cameraPosition, setCameraPosition] = useState({ x: 0, y: 0, z: 0 });
 
   const run = useCallback(() => {
-    v3.x = trackingPosition.x;
-    v3.y = trackingPosition.y;
-    v2.x = trackingScreenPosition.x;
-    v2.y = trackingScreenPosition.y;
+    if (!player || !player.scene) return;
 
-    if (player && player.scene && player.scene.activeCamera) {
-      const screenPosition = player.scene.inputSystem.worldToScreen(v3, true);
-      setTrackingScale(player.scene.activeCamera.scale);
-      setTrackingScreenPosition({
-        x: screenPosition.x,
-        y: screenPosition.y,
-      });
-    }
-  }, [player, trackingPosition, trackingScreenPosition]); // `trackingScreenPosition` is still in dependencies
+    const v = player.scene.activeCamera.transform.position;
+    setCameraPosition({ x: v.x, y: v.y, z: v.z });
+
+  }, [player]); // `trackingScreenPosition` is still in dependencies
 
   useEffect(() => {
     if (!player || !player.scene) return;
@@ -39,5 +28,18 @@ export function useGameCamera(player: SessionManager) {
 
   }, [player, player.scene]);
 
-  return { trackingPosition, trackingScreenPosition, setTrackingPosition, trackingScale };
+  const screenToWorld = useCallback((x: number, y: number) => {
+    if (!player || !player.scene) return;
+    player.scene.inputSystem.screenToWorld(x, y, 0, true);
+    return { x: v3.x, y: v3.y };
+  }, [cameraPosition]);
+
+  const worldToScreen = useCallback((x: number, y: number, z: number) => {
+    if (!player || !player.scene) return;
+    v3.set(x, y, z);
+    player.scene.inputSystem.worldToScreen(v3, true);
+    return { x: v2.x, y: v2.y };
+  }, [cameraPosition]);
+
+  return { cameraPosition, screenToWorld, worldToScreen };
 }
