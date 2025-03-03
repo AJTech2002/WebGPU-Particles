@@ -3,20 +3,22 @@ import { Vector3, Vector4 } from "@engine/math/src";
 import { Rigidbody } from "@engine/physics/rigidbody";
 import Component from "@engine/scene/component";
 import Collider from "@engine/scene/core/collider_component";
-import BoidScene from "@game/boid_scene";
+import BoidScene, { UnitType } from "@game/boid_scene";
 import BoidInstance from "@game/boids/boid_instance";
 import BoidSystemComponent from "@game/boids/boid_system";
 import { Castle } from "@game/components/castle";
 import { Damageable } from "@game/components/damageable";
 import { Rock } from "@game/components/enemies/rock";
-import { UnitType } from "@game/squad/squad";
 import { vec3 } from "gl-matrix";
+
+export const UNIT_SCALE = 0.25;
 
 export class Unit extends Damageable {
   private boidInstance!: BoidInstance;
   private system!: BoidSystemComponent;
   private _unitType: UnitType = "Soldier";
-  private _ownerId: number = 0; // 0 is player / 1 is enemy
+  private _ownerId: number = 0; // 0 is player / 1 is enemyColorPallet
+  private selected: boolean = false;
 
   constructor(ownerId: number, unitType: UnitType) {
     super(100, 0);
@@ -31,8 +33,8 @@ export class Unit extends Damageable {
       BoidSystemComponent
     )[0] as BoidSystemComponent;
     // this.setUnitScale();
-    this.boidInstance.originalScale = 0.25;
-    this.boidInstance.scale = 0.25;
+    this.boidInstance.originalScale = UNIT_SCALE;
+    this.boidInstance.scale = UNIT_SCALE;
     this.setUnitColor();
   }
 
@@ -60,7 +62,7 @@ export class Unit extends Damageable {
     return this._unitType;
   }
 
-  public moveTo (x: number, y: number) {
+  public moveTo(x: number, y: number) {
     this.boidInstance.moveTo(x, y);
   }
 
@@ -97,12 +99,12 @@ export class Unit extends Damageable {
   async setUnitColor() {
     let boidColor =
       this.playerColorPallete[
-        Math.floor(Math.random() * this.playerColorPallete.length)
+      Math.floor(Math.random() * this.playerColorPallete.length)
       ];
     if (this._ownerId === 1) {
       boidColor =
         this.enemyColorPallete[
-          Math.floor(Math.random() * this.enemyColorPallete.length)
+        Math.floor(Math.random() * this.enemyColorPallete.length)
         ];
     }
 
@@ -121,26 +123,6 @@ export class Unit extends Damageable {
   }
 
 
-  async setUnitScale () {
-
-    // this.boid.originalScale = 0
-
-    // lerp up
-    let t = 0;
-    const lerpTime = 0.1;
-    this.scene.runLoopForSeconds(
-      lerpTime,
-      (dT) => {
-        t += dT / lerpTime;
-        const scale = expected * t;
-        this.boid.scale = scale;
-      },
-      () => {
-        this.boid.scale = expected;
-      }
-    );
-  }
-
   protected override handleDamage(amount: number): void {
     super.handleDamage(amount);
   }
@@ -150,15 +132,15 @@ export class Unit extends Damageable {
 
     if (this.ownerId === 0) {
       if (collider?.gameObject)
-      if (collider.gameObject.name.includes("rock") && !this.alreadyColliding) {
-        const rockComponent = collider.gameObject.getComponent<Rock>(Rock);
-        rockComponent?.takeDamage(5);
-        const force = this.position.clone().sub(collider.gameObject.transform.position).normalize().multiplyScalar(30.0);
-        force.z = 0;
-        this.knockbackForce(force, 0.05);
-        this.takeDamage(500, true);
-        
-      }
+        if (collider.gameObject.name.includes("rock") && !this.alreadyColliding) {
+          const rockComponent = collider.gameObject.getComponent<Rock>(Rock);
+          rockComponent?.takeDamage(5);
+          const force = this.position.clone().sub(collider.gameObject.transform.position).normalize().multiplyScalar(30.0);
+          force.z = 0;
+          this.knockbackForce(force, 0.05);
+          this.takeDamage(500, true);
+
+        }
     }
 
   }
@@ -194,15 +176,35 @@ export class Unit extends Damageable {
     this.knockingBack = false;
   }
 
+  //#region Selection
+
+  public isSelected(): boolean {
+    return this.selected;
+  }
+
+  public select() {
+    this.selected = true;
+    this.boidInstance.outlineColor = new Vector4(1, 1, 1, 1);
+  }
+
+  public deselect() {
+    this.selected = false;
+    this.boidInstance.outlineColor = new Vector4(0, 0, 0, 0);
+  }
+
+  //#endregion
+
+  //#region Unit Behaviour
+
   public attackPosition(x: number, y: number) {
     // get dir
-    const dir = new Vector3(x, y, 0).sub( this.position.clone() ); 
+    const dir = new Vector3(x, y, 0).sub(this.position.clone());
     dir.normalize();
     this.attack(dir.x, dir.y);
   }
 
-  public getNeighbours() : Unit[] {
-    const neighbours =  this.system.getBoidNeighbours(this.boidInstance.id);
+  public getNeighbours(): Unit[] {
+    const neighbours = this.system.getBoidNeighbours(this.boidInstance.id);
     const units: Unit[] = [];
     for (let i = 0; i < neighbours.length; i++) {
       if (neighbours[i].id === this.boidInstance.id) continue;
@@ -212,8 +214,8 @@ export class Unit extends Damageable {
     return units;
   }
 
-  public getEnemyNeighbours() : Unit[] {
-    const neighbours =  this.system.getBoidNeighbours(this.boidInstance.id);
+  public getEnemyNeighbours(): Unit[] {
+    const neighbours = this.system.getBoidNeighbours(this.boidInstance.id);
     const units: Unit[] = [];
     for (let i = 0; i < neighbours.length; i++) {
       if (neighbours[i].id === this.boidInstance.id) continue;
@@ -226,13 +228,13 @@ export class Unit extends Damageable {
   public attack(x: number, y: number) {
     if (!this.alive) return;
 
-    const attackDistance =.2;
-    
+    const attackDistance = .2;
+
 
     const now = Date.now();
     if (now - this.lastAttackTime < 400) return;
 
-    const raycast : Rigidbody | null = this.scene.physics.raycast2D(
+    const raycast: Rigidbody | null = this.scene.physics.raycast2D(
       this.position,
       new Vector3(x, y, 0),
       attackDistance,
@@ -290,8 +292,8 @@ export class Unit extends Damageable {
             // set external force away from the boid
             const force = new Vector3();
             force.copy(boidDir).multiplyScalar(0.2);
-            
-            if (unit.canTakeDamage())  {
+
+            if (unit.canTakeDamage()) {
               unit.knockbackForce(force);
               unit.takeDamage(10);
             }
@@ -300,4 +302,6 @@ export class Unit extends Damageable {
       }
     }
   }
+
+  //#endregion
 }

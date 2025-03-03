@@ -11,15 +11,12 @@ import { motion } from "framer-motion";
 import { Prec } from "@codemirror/state";
 import LoopTexture from "@/assets/loop.png";
 import CodeMirror, {
-  EditorState,
   KeyBinding,
   keymap,
   ReactCodeMirrorRef,
 } from "@uiw/react-codemirror";
 import React, { useCallback, useEffect, useState } from "react";
-import hotkey from "hotkeys-js";
 import { TerminalEventEmitter, TerminalOpenArgs } from "./TerminalHandler";
-import { s } from "node_modules/framer-motion/dist/types.d-6pKw1mTI";
 import GameHelpers from "@game/player/interface/game_helpers?raw";
 import { useGameCamera } from "../core/hooks/useGameCamera";
 
@@ -71,11 +68,6 @@ export function Terminal(props: TerminalProps) {
     (args: TerminalOpenArgs) => {
       console.log("Opening terminal");
       setTerminalActive(true);
-      setTerminalPosition({
-        x: args.mousePosition?.[0] ?? 0,
-        y: args.mousePosition?.[1] ?? 0,
-      })
-      console.log("Setting terminal position", args.mousePosition);
       props.editor.current?.view?.focus();
       setTimeout(() => {
         setTerminalContent(clearContent);
@@ -317,18 +309,19 @@ export function Terminal(props: TerminalProps) {
           transition={{ duration: 0.2 }}
           // initial={{ translateY: 30 }}
           initial={{ opacity: 0 }}
-          animate={{ opacity: hasFocus ? 1 : 0.8, height: terminalActive ? "auto" : "0px" }}
+          animate={{ opacity: terminalActive ? (hasFocus ? 1 : 0.8) : 0.0 }}
           // exit={{ translateY: 30 }}
           exit={{ opacity: 0 }}
           style={{
             width: "300px",
             position: "absolute",
+            bottom: 30,
+            left: window.innerWidth / 2 - 150,
             // position: "rel",
             display: "flex",
             flexDirection: "row",
             backgroundColor: bgColor,
             zIndex: 1000,
-            translateX: terminalPosition.x - 150, top: terminalPosition.y,
             // opacity: hasFocus ? 1 : 0.5,
           }}
         >
@@ -369,7 +362,7 @@ export function Terminal(props: TerminalProps) {
               Prec.highest(keymap.of([exitMap, previousMap, nextMap])),
 
               javascript({
-                typescript: true,
+                typescript: true
               }),
 
               autocompletion({
@@ -402,7 +395,7 @@ export function Terminal(props: TerminalProps) {
   left: trackingScreenPosition.x - (300 * trackingScale) / 2,
   width: `${300 * trackingScale}px`,
   height: `${300 * trackingScale}px`,
-  backgroundColor: "red",
+  backgroundColor: "rrd",
 }} />
 
 */
