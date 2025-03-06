@@ -1,10 +1,21 @@
 import mitt from "mitt";
+import Player from "@game/player/session_manager";
 
+// Arguments to open a new terminal
 export interface TerminalOpenArgs {
   mousePosition?: [number, number];
-  fromSelection?: boolean;
+  id: string;
+  code?: string;
+  onSubmit?: (outputs: TerminalOutputs) => void;
 }
 
+// Outputs from the Terminal UI
+export interface TerminalOutputs {
+  code: string;
+  loop: boolean;
+}
+
+// Events that can be emitted to the terminal
 export type TerminalEvents = {
   open_new_terminal: TerminalOpenArgs;
   close_active_terminal: void;
@@ -36,9 +47,9 @@ const onMouseDown = (e: MouseEvent) => {
     (window as any).lastMouseY = e.clientY;
 
     if (e.button === 0) {
-      TerminalEventEmitter.emit("open_new_terminal", {
-        mousePosition: [e.clientX, e.clientY],
-      });
+      //TerminalEventEmitter.emit("open_new_terminal", {
+      //  mousePosition: [e.clientX, e.clientY],
+      //});
     }
   }
 };
@@ -58,7 +69,12 @@ const submitTerminal = (e: KeyboardEvent) => {
   if (e.key === "/") {
     //TerminalEventEmitter.emit("focus_terminal");
     TerminalEventEmitter.emit("open_new_terminal", {
+      id: "global",
       mousePosition: [window.lastMouseX, window.lastMouseY],
+      onSubmit: (outputs: TerminalOutputs) => {
+        if (outputs.code)
+          Player.runCode("global", outputs.code, outputs.loop);
+      }
     });
 
   }

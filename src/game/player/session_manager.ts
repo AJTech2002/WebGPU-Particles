@@ -7,8 +7,9 @@ import { Vector3 } from "@engine/math/src";
 import { BasicLevel } from "@game/basic_level";
 import codeExecutionManager from "./code_runner/code_exec_manager";
 import { ReactCodeMirrorRef } from "@uiw/react-codemirror";
-import { BoidInterface } from "./interface/boid_interface";
 import { UserCodeStorage } from "@game/ui/game/UserCodeStorage";
+import { findFunctions } from "@/tsUtils";
+import GameHelpers from "@game/player/interface/game_helpers?raw";
 
 // Proxy class that supports dot notation for accessing & creating properties
 export class GlobalStorage {
@@ -49,7 +50,7 @@ export class SessionManager {
 
   // Stores User Code Context (Functions)
   public userCodeStorage: UserCodeStorage | undefined = new UserCodeStorage();
-
+  private commandCount: number = 0;
 
   constructor() { }
 
@@ -70,8 +71,8 @@ export class SessionManager {
       new BasicLevel({
         squads: [
           {
-            type: "Soldier",
-            squadSize: 5
+            squadType: "Soldier",
+            squadSize: 105
           }
         ],
         enemySettings: {
@@ -133,7 +134,7 @@ export class SessionManager {
     this.input = new PlayerInput(this);
 
     this.userCodeStorage.retrieveFromLocalStorage();
-    this.userCodeStorage.commit(); // Run the code
+    this.userCodeStorage.load_user_fns_from_storage(); // Run the code
   }
 
 
@@ -141,17 +142,52 @@ export class SessionManager {
     return this.codeMirror?.view?.hasFocus ?? false;
   }
 
+  public cancelExecution(id: string) {
+
+  }
+
+  public runCode(id: string, code: string, loop: boolean) {
+
+    const fns = findFunctions(code);
+    let postCode = "";
+    if (fns.length > 0) {
+      for (let i = 0; i < fns.length; i++) {
+        postCode += `globals.${fns[i].name} = ${fns[i].name};\n`;
+        this.userCodeStorage.store_fn(fns[i]);
+      }
+    }
+
+    if (code) {
+      try {
+        // get the first line, if it is a comment use it as the title
+        const firstLine = code.split("\n")[0];
+        const title = firstLine.startsWith("//") ? firstLine : undefined;
+        // remove // from the title
+
+        const titleStr = title
+          ? title.replace("//", "").trim()
+          : "Command #" + this.commandCount;
+
+        // Start from #region HELPERS and end at #endregion HELPERS
+        const helperFns =
+          GameHelpers.substring(GameHelpers.indexOf("//#region HELPERS")) +
+          "\n";
+
+        this.runTranspiledCode(id, titleStr, helperFns + code + "\n" + (postCode ?? ""), loop);
+
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+
+
+  }
+
   //TODO: returns some way to stop the code execution - and is threaded
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public runCode(codeTitle: string, transpiledCode: string, terminalProps?: TerminalProperties) {
+  private runTranspiledCode(id: string, codeTitle: string, transpiledCode: string, loop: boolean) {
     if (this.engine !== undefined) {
-      if (terminalProps?.mousePosition)
-        this.gameContext.defaultMousePosition = this.bridge.screenToWorld(terminalProps.mousePosition[0], terminalProps.mousePosition[1]);
-      else
-        this.gameContext.defaultMousePosition = null;
-
-      console.log(this.gameContext.defaultMousePosition);
-
       const newContext: SessionContext = {
         game: this.gameContext as GameContext,
         tick: this.scene.tick.bind(this.scene),
@@ -161,7 +197,7 @@ export class SessionManager {
         mousePosition: this.gameContext.mousePosition,
       };
 
-      codeExecutionManager.runCode(codeTitle, transpiledCode, newContext, terminalProps?.loop ?? false);
+      codeExecutionManager.runCode(id, codeTitle, transpiledCode, newContext, loop);
     }
   }
 

@@ -3,9 +3,8 @@ import "./Terminal.css";
 import { bgColor, fgColor } from "@/style";
 import { javascript } from "@codemirror/lang-javascript";
 import * as duotone from "@uiw/codemirror-theme-duotone";
-import { findFunctions, saveFile, typescriptCompletionSource } from "../../../tsUtils";
+import { typescriptCompletionSource } from "../../../tsUtils";
 import Player from "@game/player/session_manager";
-import mitt, { Emitter } from "mitt";
 import { AnimatePresence } from "framer-motion";
 import { motion } from "framer-motion";
 import { Prec } from "@codemirror/state";
@@ -16,49 +15,23 @@ import CodeMirror, {
   ReactCodeMirrorRef,
 } from "@uiw/react-codemirror";
 import React, { useCallback, useEffect, useState } from "react";
-import { TerminalEventEmitter, TerminalOpenArgs } from "./TerminalHandler";
+import { TerminalEventEmitter, TerminalOpenArgs, TerminalOutputs } from "./TerminalHandler";
 import GameHelpers from "@game/player/interface/game_helpers?raw";
-import { useGameCamera } from "../core/hooks/useGameCamera";
 
 export interface TerminalProps {
   editor: React.RefObject<ReactCodeMirrorRef>;
 }
-
 export function Terminal(props: TerminalProps) {
-  const [terminalPosition, setTerminalPosition] = useState(() => {
-    return {
-      x: 0,
-      y: 30,
-    };
-  });
-
-  console.log("re-rendering terminal");
-
   const [terminalActive, setTerminalActive] = useState(false);
   const [oldTerminalContent, setOldTerminalContent] = useState("");
   const [hasFocus, setHasFocus] = useState(false);
   const [terminalRunning, setTerminalRunning] = useState(false);
   const [terminalHistory, setTerminalHistory] = useState<string[]>([]);
-
-
-  const {
-    cameraPosition,
-    screenToWorld,
-    worldToScreen
-  } = useGameCamera(Player);
-
-
-
-  const [commandCount, setCommandCount] = useState(() => {
-    return 0;
-  });
-
+  const [terminalArgs, setTerminalArgs] = useState<TerminalOpenArgs | null>(null);
   const clearContent = useCallback(() => {
-    // return `//Command #${commandCount}\n`;
     return "";
   }, []);
   const [terminalContent, setTerminalContent] = useState("");
-
   const [hasModified, setHasModified] = useState(false);
   const [historyIndex, setHistoryIndex] = useState(0);
   const [loop, setLoop] = useState(false);
@@ -66,11 +39,19 @@ export function Terminal(props: TerminalProps) {
 
   const openTerminal = useCallback(
     (args: TerminalOpenArgs) => {
-      console.log("Opening terminal");
       setTerminalActive(true);
+      setTerminalArgs(args);
+      console.log("Terminal Opening terminal", args);
       props.editor.current?.view?.focus();
       setTimeout(() => {
-        setTerminalContent(clearContent);
+
+        if (args.code) {
+          setTerminalContent(args.code);
+        }
+        else {
+          setTerminalContent(clearContent());
+        }
+
         setTimeout(() => {
           setCursorToLast();
         }, 10);
@@ -157,36 +138,6 @@ export function Terminal(props: TerminalProps) {
     ]
   );
 
-  const runCode = useCallback(async (postCode?: string) => {
-    const code = terminalContent;
-    if (code) {
-      try {
-        // get the first line, if it is a comment use it as the title
-        const firstLine = code.split("\n")[0];
-        const title = firstLine.startsWith("//") ? firstLine : undefined;
-        // remove // from the title
-
-        const titleStr = title
-          ? title.replace("//", "").trim()
-          : "Command #" + commandCount;
-
-        // Start from #region HELPERS and end at #endregion HELPERS
-        const helperFns =
-          GameHelpers.substring(GameHelpers.indexOf("//#region HELPERS")) +
-          "\n";
-
-        Player.runCode(titleStr, helperFns + code + "\n" + (postCode ?? ""), {
-          mousePosition: [terminalPosition.x, terminalPosition.y],
-          loop: loop,
-        });
-
-        setCommandCount((c) => c + 1);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-  }, [terminalContent, loop, terminalHistory, commandCount]);
-
   const toggleLoop = useCallback(() => {
     console.log("Toggling Loop");
     setLoop((l) => !l);
@@ -225,20 +176,13 @@ export function Terminal(props: TerminalProps) {
     const submit = () => {
       if (props.editor.current?.view?.hasFocus) {
 
-        // This appends all fns to the globals env to be used directly later on
-        const fns = findFunctions();
-        let postCode = "";
-        if (fns.length > 0) {
-          for (let i = 0; i < fns.length; i++) {
-            postCode += `globals.${fns[i].name} = ${fns[i].name};\n`;
-            Player.userCodeStorage.store(fns[i]);
-          }
+        if (terminalArgs.onSubmit) {
+          console.log("Submitting Terminal");
+          terminalArgs.onSubmit({
+            code: terminalContent,
+            loop: loop,
+          });
         }
-
-        runCode(postCode).then(() => {
-          // NOT ERROR -> SAVE TO GLOBAL LIST FOR INTELLISENSE - FOR THIS CONTEXT
-          console.log(findFunctions())
-        });
 
         setLoop(false);
         setTerminalHistory((h) => [...h, terminalContent]);
@@ -270,14 +214,14 @@ export function Terminal(props: TerminalProps) {
       TerminalEventEmitter.off("loop_toggle", toggleLoop);
       TerminalEventEmitter.off("focus_terminal", focusTerminal);
     };
-  }, [terminalContent, terminalHistory, runCode]);
+  }, [terminalContent, terminalHistory, terminalArgs, loop]);
 
   const exitMap: KeyBinding = {
     key: "Escape",
     win: "Escape",
     run: () => {
       if (props.editor.current?.view?.hasFocus) {
-        closeTerminal();
+        TerminalEventEmitter.emit("close_active_terminal", undefined);
         return true;
       }
     },
@@ -303,86 +247,86 @@ export function Terminal(props: TerminalProps) {
     <>
 
       <AnimatePresence>
-        (
-        <motion.div
-          key="terminal"
-          transition={{ duration: 0.2 }}
-          // initial={{ translateY: 30 }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: terminalActive ? (hasFocus ? 1 : 0.8) : 0.0 }}
-          // exit={{ translateY: 30 }}
-          exit={{ opacity: 0 }}
-          style={{
-            width: "300px",
-            position: "absolute",
-            bottom: 30,
-            left: window.innerWidth / 2 - 150,
-            // position: "rel",
-            display: "flex",
-            flexDirection: "row",
-            backgroundColor: bgColor,
-            zIndex: 1000,
-            // opacity: hasFocus ? 1 : 0.5,
-          }}
-        >
-          <div
-            id="loop-button"
-            onClick={() => {
-              setLoop(!loop);
-            }}
+        {terminalActive && (
+          <motion.div
+            key="terminal"
+            transition={{ duration: 0.2 }}
+            // initial={{ translateY: 30 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: terminalActive ? (hasFocus ? 1 : 0.8) : 0.0 }}
+            // exit={{ translateY: 30 }}
+            exit={{ opacity: 0 }}
             style={{
-              width: "26.4px",
-              height: terminalActive ? "26.4px" : "0px",
-              backgroundColor: loop ? "#32a852" : "#433e54",
-              transitionDuration: "0.2s",
+              width: "300px",
+              position: "absolute",
+              bottom: 30,
+              left: window.innerWidth / 2 - 150,
+              // position: "rel",
+              display: "flex",
+              flexDirection: "row",
+              backgroundColor: bgColor,
+              zIndex: 1000,
+              // opacity: hasFocus ? 1 : 0.5,
             }}
           >
-            <motion.div
-              transition={{ duration: 0.5 }}
-              animate={{ rotate: loop ? 360 : 0 }}
-              style={{
-                position: "relative",
-                width: "100%",
-                height: "100%",
-                backgroundImage: `url(${LoopTexture})`,
-                backgroundSize: "80%",
-                backgroundPosition: "center",
-                backgroundRepeat: "no-repeat",
+            <div
+              id="loop-button"
+              onClick={() => {
+                setLoop(!loop);
               }}
+              style={{
+                width: "26.4px",
+                height: terminalActive ? "26.4px" : "0px",
+                backgroundColor: loop ? "#32a852" : "#433e54",
+                transitionDuration: "0.2s",
+              }}
+            >
+              <motion.div
+                transition={{ duration: 0.5 }}
+                animate={{ rotate: loop ? 360 : 0 }}
+                style={{
+                  position: "relative",
+                  width: "100%",
+                  height: "100%",
+                  //backgroundImage: `url(${LoopTexture})`,
+                  backgroundSize: "80%",
+                  backgroundPosition: "center",
+                  backgroundRepeat: "no-repeat",
+                }}
+              />
+            </div>
+            <CodeMirror
+              className="block-game-input"
+              ref={props.editor}
+              value={terminalContent}
+              theme={duotone.duotoneDark}
+              height={"100%"}
+              width="100%"
+              extensions={[
+                Prec.highest(keymap.of([exitMap, previousMap, nextMap])),
+
+                javascript({
+                  typescript: true
+                }),
+
+                autocompletion({
+                  override: [tsComplete],
+                  activateOnTyping: true,
+                  filterStrict: false,
+                  aboveCursor: true,
+                  maxRenderedOptions: 30,
+                }),
+              ]}
+              onChange={(c) => {
+                setHasModified(true);
+                setTerminalContent(c);
+                setLastTypedTime(Date.now());
+                setHasFocus(true);
+              }}
+
             />
-          </div>
-          <CodeMirror
-            className="block-game-input"
-            ref={props.editor}
-            value={terminalContent}
-            theme={duotone.duotoneDark}
-            height={"100%"}
-            width="100%"
-            extensions={[
-              Prec.highest(keymap.of([exitMap, previousMap, nextMap])),
-
-              javascript({
-                typescript: true
-              }),
-
-              autocompletion({
-                override: [tsComplete],
-                activateOnTyping: true,
-                filterStrict: false,
-                aboveCursor: true,
-                maxRenderedOptions: 30,
-              }),
-            ]}
-            onChange={(c) => {
-              setHasModified(true);
-              setTerminalContent(c);
-              setLastTypedTime(Date.now());
-              setHasFocus(true);
-            }}
-
-          />
-        </motion.div>
-        )
+          </motion.div>
+        )}
       </AnimatePresence>
     </>
   );

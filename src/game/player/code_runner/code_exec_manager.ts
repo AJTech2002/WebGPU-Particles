@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 import mitt, { EventType, Emitter } from "mitt";
 import { EventEmitter } from "@/utils/emitter";
 import CodeRunner, { CodeContext } from "./code_runner";
@@ -18,14 +18,14 @@ export class RunningHandler {
   public completed: boolean = false;
 
 
-  constructor (title: string, code: string, id: string, promise: Promise<void>, context: CodeContext<SessionContext> ) {
+  constructor(title: string, code: string, id: string, promise: Promise<void>, context: CodeContext<SessionContext>) {
     this.title = title;
     this.code = code;
     this.id = id;
     this.context = context;
     this.promise = promise;
     this.context = context;
-    
+
     this.promise.then(() => {
       this.onCompletion();
     }).catch((e) => {
@@ -33,16 +33,16 @@ export class RunningHandler {
     });
   }
 
-  public cancelExecution () {
+  public cancelExecution() {
     this.context.running = false;
     this.completed = true;
   }
 
-  public onError (e: Error) {
+  public onError(e: Error) {
     // emit error
     console.error(e);
     this.completed = true;
-    
+
   }
 
   public pauseCode() {
@@ -53,7 +53,7 @@ export class RunningHandler {
     this.context.paused = false;
   }
 
-  public onCompletion () {
+  public onCompletion() {
     // emit completion
     console.log("Code Execution Completed");
     this.completed = true;
@@ -65,7 +65,7 @@ export class RunningHandler {
 export type CodeExecutionEvents = {
   'started_new': void,
   'completed': void,
-  'error': {handler: RunningHandler, error: Error},
+  'error': { handler: RunningHandler, error: Error },
 };
 
 // extend an emitter
@@ -76,15 +76,11 @@ export class CodeExecutionManager extends EventEmitter<CodeExecutionEvents> {
 
 
 
-  public getRunningFunctions () : RunningHandler[] {
+  public getRunningFunctions(): RunningHandler[] {
     return Array.from(this.runningFunctions.values());
   }
 
-  public async runCode (codeTitle: string, code: string, context: SessionContext, loop: boolean) {
-
-    // create hash
-    const id = Math.random().toString(36).substring(7);
-
+  public async runCode(id: string, codeTitle: string, code: string, context: SessionContext, loop: boolean) {
 
     const globalWrapped = `
       with (context.scope.globals) {
@@ -115,11 +111,11 @@ export class CodeExecutionManager extends EventEmitter<CodeExecutionEvents> {
     }).catch((e) => {
       // remove
       this.runningFunctions.delete(id);
-      codeExecutionManager.emit('error', {handler: runHandler, error: e});
+      codeExecutionManager.emit('error', { handler: runHandler, error: e });
     });
 
     this.runningFunctions.set(id, runHandler);
-    
+
     this.emit('started_new', undefined);
   }
 
@@ -135,38 +131,59 @@ export const CodeExecutionProvider = CodeExecutionContext.Provider;
 // create a custom hook that uses the context
 export const useActiveRunningAsyncThreads = () => {
   const context = React.useContext(CodeExecutionContext);
-  const [runningFunctions, setRunningFunctions] = React.useState<RunningHandler[]> ([]);
+  const [runningFunctions, setRunningFunctions] = React.useState<RunningHandler[]>([]);
+  const [mappedRunningFunctions, setMappedRunningFunctions] = React.useState<Map<string, RunningHandler>>(new Map());
 
   if (!context) {
     throw new Error('useCodeExecution must be used within a CodeExecutionProvider');
   }
 
+  const setMapped = (runningFunctions: RunningHandler[]) => {
+    const newMap = new Map();
+    runningFunctions.forEach((handler) => {
+      newMap.set(handler.id, handler);
+    });
+
+    setMappedRunningFunctions(newMap);
+  }
+
+  const update = () => {
+    setRunningFunctions([...context.getRunningFunctions()]);
+    setMapped([...context.getRunningFunctions()]);
+  }
+
+  const isRunning = useCallback((id: string) => {
+    return mappedRunningFunctions.has(id);
+  }, [mappedRunningFunctions]);
+
   useEffect(() => {
-    
+
+    update();
+
     context.on('started_new', (handler) => {
-      setRunningFunctions([...context.getRunningFunctions()]);
+      update();
     });
 
     codeExecutionManager.on('completed', (handler) => {
-      setRunningFunctions([...codeExecutionManager.getRunningFunctions()]);
+      update();
     });
 
     codeExecutionManager.on('error', (data) => {
-      setRunningFunctions([...codeExecutionManager.getRunningFunctions()]);
+      update();
     });
 
     return () => {
 
       context.off('started_new', (handler) => {
-        setRunningFunctions([...context.getRunningFunctions()]);
+        update();
       });
 
       codeExecutionManager.off('completed', (handler) => {
-        setRunningFunctions([...codeExecutionManager.getRunningFunctions()]);
+        update();
       });
 
       codeExecutionManager.off('error', (data) => {
-        setRunningFunctions([...codeExecutionManager.getRunningFunctions()]);
+        update();
       });
     }
 
@@ -174,6 +191,7 @@ export const useActiveRunningAsyncThreads = () => {
 
   return {
     runningFunctions,
+    isRunning,
   };
 
 };
