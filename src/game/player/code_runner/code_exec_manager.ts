@@ -1,12 +1,9 @@
 import React, { useCallback, useEffect } from "react";
-import mitt, { EventType, Emitter } from "mitt";
 import { EventEmitter } from "@/utils/emitter";
 import CodeRunner, { CodeContext } from "./code_runner";
 import { SessionContext } from "../session_manager";
-import { Session } from "inspector/promises";
 import { saveFile } from "@/tsUtils";
-import { Vector3 } from "@engine/math/src";
-import { BoidInterface } from "../interface/boid_interface";
+import { makeSafe } from "@/tsSafety";
 
 export class RunningHandler {
 
@@ -31,10 +28,12 @@ export class RunningHandler {
     }).catch((e) => {
       this.onError(e);
     });
+
   }
 
   public cancelExecution() {
     this.context.running = false;
+    console.log("Execution Cancelled");
     this.completed = true;
   }
 
@@ -80,6 +79,19 @@ export class CodeExecutionManager extends EventEmitter<CodeExecutionEvents> {
     return Array.from(this.runningFunctions.values());
   }
 
+  public cancelExecution(id: string) {
+    const handler = this.runningFunctions.get(id);
+
+    if (handler) {
+      handler.cancelExecution();
+    }
+  }
+
+
+  public isRunning(id: string) {
+    return this.runningFunctions.has(id);
+  }
+
   public async runCode(id: string, codeTitle: string, code: string, context: SessionContext, loop: boolean) {
 
     const globalWrapped = `
@@ -88,7 +100,11 @@ export class CodeExecutionManager extends EventEmitter<CodeExecutionEvents> {
       }
     `
 
-    const outputTranspiled = saveFile(globalWrapped);
+    const safeCode = makeSafe(globalWrapped);
+
+    //console.log("Safe Code", safeCode);
+
+    const outputTranspiled = saveFile(safeCode);
 
     // create execution
     const {

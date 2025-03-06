@@ -40,7 +40,7 @@ const compilerOpts: CompilerOptions = {
 
 
 const system = createSystem(fsMap);
-export const env = createVirtualTypeScriptEnvironment(
+export const typescriptEnv = createVirtualTypeScriptEnvironment(
   system,
   ['index.ts'],
   ts,
@@ -64,11 +64,15 @@ const recurseTree = (node: ts.Node, level: number = 0, arr: FunctionInfo[]) => {
 }
 
 export const findFunctions = (code: string) => {
-  env.updateFile("index.ts", code);
-  const sourceFile = env.languageService.getProgram()?.getSourceFile("index.ts");
+  const _file = ts.createSourceFile(
+    'temp.ts',
+    code,
+    ts.ScriptTarget.Latest,
+    true
+  );
   const output: FunctionInfo[] = [];
-  if (sourceFile) {
-    recurseTree(sourceFile, 0, output);
+  if (_file) {
+    recurseTree(_file, 0, output);
   }
   return output;
 }
@@ -80,11 +84,11 @@ export const typescriptCompletionSource = async (context: any, preCode?: string)
 
   //TODO: This needs to be automated
   const totalCode = code;
-  env.updateFile("index.ts", totalCode);
+  typescriptEnv.updateFile("index.ts", totalCode);
   cursorPos += preCode?.length;
 
   // Get completions from the TypeScript language service
-  const completions = env.languageService.getCompletionsAtPosition("index.ts", cursorPos, {
+  const completions = typescriptEnv.languageService.getCompletionsAtPosition("index.ts", cursorPos, {
     allowIncompleteCompletions: true,
     includeExternalModuleExports: true,
     includeInsertTextCompletions: true,
@@ -121,7 +125,7 @@ export const typescriptCompletionSource = async (context: any, preCode?: string)
 };
 
 export const transpile = () => {
-  const output = env.languageService.getEmitOutput('index.ts');
+  const output = typescriptEnv.languageService.getEmitOutput('index.ts');
   const jsOutput = output.outputFiles.find((file) => file.name.endsWith(".js"));
 
   return jsOutput ? jsOutput.text : null;
@@ -130,7 +134,7 @@ export const transpile = () => {
 
 export const saveFile = (code: string): string | null => {
   // Update the virtual file system with the current content
-  env.updateFile("index.ts", code);
+  typescriptEnv.updateFile("index.ts", code);
 
   const transpiledCode = transpile();
   if (!transpiledCode) {

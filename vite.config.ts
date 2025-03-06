@@ -8,8 +8,13 @@ export default defineConfig({
   plugins: [react(), glsl()],
   assetsInclude: ['**/*.glsl', '**/*.vs', '**/*.fs', '**/*.png', '**/*.tscompute'],
   base: 'WebGPU-Particles',
+  build: {
+    rollupOptions: {
+      external: ['isolated-vm'],
+    }
+  },
   resolve: {
-    
+
     alias: {
       "@engine": path.resolve(__dirname, 'src/engine/'),
       "@renderer": path.resolve(__dirname, 'src/engine/renderer/'),
@@ -18,6 +23,6 @@ export default defineConfig({
       "@game": path.resolve(__dirname, 'src/game/'),
       "@player": path.resolve(__dirname, 'src/game/player/'),
       "@assets": path.resolve(__dirname, 'src/assets/'),
-  },
+    },
   }
 })

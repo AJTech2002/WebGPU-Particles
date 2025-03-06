@@ -46,26 +46,22 @@ export function ActionItem(props: ActionItemProps) {
 
   }, []);
 
-  const runCode = useCallback(() => {
-    if (item && !isRunningCode) {
-      Player.runCode(`${props.group}.${props.id}`, item.code, false);
-    } else {
-      Player.cancelExecution(`${props.group}.${props.id}`);
-    }
-  }, [item, props.group, props.id]);
+  const runCode = useCallback((code: string) => {
+    Player.runCode(`${props.group}.${props.id}`, code, false);
+  }, [item]);
 
   useEffect(() => {
 
     const run = (e) => {
       if (e.key === (props.id + 1).toString()) {
-        runCode();
+        runCode(item.code);
       }
     }
 
-    window.addEventListener("keydown", run);
+    window.addEventListener("keyup", run);
 
     return () => {
-      window.removeEventListener("keydown", run);
+      window.removeEventListener("keyup", run);
     }
 
   }, [item]);
@@ -101,7 +97,7 @@ export function ActionItem(props: ActionItemProps) {
 
   const handleClick = useCallback((e: MouseEvent) => {
     if (item && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
-      runCode();
+      runCode(item.code);
     }
     else {
       TerminalEventEmitter.emit("open_new_terminal", {
@@ -124,7 +120,7 @@ export function ActionItem(props: ActionItemProps) {
   let backgroundColor = item ? `rgb(${item.color[0]}, ${item.color[1]}, ${item.color[2]})` : undefined;
 
   if (isRunning(`${props.group}.${props.id}`)) {
-    backgroundColor = "rgb(30, 30, 30)";
+    backgroundColor = "rgb(255, 255, 255)";
   }
   console.log("Is Running", isRunningCode);
 
@@ -172,6 +168,7 @@ export function ActionItem(props: ActionItemProps) {
           position: "relative",
           transition: "background-color 0.2s",
           zIndex: 1, // Ensure it's in front
+          color: isRunning(`${props.group}.${props.id}`) ? "black" : "white",
         }}
         onClick={(e) => {
           handleClick(e.nativeEvent);

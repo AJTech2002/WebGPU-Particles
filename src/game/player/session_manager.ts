@@ -144,9 +144,15 @@ export class SessionManager {
 
   public cancelExecution(id: string) {
 
+    codeExecutionManager.cancelExecution(id);
   }
 
   public runCode(id: string, code: string, loop: boolean) {
+
+    if (codeExecutionManager.isRunning(id)) {
+      codeExecutionManager.cancelExecution(id);
+      return;
+    }
 
     const fns = findFunctions(code);
     let postCode = "";
@@ -173,7 +179,7 @@ export class SessionManager {
           GameHelpers.substring(GameHelpers.indexOf("//#region HELPERS")) +
           "\n";
 
-        this.runTranspiledCode(id, titleStr, helperFns + code + "\n" + (postCode ?? ""), loop);
+        this.runCodeWithGameContext(id, titleStr, helperFns + code + "\n" + (postCode ?? ""), loop);
 
       } catch (e) {
         console.error(e);
@@ -186,7 +192,7 @@ export class SessionManager {
 
   //TODO: returns some way to stop the code execution - and is threaded
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private runTranspiledCode(id: string, codeTitle: string, transpiledCode: string, loop: boolean) {
+  private runCodeWithGameContext(id: string, codeTitle: string, transpiledCode: string, loop: boolean) {
     if (this.engine !== undefined) {
       const newContext: SessionContext = {
         game: this.gameContext as GameContext,

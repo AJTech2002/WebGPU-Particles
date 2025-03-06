@@ -23,8 +23,17 @@ export interface CodeContext<T> {
 
 
 export default class CodeRunner {
-  private wrapCode (code: string) : string {
+  private wrapCode(code: string): string {
     const wrappedCode = `
+
+        function line (num) {
+          if (!context.running) {
+            throw new Error("Execution stopped");
+          }
+
+
+        }
+
         (async () => {
           with  (context) {
             context.begin();
@@ -57,14 +66,14 @@ export default class CodeRunner {
     Vector2,
   };
 
-  public run<T> (code: string, context: T, loop: boolean) : {
+  public run<T>(code: string, context: T, loop: boolean): {
     promise: Promise<void>,
     codeContext: CodeContext<T> | undefined
   } {
 
-    let codeContext : CodeContext<T> | undefined;
+    let codeContext: CodeContext<T> | undefined;
     const promise = new Promise<void>((resolve, reject) => {
-    
+
       const begin = () => {
         //
       };
@@ -79,7 +88,7 @@ export default class CodeRunner {
 
       const wrappedCode = this.wrapCode(code);
       codeContext = {
-        scope: context, 
+        scope: context,
         running: true,
         paused: false,
         begin,
@@ -88,7 +97,7 @@ export default class CodeRunner {
         code,
         loop,
         // types
-        
+
       }
 
       // add types
@@ -100,7 +109,7 @@ export default class CodeRunner {
 
 
       const asyncFunction = new Function("context", wrappedCode);
-      
+
       // const val = asyncFunction(...values);
       asyncFunction(codeContext);
     });
